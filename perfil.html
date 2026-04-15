@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1c1e">
+  <title>ObraGastos — Perfil</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <button class="btn-icon" onclick="window.history.back()" style="background:transparent;color:white">‹</button>
+    <div class="header-title">Mi perfil</div>
+    <div style="width:40px"></div>
+  </header>
+
+  <main class="main">
+    <!-- Avatar -->
+    <div class="card" style="text-align:center;padding:28px">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--gris-obra);color:var(--amarillo);
+                  display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;
+                  margin:0 auto 12px;font-family:var(--font-titulo)" id="avatar-letra">?</div>
+      <div class="fw-700" style="font-size:1.2rem" id="perfil-nombre">—</div>
+      <div class="text-2" id="perfil-email">—</div>
+    </div>
+
+    <!-- Info -->
+    <div class="card">
+      <div class="section-title">Cuenta</div>
+      <div class="gasto-item" style="cursor:default">
+        <div class="gasto-info">
+          <div class="gasto-desc">Nombre</div>
+          <div class="gasto-meta" id="info-nombre">—</div>
+        </div>
+      </div>
+      <div class="gasto-item" style="cursor:default">
+        <div class="gasto-info">
+          <div class="gasto-desc">Correo</div>
+          <div class="gasto-meta" id="info-email">—</div>
+        </div>
+      </div>
+      <div class="gasto-item" style="cursor:default;border:none">
+        <div class="gasto-info">
+          <div class="gasto-desc">Rol</div>
+          <div class="gasto-meta" id="info-rol">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cerrar sesión -->
+    <div class="card">
+      <button class="btn btn-danger w-full" onclick="confirmarLogout()">🚪 Cerrar sesión</button>
+    </div>
+
+    <p class="text-2" style="text-align:center;margin-top:20px">ObraGastos v1.0</p>
+  </main>
+
+  <nav class="nav-bottom">
+    <button class="nav-btn" onclick="window.location.href='dashboard.html'">
+      <span class="icon">🏠</span><span>Obras</span>
+    </button>
+    <button class="nav-btn active">
+      <span class="icon">👤</span><span>Perfil</span>
+    </button>
+  </nav>
+
+  <script src="js/config.js"></script>
+  <script>
+    if (!requireAuth()) void 0;
+    const u = usuario();
+    if (u) {
+      document.getElementById('avatar-letra').textContent = u.nombre.charAt(0).toUpperCase();
+      document.getElementById('perfil-nombre').textContent = u.nombre;
+      document.getElementById('perfil-email').textContent = u.email;
+      document.getElementById('info-nombre').textContent = u.nombre;
+      document.getElementById('info-email').textContent = u.email;
+      document.getElementById('info-rol').textContent = u.rol;
+    }
+    function confirmarLogout() {
+      if (confirm('¿Seguro que quieres cerrar sesión?')) logout();
+    }
+  </script>
+</body>
+</html>

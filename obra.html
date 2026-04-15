@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1c1e">
+  <title>ObraGastos — Gastos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <button class="btn-icon" onclick="window.location.href='dashboard.html'" style="background:transparent;color:white">‹</button>
+    <div class="header-title" id="header-obra-nombre">Cargando…</div>
+    <button class="btn-icon" onclick="abrirEditarObra()" style="background:transparent;color:white">⚙️</button>
+  </header>
+
+  <!-- Nav tabs -->
+  <div style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px">
+    <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">💰 Gastos</button>
+    <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">📊 Resumen</button>
+    <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">👷 Equipo</button>
+  </div>
+
+  <main class="main" style="padding-top:12px">
+
+    <!-- ====== TAB: GASTOS ====== -->
+    <div id="tab-gastos" class="seccion activa">
+
+      <!-- Filtros rápidos -->
+      <div class="filtros" id="filtros-cat">
+        <div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this, '')">Todos</div>
+      </div>
+
+      <!-- Búsqueda + fechas -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="busqueda" placeholder="Buscar gasto, proveedor…" oninput="filtrarBusqueda()">
+      </div>
+      <div class="row mb-8" style="gap:8px">
+        <input type="date" id="fecha-desde" style="flex:1;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem" oninput="cargarGastos()">
+        <input type="date" id="fecha-hasta" style="flex:1;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem" oninput="cargarGastos()">
+      </div>
+
+      <!-- Tabla de gastos -->
+      <div class="card" style="padding:0 16px">
+        <div id="gastos-lista" style="min-height:80px">
+          <div class="empty"><div class="empty-icon">⏳</div></div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="row-between mt-8" id="paginacion" style="display:none">
+        <button class="btn btn-sm btn-secundario" id="btn-prev" onclick="cambiarPagina(-1)">‹ Anterior</button>
+        <span class="text-2" id="pag-info">1 / 1</span>
+        <button class="btn btn-sm btn-secundario" id="btn-next" onclick="cambiarPagina(1)">Siguiente ›</button>
+      </div>
+
+      <!-- Exportar -->
+      <div class="mt-16 row" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="exportarCSV()">📥 Exportar Excel/CSV</button>
+      </div>
+    </div>
+
+    <!-- ====== TAB: RESUMEN ====== -->
+    <div id="tab-resumen" class="seccion">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total gastado</div>
+          <div class="stat-valor grande" id="res-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Nº gastos</div>
+          <div class="stat-valor" id="res-cantidad">—</div>
+        </div>
+      </div>
+
+      <!-- Presupuesto -->
+      <div class="card" id="card-presupuesto" style="display:none">
+        <div class="row-between mb-8">
+          <div class="fw-700">Presupuesto</div>
+          <div class="text-2" id="res-porc">0%</div>
+        </div>
+        <div class="presupuesto-barra">
+          <div class="presupuesto-fill" id="res-barra" style="width:0%"></div>
+        </div>
+        <div class="row-between mt-8">
+          <span class="text-2">Gastado: <strong id="res-gastado">—</strong></span>
+          <span class="text-2">Total: <strong id="res-presup">—</strong></span>
+        </div>
+      </div>
+
+      <!-- Gráfica por categoría -->
+      <div class="card">
+        <div class="section-title">Por categoría</div>
+        <div id="grafica-cats"></div>
+      </div>
+
+      <!-- Top gastos -->
+      <div class="card">
+        <div class="section-title">Mayores gastos</div>
+        <div id="top-gastos"></div>
+      </div>
+    </div>
+
+    <!-- ====== TAB: EQUIPO ====== -->
+    <div id="tab-equipo" class="seccion">
+      <div class="card">
+        <div class="row-between mb-8">
+          <div class="fw-700">Colaboradores</div>
+          <button class="btn btn-sm btn-secundario" onclick="abrirInvitar()">+ Invitar</button>
+        </div>
+        <div id="colaboradores-lista"></div>
+      </div>
+
+      <div class="card mt-8">
+        <div class="section-title">Categorías</div>
+        <div id="cats-lista"></div>
+        <button class="btn btn-secundario btn-sm w-full mt-8" onclick="abrirNuevaCat()">+ Nueva categoría</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FAB agregar gasto -->
+  <button class="btn-fab" id="fab-agregar" onclick="abrirGasto()" title="Agregar gasto">+</button>
+
+  <!-- Total bar -->
+  <div class="total-bar" id="total-bar">
+    <div>
+      <div class="total-label">Total visible</div>
+    </div>
+    <div class="total-monto" id="total-visible">—</div>
+  </div>
+
+  <!-- Nav inferior -->
+  <nav class="nav-bottom">
+    <button class="nav-btn" onclick="window.location.href='dashboard.html'">
+      <span class="icon">🏠</span>
+      <span>Obras</span>
+    </button>
+    <button class="nav-btn active">
+      <span class="icon">💰</span>
+      <span>Gastos</span>
+    </button>
+    <button class="nav-btn" onclick="mostrarTab('resumen');document.getElementById('tab-btn-resumen').click()">
+      <span class="icon">📊</span>
+      <span>Resumen</span>
+    </button>
+  </nav>
+
+  <!-- ===== SHEET: Agregar/Editar gasto ===== -->
+  <div class="overlay" id="overlay-gasto">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="gasto-sheet-title">Nuevo gasto</div>
+      <form id="form-gasto" onsubmit="guardarGasto(event)">
+        <input type="hidden" id="gasto-edit-id">
+        <div class="field">
+          <label>Descripción *</label>
+          <input type="text" id="g-desc" placeholder="Ej: Cemento 50 sacos, Mano de obra cimientos…" required>
+        </div>
+        <div class="row" style="gap:10px">
+          <div class="field" style="flex:1.2">
+            <label>Monto (COP) *</label>
+            <input type="number" id="g-monto" placeholder="0" required min="0" step="100">
+          </div>
+          <div class="field" style="flex:1">
+            <label>Fecha *</label>
+            <input type="date" id="g-fecha" required>
+          </div>
+        </div>
+        <div class="row" style="gap:10px">
+          <div class="field" style="flex:1">
+            <label>Categoría</label>
+            <select id="g-categoria"></select>
+          </div>
+          <div class="field" style="flex:1">
+            <label>Proveedor</label>
+            <input type="text" id="g-proveedor" placeholder="Ferretería, etc">
+          </div>
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <textarea id="g-notas" rows="2" placeholder="Observaciones…"></textarea>
+        </div>
+        <div class="field">
+          <label>Foto / Factura</label>
+          <input type="file" id="g-foto" accept="image/*,application/pdf" onchange="previewFoto(this)">
+          <img id="foto-preview" class="foto-preview">
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-gasto')">Cancelar</button>
+          <button type="submit" class="btn btn-primary w-full" id="btn-guardar-gasto">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Ver detalle gasto ===== -->
+  <div class="overlay" id="overlay-detalle">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <img id="detalle-foto" class="foto-gasto-grande" style="display:none" onclick="window.open(this.src)">
+      <div class="sheet-title" id="detalle-desc">—</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div class="stat-card"><div class="stat-label">Monto</div><div class="stat-valor grande" id="detalle-monto">—</div></div>
+        <div class="stat-card"><div class="stat-label">Fecha</div><div class="stat-valor grande" id="detalle-fecha">—</div></div>
+        <div class="stat-card"><div class="stat-label">Categoría</div><div class="stat-valor grande" id="detalle-cat">—</div></div>
+        <div class="stat-card"><div class="stat-label">Proveedor</div><div class="stat-valor grande" id="detalle-prov">—</div></div>
+      </div>
+      <div id="detalle-notas-wrap" style="display:none" class="card mb-8">
+        <div class="stat-label mb-8">Notas</div>
+        <div id="detalle-notas" class="text-2"></div>
+      </div>
+      <div class="text-2 mb-8" id="detalle-usuario"></div>
+      <div class="row" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="editarDesdeDetalle()">✏️ Editar</button>
+        <button class="btn btn-danger w-full" onclick="eliminarGasto()">🗑️ Eliminar</button>
+      </div>
+      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-detalle')">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Invitar colaborador ===== -->
+  <div class="overlay" id="overlay-invitar">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Invitar colaborador</div>
+      <p class="text-2 mb-8">El colaborador ya debe estar registrado en la app.</p>
+      <div class="field">
+        <label>Correo del colaborador</label>
+        <input type="email" id="inv-email" placeholder="colaborador@correo.com">
+      </div>
+      <div class="field">
+        <label>Rol</label>
+        <select id="inv-rol">
+          <option value="colaborador">Colaborador (puede agregar gastos)</option>
+          <option value="admin">Admin (puede todo)</option>
+        </select>
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-invitar')">Cancelar</button>
+        <button class="btn btn-primary w-full" id="btn-invitar" onclick="invitar()">Invitar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Nueva categoría ===== -->
+  <div class="overlay" id="overlay-cat">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Nueva categoría</div>
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="cat-nombre" placeholder="Ej: Acabados, Electricidad…">
+      </div>
+      <div class="field">
+        <label>Color</label>
+        <input type="color" id="cat-color" value="#6366f1" style="height:44px;padding:4px">
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-cat')">Cancelar</button>
+        <button class="btn btn-primary w-full" onclick="crearCategoria()">Crear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Editar obra ===== -->
+  <div class="overlay" id="overlay-edit-obra">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Editar obra</div>
+      <form onsubmit="actualizarObra(event)">
+        <div class="field"><label>Nombre *</label><input type="text" id="eo-nombre" required></div>
+        <div class="field"><label>Descripción</label><textarea id="eo-desc" rows="2"></textarea></div>
+        <div class="field"><label>Ubicación</label><input type="text" id="eo-ubic"></div>
+        <div class="field"><label>Presupuesto (COP)</label><input type="number" id="eo-presup" min="0" step="1000"></div>
+        <div class="row mt-16" style="gap:10px">
+          <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-edit-obra')">Cancelar</button>
+          <button type="submit" class="btn btn-primary w-full" id="btn-act-obra">Actualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    if (!requireAuth()) void 0;
+
+    let obra = obraActual();
+    if (!obra) window.location.href = 'dashboard.html';
+
+    let gastos = [], categorias = [], paginaActual = 1, totalPaginas = 1, sumaVisible = 0;
+    let gastoDetalleActual = null;
+    let catFiltro = '', busqFiltro = '';
+
+    // ── Inicializar ──
+    document.getElementById('header-obra-nombre').textContent = obra.nombre;
+    document.getElementById('g-fecha').value = todayISO();
+
+    cargarCategorias();
+    cargarGastos();
+
+    // ── Tabs ──
+    function mostrarTab(tab) {
+      ['gastos','resumen','equipo'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('activa', t === tab);
+        document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tab);
+      });
+      document.getElementById('fab-agregar').style.display = tab === 'gastos' ? 'flex' : 'none';
+      document.getElementById('total-bar').style.display = tab === 'gastos' ? 'flex' : 'none';
+      if (tab === 'resumen') cargarResumen();
+      if (tab === 'equipo') { cargarColaboradores(); renderCategorias(); }
+    }
+    // Sincronizar nav tab buttons
+    ['gastos','resumen','equipo'].forEach(t => {
+      document.getElementById(`tab-btn-${t}`).addEventListener('click', () => {
+        document.querySelectorAll('[id^="tab-btn-"]').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tab-btn-${t}`).classList.add('active');
+      });
+    });
+
+    // ── Categorías ──
+    async function cargarCategorias() {
+      categorias = await api.get(`/api/gastos/categorias?obra_id=${obra.id}`);
+      const sel = document.getElementById('g-categoria');
+      sel.innerHTML = '<option value="">Sin categoría</option>' +
+        categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+
+      const filtros = document.getElementById('filtros-cat');
+      filtros.innerHTML = `<div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this,'')">Todos</div>` +
+        categorias.map(c => `<div class="filtro-chip" data-cat="${c.id}" onclick="filtrarCategoria(this,'${c.id}')" style="border-left:3px solid ${c.color}">${c.nombre}</div>`).join('');
+    }
+
+    function filtrarCategoria(el, catId) {
+      document.querySelectorAll('#filtros-cat .filtro-chip').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+      catFiltro = catId;
+      paginaActual = 1;
+      cargarGastos();
+    }
+
+    function filtrarBusqueda() {
+      busqFiltro = document.getElementById('busqueda').value.toLowerCase();
+      renderGastos();
+    }
+
+    // ── Gastos ──
+    async function cargarGastos() {
+      const desde = document.getElementById('fecha-desde').value;
+      const hasta = document.getElementById('fecha-hasta').value;
+      let url = `/api/gastos?obra_id=${obra.id}&page=${paginaActual}&limit=50`;
+      if (desde) url += `&fecha_desde=${desde}`;
+      if (hasta) url += `&fecha_hasta=${hasta}`;
+      if (catFiltro) url += `&categoria_id=${catFiltro}`;
+
+      try {
+        const data = await api.get(url);
+        gastos = data.gastos;
+        totalPaginas = data.paginas;
+        sumaVisible = data.suma;
+        document.getElementById('total-visible').textContent = formatMoney(sumaVisible);
+        renderGastos();
+        renderPaginacion(data.total, data.paginas);
+      } catch (err) {
+        showToast('Error cargando gastos', 'error');
+      }
+    }
+
+    function renderGastos() {
+      const lista = document.getElementById('gastos-lista');
+      let filtrados = gastos;
+      if (busqFiltro) {
+        filtrados = gastos.filter(g =>
+          g.descripcion.toLowerCase().includes(busqFiltro) ||
+          (g.proveedor || '').toLowerCase().includes(busqFiltro)
+        );
+      }
+      if (!filtrados.length) {
+        lista.innerHTML = `<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><div class="empty-msg">Sin gastos${busqFiltro ? ' para "'+busqFiltro+'"' : ''}</div></div>`;
+        return;
+      }
+      lista.innerHTML = filtrados.map(g => `
+        <div class="gasto-item" onclick="verGasto(${g.id})">
+          <div class="gasto-cat-dot" style="background:${g.categoria_color || '#aeaeb2'}"></div>
+          <div class="gasto-info">
+            <div class="gasto-desc">${g.descripcion}</div>
+            <div class="gasto-meta">${formatDate(g.fecha)} · ${g.categoria_nombre || 'Sin cat.'} ${g.proveedor ? '· '+g.proveedor : ''}</div>
+          </div>
+          ${g.foto_url ? '<span class="gasto-foto">📷</span>' : ''}
+          <div class="gasto-monto">${formatMoney(g.monto)}</div>
+        </div>
+      `).join('');
+
+      // Actualizar total si hay filtro de búsqueda
+      if (busqFiltro) {
+        const suma = filtrados.reduce((s, g) => s + parseFloat(g.monto), 0);
+        document.getElementById('total-visible').textContent = formatMoney(suma);
+      } else {
+        document.getElementById('total-visible').textContent = formatMoney(sumaVisible);
+      }
+    }
+
+    function renderPaginacion(total, paginas) {
+      const wrap = document.getElementById('paginacion');
+      wrap.style.display = paginas > 1 ? 'flex' : 'none';
+      document.getElementById('pag-info').textContent = `${paginaActual} / ${paginas}`;
+      document.getElementById('btn-prev').disabled = paginaActual <= 1;
+      document.getElementById('btn-next').disabled = paginaActual >= paginas;
+    }
+
+    function cambiarPagina(dir) {
+      paginaActual = Math.max(1, Math.min(totalPaginas, paginaActual + dir));
+      cargarGastos();
+      window.scrollTo(0, 0);
+    }
+
+    // ── Ver detalle gasto ──
+    function verGasto(id) {
+      gastoDetalleActual = gastos.find(g => g.id === id);
+      const g = gastoDetalleActual;
+      document.getElementById('detalle-desc').textContent = g.descripcion;
+      document.getElementById('detalle-monto').textContent = formatMoney(g.monto);
+      document.getElementById('detalle-fecha').textContent = formatDate(g.fecha);
+      document.getElementById('detalle-cat').textContent = g.categoria_nombre || '—';
+      document.getElementById('detalle-prov').textContent = g.proveedor || '—';
+      document.getElementById('detalle-usuario').textContent = `Registrado por: ${g.usuario_nombre || '—'}`;
+
+      const notasWrap = document.getElementById('detalle-notas-wrap');
+      if (g.notas) {
+        notasWrap.style.display = 'block';
+        document.getElementById('detalle-notas').textContent = g.notas;
+      } else {
+        notasWrap.style.display = 'none';
+      }
+
+      const fotoEl = document.getElementById('detalle-foto');
+      if (g.foto_url) {
+        fotoEl.src = g.foto_url;
+        fotoEl.style.display = 'block';
+      } else {
+        fotoEl.style.display = 'none';
+      }
+
+      document.getElementById('overlay-detalle').classList.add('open');
+    }
+
+    function editarDesdeDetalle() {
+      cerrarSheet('overlay-detalle');
+      setTimeout(() => abrirGasto(gastoDetalleActual), 200);
+    }
+
+    async function eliminarGasto() {
+      if (!confirm(`¿Eliminar "${gastoDetalleActual.descripcion}"?`)) return;
+      try {
+        await api.delete(`/api/gastos/${gastoDetalleActual.id}`);
+        cerrarSheet('overlay-detalle');
+        showToast('Gasto eliminado');
+        cargarGastos();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ── Agregar/editar gasto ──
+    function abrirGasto(g = null) {
+      const isEdit = !!g;
+      document.getElementById('gasto-sheet-title').textContent = isEdit ? 'Editar gasto' : 'Nuevo gasto';
+      document.getElementById('gasto-edit-id').value = isEdit ? g.id : '';
+      document.getElementById('g-desc').value = isEdit ? g.descripcion : '';
+      document.getElementById('g-monto').value = isEdit ? g.monto : '';
+      document.getElementById('g-fecha').value = isEdit ? g.fecha?.split('T')[0] : todayISO();
+      document.getElementById('g-categoria').value = isEdit ? (g.categoria_id || '') : '';
+      document.getElementById('g-proveedor').value = isEdit ? (g.proveedor || '') : '';
+      document.getElementById('g-notas').value = isEdit ? (g.notas || '') : '';
+      document.getElementById('g-foto').value = '';
+      const prev = document.getElementById('foto-preview');
+      if (isEdit && g.foto_url) { prev.src = g.foto_url; prev.style.display = 'block'; }
+      else prev.style.display = 'none';
+      document.getElementById('overlay-gasto').classList.add('open');
+    }
+
+    function previewFoto(input) {
+      const prev = document.getElementById('foto-preview');
+      if (input.files[0] && input.files[0].type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = e => { prev.src = e.target.result; prev.style.display = 'block'; };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    async function guardarGasto(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-guardar-gasto');
+      const editId = document.getElementById('gasto-edit-id').value;
+      setLoading(btn, true);
+
+      const fd = new FormData();
+      fd.append('descripcion', document.getElementById('g-desc').value.trim());
+      fd.append('monto', document.getElementById('g-monto').value);
+      fd.append('fecha', document.getElementById('g-fecha').value);
+      fd.append('obra_id', obra.id);
+      fd.append('categoria_id', document.getElementById('g-categoria').value || '');
+      fd.append('proveedor', document.getElementById('g-proveedor').value.trim());
+      fd.append('notas', document.getElementById('g-notas').value.trim());
+      const fotoFile = document.getElementById('g-foto').files[0];
+      if (fotoFile) fd.append('foto', fotoFile);
+
+      try {
+        if (editId) {
+          await api.putForm(`/api/gastos/${editId}`, fd);
+          showToast('Gasto actualizado ✓');
+        } else {
+          await api.postForm('/api/gastos', fd);
+          showToast('Gasto guardado ✓');
+        }
+        cerrarSheet('overlay-gasto');
+        cargarGastos();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    // ── Resumen ──
+    async function cargarResumen() {
+      try {
+        const data = await api.get(`/api/obras/${obra.id}/resumen`);
+        const t = data.totales;
+        document.getElementById('res-total').textContent = formatMoney(t.total_gastado);
+        document.getElementById('res-cantidad').textContent = t.cantidad_gastos;
+
+        if (data.obra.presupuesto > 0) {
+          document.getElementById('card-presupuesto').style.display = 'block';
+          const porc = Math.round((t.total_gastado / data.obra.presupuesto) * 100);
+          document.getElementById('res-porc').textContent = porc + '%';
+          document.getElementById('res-gastado').textContent = formatMoney(t.total_gastado);
+          document.getElementById('res-presup').textContent = formatMoney(data.obra.presupuesto);
+          const barra = document.getElementById('res-barra');
+          barra.style.width = Math.min(porc, 100) + '%';
+          barra.className = 'presupuesto-fill' + (porc > 100 ? ' danger' : porc > 80 ? ' warn' : '');
+        }
+
+        // Gráfica por categoría
+        const maxVal = Math.max(...data.por_categoria.map(c => c.total), 1);
+        document.getElementById('grafica-cats').innerHTML = data.por_categoria.length ?
+          data.por_categoria.map(c => `
+            <div class="bar-row">
+              <div class="bar-label">${c.nombre}</div>
+              <div class="bar-track">
+                <div class="bar-fill" style="background:${c.color};width:${Math.round((c.total/maxVal)*100)}%">
+                </div>
+              </div>
+              <div class="bar-monto">${formatMoney(c.total)}</div>
+            </div>
+          `).join('') : '<div class="text-2">Sin datos</div>';
+
+        // Top gastos
+        const gastosSorted = await api.get(`/api/gastos?obra_id=${obra.id}&limit=5`);
+        const topSorted = [...gastosSorted.gastos].sort((a,b) => b.monto - a.monto).slice(0,5);
+        document.getElementById('top-gastos').innerHTML = topSorted.map(g => `
+          <div class="gasto-item">
+            <div class="gasto-cat-dot" style="background:${g.categoria_color||'#aeaeb2'}"></div>
+            <div class="gasto-info">
+              <div class="gasto-desc">${g.descripcion}</div>
+              <div class="gasto-meta">${formatDate(g.fecha)}</div>
+            </div>
+            <div class="gasto-monto">${formatMoney(g.monto)}</div>
+          </div>
+        `).join('');
+      } catch (err) {
+        showToast('Error cargando resumen', 'error');
+      }
+    }
+
+    // ── Equipo ──
+    async function cargarColaboradores() {
+      const colabs = await api.get(`/api/obras/${obra.id}/colaboradores`);
+      document.getElementById('colaboradores-lista').innerHTML = colabs.map(c => `
+        <div class="colab-item">
+          <div class="colab-avatar">${c.nombre.charAt(0).toUpperCase()}</div>
+          <div style="flex:1">
+            <div class="fw-700" style="font-size:.9rem">${c.nombre}</div>
+            <div class="text-2">${c.email}</div>
+          </div>
+          <span class="badge-rol badge-${c.rol}">${c.rol}</span>
+        </div>
+      `).join('');
+    }
+
+    function abrirInvitar() {
+      document.getElementById('inv-email').value = '';
+      document.getElementById('overlay-invitar').classList.add('open');
+    }
+
+    async function invitar() {
+      const btn = document.getElementById('btn-invitar');
+      setLoading(btn, true);
+      try {
+        await api.post('/api/auth/invitar', {
+          email: document.getElementById('inv-email').value.trim(),
+          obra_id: obra.id,
+          rol: document.getElementById('inv-rol').value
+        });
+        showToast('Colaborador agregado ✓');
+        cerrarSheet('overlay-invitar');
+        cargarColaboradores();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    // ── Categorías ──
+    function renderCategorias() {
+      document.getElementById('cats-lista').innerHTML = categorias.map(c => `
+        <div class="row" style="padding:8px 0;border-bottom:1px solid var(--gris-linea)">
+          <div style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
+          <div style="flex:1;font-size:.9rem">${c.nombre}</div>
+          ${c.es_global ? '<span class="text-2" style="font-size:.75rem">Global</span>' : ''}
+        </div>
+      `).join('');
+    }
+
+    function abrirNuevaCat() {
+      document.getElementById('overlay-cat').classList.add('open');
+    }
+
+    async function crearCategoria() {
+      const nombre = document.getElementById('cat-nombre').value.trim();
+      if (!nombre) return showToast('Escribe un nombre', 'error');
+      try {
+        await api.post('/api/gastos/categorias', {
+          nombre,
+          color: document.getElementById('cat-color').value,
+          obra_id: obra.id
+        });
+        showToast('Categoría creada ✓');
+        cerrarSheet('overlay-cat');
+        await cargarCategorias();
+        renderCategorias();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ── Editar obra ──
+    function abrirEditarObra() {
+      document.getElementById('eo-nombre').value = obra.nombre;
+      document.getElementById('eo-desc').value = obra.descripcion || '';
+      document.getElementById('eo-ubic').value = obra.ubicacion || '';
+      document.getElementById('eo-presup').value = obra.presupuesto || '';
+      document.getElementById('overlay-edit-obra').classList.add('open');
+    }
+
+    async function actualizarObra(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-act-obra');
+      setLoading(btn, true);
+      try {
+        await api.put(`/api/obras/${obra.id}`, {
+          nombre: document.getElementById('eo-nombre').value.trim(),
+          descripcion: document.getElementById('eo-desc').value.trim(),
+          ubicacion: document.getElementById('eo-ubic').value.trim(),
+          presupuesto: parseFloat(document.getElementById('eo-presup').value) || 0,
+          activa: 1
+        });
+        obra.nombre = document.getElementById('eo-nombre').value.trim();
+        obra.presupuesto = parseFloat(document.getElementById('eo-presup').value) || 0;
+        localStorage.setItem('og_obra', JSON.stringify(obra));
+        document.getElementById('header-obra-nombre').textContent = obra.nombre;
+        showToast('Obra actualizada ✓');
+        cerrarSheet('overlay-edit-obra');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    // ── Exportar CSV ──
+    async function exportarCSV() {
+      const desde = document.getElementById('fecha-desde').value;
+      const hasta = document.getElementById('fecha-hasta').value;
+      let url = `${API_URL}/api/gastos/exportar?obra_id=${obra.id}`;
+      if (desde) url += `&fecha_desde=${desde}`;
+      if (hasta) url += `&fecha_hasta=${hasta}`;
+
+      const link = document.createElement('a');
+      link.href = url + `&token=${api.token()}`;
+      // Para que funcione la descarga con auth, hacer fetch manual
+      try {
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${api.token()}` } });
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        link.href = blobUrl;
+        link.download = `gastos-${obra.nombre.replace(/\s+/g,'-')}.csv`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        showToast('Exportando CSV…');
+      } catch (err) {
+        showToast('Error al exportar', 'error');
+      }
+    }
+
+    // ── Cerrar sheets al hacer clic fuera ──
+    document.querySelectorAll('.overlay').forEach(ov => {
+      ov.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('open');
+      });
+    });
+  </script>
+</body>
+</html>

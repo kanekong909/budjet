@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1c1e">
+  <title>ObraGastos — Iniciar sesión</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { max-width: 100%; background: #1c1c1e; }
+  </style>
+</head>
+<body class="auth-page">
+
+  <div class="auth-logo">🏗️ ObraGastos</div>
+  <div class="auth-sub">Control de gastos para tu obra</div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="showTab('login')">Entrar</div>
+      <div class="auth-tab" id="tab-registro" onclick="showTab('registro')">Registro</div>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="form-login" onsubmit="login(event)">
+      <div class="field">
+        <label>Correo</label>
+        <input type="email" id="login-email" placeholder="tu@correo.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <div class="mt-16">
+        <button type="submit" class="btn btn-primary" id="btn-login">Entrar →</button>
+      </div>
+    </form>
+
+    <!-- REGISTRO -->
+    <form id="form-registro" style="display:none" onsubmit="registro(event)">
+      <div class="field">
+        <label>Tu nombre</label>
+        <input type="text" id="reg-nombre" placeholder="Juan Pérez" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Correo</label>
+        <input type="email" id="reg-email" placeholder="tu@correo.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="mt-16">
+        <button type="submit" class="btn btn-primary" id="btn-registro">Crear cuenta →</button>
+      </div>
+    </form>
+  </div>
+
+  <p style="color:#48484a; font-size:.8rem; margin-top:24px; text-align:center">
+    Tus datos están seguros y encriptados
+  </p>
+
+  <script src="js/config.js"></script>
+  <script>
+    // Si ya tiene sesión activa, ir al dashboard
+    if (api.token()) window.location.href = 'dashboard.html';
+
+    function showTab(tab) {
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-registro').classList.toggle('active', tab === 'registro');
+      document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('form-registro').style.display = tab === 'registro' ? 'block' : 'none';
+    }
+
+    async function login(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-login');
+      setLoading(btn, true);
+      try {
+        const data = await api.post('/api/auth/login', {
+          email: document.getElementById('login-email').value.trim(),
+          password: document.getElementById('login-pass').value
+        });
+        guardarSesion(data.token, data.usuario);
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        showToast(err.message, 'error');
+        setLoading(btn, false);
+      }
+    }
+
+    async function registro(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-registro');
+      setLoading(btn, true);
+      try {
+        const data = await api.post('/api/auth/registro', {
+          nombre: document.getElementById('reg-nombre').value.trim(),
+          email: document.getElementById('reg-email').value.trim(),
+          password: document.getElementById('reg-pass').value
+        });
+        guardarSesion(data.token, data.usuario);
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        showToast(err.message, 'error');
+        setLoading(btn, false);
+      }
+    }
+  </script>
+</body>
+</html>
