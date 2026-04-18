@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURACIÓN — Edita esta línea con tu URL de Railway
 // ============================================================
-const API_URL = 'https://budjet-production.up.railway.app'; // ← CAMBIA ESTO
+const API_URL = 'https://TU-APP.railway.app'; // ← CAMBIA ESTO
 
 // ============================================================
 // Cliente API — maneja auth y errores automáticamente
@@ -58,6 +58,9 @@ function formatMoney(n) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
+  // Normalizar: tomar solo YYYY-MM-DD sin importar si viene con T o Z
+  const clean = String(dateStr).substring(0, 10);
+  if (!dateStr) return '';
   const d = new Date(dateStr + 'T12:00:00');
   return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
@@ -99,4 +102,15 @@ function requireAuth() {
 function logout() {
   localStorage.clear();
   window.location.href = 'index.html';
+}
+
+// Sheets / overlays — disponibles en todas las páginas
+function cerrarSheet(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+
+function abrirSheet(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
 }

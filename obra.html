@@ -557,9 +557,11 @@
             </div>
           `).join('') : '<div class="text-2">Sin datos</div>';
 
-        // Top gastos
-        const gastosSorted = await api.get(`/api/gastos?obra_id=${obra.id}&limit=5`);
-        const topSorted = [...gastosSorted.gastos].sort((a,b) => b.monto - a.monto).slice(0,5);
+        // Top gastos — pedir ordenados por monto directamente
+        const gastosSorted = await api.get(`/api/gastos?obra_id=${obra.id}&limit=100`);
+        // Deduplicar por id y tomar los 5 mayores
+        const unicos = Object.values(gastosSorted.gastos.reduce((acc, g) => { acc[g.id] = g; return acc; }, {}));
+        const topSorted = unicos.sort((a,b) => b.monto - a.monto).slice(0, 5);
         document.getElementById('top-gastos').innerHTML = topSorted.map(g => `
           <div class="gasto-item">
             <div class="gasto-cat-dot" style="background:${g.categoria_color||'#aeaeb2'}"></div>
