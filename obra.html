@@ -316,6 +316,24 @@
     </div>
   </div>
 
+  <!-- ===== SHEET: Confirmar eliminar ===== -->
+  <div class="overlay" id="overlay-confirmar">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div style="text-align:center;padding:8px 0 16px">
+        <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar gasto?</div>
+        <div class="fw-700" id="confirmar-desc" style="font-size:1rem;margin-bottom:4px"></div>
+        <div style="font-size:1.1rem;color:var(--rojo);font-weight:700" id="confirmar-monto"></div>
+        <div class="text-2 mt-8">Esta acción no se puede deshacer.</div>
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar')">Cancelar</button>
+        <button class="btn btn-danger w-full" onclick="confirmarEliminar()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script>
     if (!requireAuth()) void 0;
@@ -436,17 +454,6 @@
       if (busqFiltro) {
         const suma = filtrados.reduce((s, g) => s + parseFloat(g.monto), 0);
         document.getElementById('total-visible').textContent = formatMoney(suma);
-      } else {
-        sumaVisible = data.suma;
-        const ingresos = data.suma_ingresos || 0;
-        document.getElementById('total-visible').textContent = formatMoney(data.suma);
-        if (ingresos > 0) {
-          document.getElementById('total-ingresos-bar').textContent = `Capital: ${formatMoney(ingresos)}`;
-          document.getElementById('total-disponible').textContent = `Disp: ${formatMoney(ingresos - data.suma)}`;
-        } else {
-          document.getElementById('total-ingresos-bar').textContent = '';
-          document.getElementById('total-disponible').textContent = '';
-        }
       }
     }
 
@@ -516,10 +523,16 @@
       setTimeout(() => abrirGasto(gastoDetalleActual), 200);
     }
 
-    async function eliminarGasto() {
-      if (!confirm(`¿Eliminar "${gastoDetalleActual.descripcion}"?`)) return;
+    function eliminarGasto() {
+      document.getElementById('confirmar-desc').textContent = gastoDetalleActual.descripcion;
+      document.getElementById('confirmar-monto').textContent = formatMoney(gastoDetalleActual.monto);
+      document.getElementById('overlay-confirmar').classList.add('open');
+    }
+
+    async function confirmarEliminar() {
       try {
         await api.delete(`/api/gastos/${gastoDetalleActual.id}`);
+        cerrarSheet('overlay-confirmar');
         cerrarSheet('overlay-detalle');
         showToast('Gasto eliminado');
         cargarGastos();
