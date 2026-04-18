@@ -100,7 +100,7 @@ router.get('/', async (req, res) => {
 // POST /api/gastos - Crear gasto (con o sin foto)
 router.post('/', upload.single('foto'), async (req, res) => {
   try {
-    const { descripcion, monto, fecha, categoria_id, obra_id, proveedor, notas } = req.body;
+    const { descripcion, monto, fecha, categoria_id, obra_id, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
 
     if (!descripcion || !monto || !fecha || !obra_id) {
       return res.status(400).json({ error: 'descripcion, monto, fecha y obra_id son requeridos' });
@@ -119,9 +119,9 @@ router.post('/', upload.single('foto'), async (req, res) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO gastos (descripcion, monto, fecha, categoria_id, obra_id, usuario_id, proveedor, notas, foto_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [descripcion, parseFloat(monto), fecha, categoria_id || null, obra_id, req.usuario.id, proveedor || null, notas || null, foto_url]
+      `INSERT INTO gastos (descripcion, monto, fecha, categoria_id, obra_id, usuario_id, proveedor, notas, foto_url, cantidad, unidad, valor_unitario)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [descripcion, parseFloat(monto), fecha, categoria_id || null, obra_id, req.usuario.id, proveedor || null, notas || null, foto_url, cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null]
     );
 
     const [gasto] = await pool.query(`
@@ -164,10 +164,11 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
       }
     }
 
+    const { descripcion, monto, fecha, categoria_id, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
     await pool.query(
-      `UPDATE gastos SET descripcion=?, monto=?, fecha=?, categoria_id=?, proveedor=?, notas=?, foto_url=? WHERE id=?`,
-      [descripcion, parseFloat(monto), fecha, categoria_id || null, proveedor || null, notas || null, foto_url, req.params.id]
-    );
+          `UPDATE gastos SET descripcion=?, monto=?, fecha=?, categoria_id=?, proveedor=?, notas=?, foto_url=?, cantidad=?, unidad=?, valor_unitario=? WHERE id=?`,
+          [descripcion, parseFloat(monto), fecha, categoria_id || null, proveedor || null, notas || null, foto_url, cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null, req.params.id]
+        );
 
     const [gasto] = await pool.query(`
       SELECT g.*, c.nombre AS categoria_nombre, c.color AS categoria_color, u.nombre AS usuario_nombre

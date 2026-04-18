@@ -183,6 +183,21 @@
             <input type="text" id="g-proveedor" placeholder="Ferretería, etc">
           </div>
         </div>
+        <div class="row" style="gap:10px">
+          <div class="field" style="flex:1">
+            <label>Cantidad</label>
+            <input type="number" id="g-cantidad" placeholder="Ej: 300" min="0" step="any" oninput="calcularMonto()">
+          </div>
+          <div class="field" style="flex:0.8">
+            <label>Unidad</label>
+            <input type="text" id="g-unidad" placeholder="und, m², kg…">
+          </div>
+          <div class="field" style="flex:1">
+            <label>Valor unitario</label>
+            <input type="text" id="g-vunitario-display" placeholder="0" inputmode="numeric" autocomplete="off">
+            <input type="hidden" id="g-vunitario">
+          </div>
+        </div>
         <div class="field">
           <label>Notas</label>
           <textarea id="g-notas" rows="2" placeholder="Observaciones…"></textarea>
@@ -485,6 +500,11 @@
       document.getElementById('g-categoria').value = isEdit ? (g.categoria_id || '') : '';
       document.getElementById('g-proveedor').value = isEdit ? (g.proveedor || '') : '';
       document.getElementById('g-notas').value = isEdit ? (g.notas || '') : '';
+      document.getElementById('g-cantidad').value = isEdit ? (g.cantidad || '') : '';
+      document.getElementById('g-unidad').value = isEdit ? (g.unidad || '') : '';
+      const vu = isEdit && g.valor_unitario ? Math.round(g.valor_unitario) : '';
+      document.getElementById('g-vunitario').value = vu;
+      document.getElementById('g-vunitario-display').value = vu ? parseInt(vu).toLocaleString('es-CO').replace(/,/g, '.') : '';
       document.getElementById('g-foto').value = '';
       const prev = document.getElementById('foto-preview');
       if (isEdit && g.foto_url) { prev.src = g.foto_url; prev.style.display = 'block'; }
@@ -515,6 +535,9 @@
       fd.append('categoria_id', document.getElementById('g-categoria').value || '');
       fd.append('proveedor', document.getElementById('g-proveedor').value.trim());
       fd.append('notas', document.getElementById('g-notas').value.trim());
+      fd.append('cantidad', document.getElementById('g-cantidad').value || '');
+      fd.append('unidad', document.getElementById('g-unidad').value.trim());
+      fd.append('valor_unitario', document.getElementById('g-vunitario').value || '');
       const fotoFile = document.getElementById('g-foto').files[0];
       if (fotoFile) fd.append('foto', fotoFile);
 
@@ -718,6 +741,31 @@
         showToast('Error al exportar', 'error');
       }
     }
+
+    // ── Calcular monto automático ──
+    function calcularMonto() {
+      const cantidad = parseFloat(document.getElementById('g-cantidad').value) || 0;
+      const vunitario = parseFloat(document.getElementById('g-vunitario').value) || 0;
+      if (cantidad > 0 && vunitario > 0) {
+        const total = Math.round(cantidad * vunitario);
+        document.getElementById('g-monto').value = total;
+        document.getElementById('g-monto-display').value = total.toLocaleString('es-CO').replace(/,/g, '.');
+      }
+    }
+
+    // ── Formato valor unitario ──
+    const vuDisplay = document.getElementById('g-vunitario-display');
+    const vuHidden  = document.getElementById('g-vunitario');
+    vuDisplay.addEventListener('input', function () {
+      const raw = this.value.replace(/\D/g, '');
+      vuHidden.value = raw;
+      const cursor = this.selectionStart;
+      const prevLen = this.value.length;
+      this.value = raw ? parseInt(raw, 10).toLocaleString('es-CO').replace(/,/g, '.') : '';
+      const diff = this.value.length - prevLen;
+      this.setSelectionRange(cursor + diff, cursor + diff);
+      calcularMonto(); // recalcular al cambiar valor unitario
+    });
 
     // ── Formato de monto mientras se escribe ──
     function formatMontoInput(val) {
