@@ -1,7 +1,9 @@
 // ============================================================
 // CONFIGURACIÓN — Edita esta línea con tu URL de Railway
 // ============================================================
-const API_URL = 'https://budjet-production.up.railway.app'; // ← CAMBIA ESTO
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3001'       // ← local
+  : 'https://budjet-production.up.railway.app'; // ← producción
 
 // ============================================================
 // Cliente API — maneja auth y errores automáticamente

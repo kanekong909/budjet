@@ -685,3 +685,4 @@ input, select, textarea { font-family: var(--font); }
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .nav-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }
+
