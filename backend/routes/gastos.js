@@ -164,7 +164,6 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
       }
     }
 
-    const { descripcion, monto, fecha, categoria_id, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
     await pool.query(
           `UPDATE gastos SET descripcion=?, monto=?, fecha=?, categoria_id=?, proveedor=?, notas=?, foto_url=?, cantidad=?, unidad=?, valor_unitario=? WHERE id=?`,
           [descripcion, parseFloat(monto), fecha, categoria_id || null, proveedor || null, notas || null, foto_url, cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null, req.params.id]
