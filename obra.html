@@ -657,8 +657,9 @@
       document.getElementById('eo-desc').value = obra.descripcion || '';
       document.getElementById('eo-ubic').value = obra.ubicacion || '';
       document.getElementById('eo-presup').value = obra.presupuesto || '';
-      const pv = obra.presupuesto ? Math.round(obra.presupuesto) : '';
-      document.getElementById('eo-presup-display').value = pv ? parseInt(pv).toLocaleString('es-CO').replace(/,/g, '.') : '';
+      const pv = obra.presupuesto ? Math.round(parseFloat(obra.presupuesto)) : '';
+      document.getElementById('eo-presup-display').value = pv ? pv.toLocaleString('es-CO').replace(/,/g, '.') : '';
+      document.getElementById('eo-presup').value = pv || '';
       document.getElementById('overlay-edit-obra').classList.add('open');
     }
 
