@@ -114,14 +114,6 @@ router.get('/', async (req, res) => {
       pagina: parseInt(page),
       paginas: Math.ceil(total[0].total / parseInt(limit))
     });
-
-    res.json({
-      gastos,
-      total: total[0].total,
-      suma: total[0].suma,
-      pagina: parseInt(page),
-      paginas: Math.ceil(total[0].total / parseInt(limit))
-    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
