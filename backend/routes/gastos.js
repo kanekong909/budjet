@@ -153,7 +153,7 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
       return res.status(403).json({ error: 'Solo puedes editar tus propios gastos' });
     }
 
-    const { descripcion, monto, fecha, categoria_id, proveedor, notas } = req.body;
+    const { descripcion, monto, fecha, categoria_id, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
 
     let foto_url = gastoActual[0].foto_url;
     if (req.file) {
