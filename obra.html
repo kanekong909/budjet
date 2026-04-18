@@ -277,7 +277,7 @@
         <div class="field"><label>Nombre *</label><input type="text" id="eo-nombre" required></div>
         <div class="field"><label>Descripción</label><textarea id="eo-desc" rows="2"></textarea></div>
         <div class="field"><label>Ubicación</label><input type="text" id="eo-ubic"></div>
-        <div class="field"><label>Presupuesto (COP)</label><input type="number" id="eo-presup" min="0" step="1000"></div>
+        <div class="field"><label>Presupuesto (COP)</label><input type="text" id="eo-presup-display" placeholder="0" inputmode="numeric" autocomplete="off"><input type="hidden" id="eo-presup"></div>
         <div class="row mt-16" style="gap:10px">
           <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-edit-obra')">Cancelar</button>
           <button type="submit" class="btn btn-primary w-full" id="btn-act-obra">Actualizar</button>
@@ -657,6 +657,8 @@
       document.getElementById('eo-desc').value = obra.descripcion || '';
       document.getElementById('eo-ubic').value = obra.ubicacion || '';
       document.getElementById('eo-presup').value = obra.presupuesto || '';
+      const pv = obra.presupuesto ? Math.round(obra.presupuesto) : '';
+      document.getElementById('eo-presup-display').value = pv ? parseInt(pv).toLocaleString('es-CO').replace(/,/g, '.') : '';
       document.getElementById('overlay-edit-obra').classList.add('open');
     }
 
@@ -735,6 +737,21 @@
     montoDisplay.addEventListener('blur', function () {
       if (!montoHidden.value) this.value = '';
     });
+
+    // ── Formato presupuesto (editar obra) ──
+    const eoDisplay = document.getElementById('eo-presup-display');
+    const eoHidden  = document.getElementById('eo-presup');
+    if (eoDisplay) {
+      eoDisplay.addEventListener('input', function () {
+        const raw = this.value.replace(/\D/g, '');
+        eoHidden.value = raw;
+        const cursor = this.selectionStart;
+        const prevLen = this.value.length;
+        this.value = raw ? parseInt(raw, 10).toLocaleString('es-CO').replace(/,/g, '.') : '';
+        const diff = this.value.length - prevLen;
+        this.setSelectionRange(cursor + diff, cursor + diff);
+      });
+    }
 
         // ── Cerrar sheets al hacer clic fuera ──
     document.querySelectorAll('.overlay').forEach(ov => {

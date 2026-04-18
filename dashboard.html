@@ -38,9 +38,7 @@
       <span>Obras</span>
     </button>
     <button class="nav-btn" onclick="window.location.href='perfil.html'">
-      <span class="icon">
-        <img src="./assets/icons/exit.svg" alt="Cerrar sesión" style="width:20px;height:20px;filter:invert(100%) sepia(100%) grayscale(100%) brightness(150%)">
-      </span>
+      <span class="icon">👤</span>
       <span>Perfil</span>
     </button>
   </nav>
@@ -66,7 +64,8 @@
         </div>
         <div class="field">
           <label>Presupuesto total (COP)</label>
-          <input type="number" id="obra-presupuesto" placeholder="0" min="0" step="1000">
+          <input type="text" id="obra-presupuesto-display" placeholder="0" inputmode="numeric" autocomplete="off">
+          <input type="hidden" id="obra-presupuesto">
         </div>
         <div class="row mt-16" style="gap:10px">
           <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-obra')">Cancelar</button>
@@ -133,6 +132,7 @@
       document.getElementById('obra-desc').value = '';
       document.getElementById('obra-ubicacion').value = '';
       document.getElementById('obra-presupuesto').value = '';
+      document.getElementById('obra-presupuesto-display').value = '';
       document.getElementById('overlay-obra').classList.add('open');
     }
 
@@ -172,6 +172,19 @@
     }
 
     cargarObras();
+
+    // ── Formato presupuesto ──
+    const presupDisplay = document.getElementById('obra-presupuesto-display');
+    const presupHidden  = document.getElementById('obra-presupuesto');
+    presupDisplay.addEventListener('input', function () {
+      const raw = this.value.replace(/\D/g, '');
+      presupHidden.value = raw;
+      const cursor = this.selectionStart;
+      const prevLen = this.value.length;
+      this.value = raw ? parseInt(raw, 10).toLocaleString('es-CO').replace(/,/g, '.') : '';
+      const diff = this.value.length - prevLen;
+      this.setSelectionRange(cursor + diff, cursor + diff);
+    });
   </script>
 </body>
 </html>
