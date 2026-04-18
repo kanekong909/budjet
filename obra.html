@@ -164,7 +164,8 @@
         <div class="row" style="gap:10px">
           <div class="field" style="flex:1.2">
             <label>Monto (COP) *</label>
-            <input type="number" id="g-monto" placeholder="0" required min="0" step="100">
+            <input type="text" id="g-monto-display" placeholder="0" required inputmode="numeric" autocomplete="off">
+          <input type="hidden" id="g-monto">
           </div>
           <div class="field" style="flex:1">
             <label>Fecha *</label>
@@ -470,7 +471,9 @@
       document.getElementById('gasto-sheet-title').textContent = isEdit ? 'Editar gasto' : 'Nuevo gasto';
       document.getElementById('gasto-edit-id').value = isEdit ? g.id : '';
       document.getElementById('g-desc').value = isEdit ? g.descripcion : '';
-      document.getElementById('g-monto').value = isEdit ? g.monto : '';
+      const montoVal = isEdit ? g.monto : '';
+      document.getElementById('g-monto').value = montoVal;
+      document.getElementById('g-monto-display').value = montoVal ? formatMontoInput(String(Math.round(montoVal))) : '';
       document.getElementById('g-fecha').value = isEdit ? g.fecha?.split('T')[0] : todayISO();
       document.getElementById('g-categoria').value = isEdit ? (g.categoria_id || '') : '';
       document.getElementById('g-proveedor').value = isEdit ? (g.proveedor || '') : '';
@@ -706,7 +709,34 @@
       }
     }
 
-    // ── Cerrar sheets al hacer clic fuera ──
+    // ── Formato de monto mientras se escribe ──
+    function formatMontoInput(val) {
+      // Solo dígitos
+      const digits = val.replace(/\D/g, '');
+      if (!digits) return '';
+      // Separador de miles con punto
+      return parseInt(digits, 10).toLocaleString('es-CO').replace(/,/g, '.');
+    }
+
+    const montoDisplay = document.getElementById('g-monto-display');
+    const montoHidden  = document.getElementById('g-monto');
+
+    montoDisplay.addEventListener('input', function () {
+      const raw = this.value.replace(/\D/g, ''); // solo números
+      montoHidden.value = raw;                    // guardar valor limpio
+      const cursor = this.selectionStart;
+      const prevLen = this.value.length;
+      this.value = raw ? parseInt(raw, 10).toLocaleString('es-CO').replace(/,/g, '.') : '';
+      // Ajustar cursor para que no salte al final mientras se escribe
+      const diff = this.value.length - prevLen;
+      this.setSelectionRange(cursor + diff, cursor + diff);
+    });
+
+    montoDisplay.addEventListener('blur', function () {
+      if (!montoHidden.value) this.value = '';
+    });
+
+        // ── Cerrar sheets al hacer clic fuera ──
     document.querySelectorAll('.overlay').forEach(ov => {
       ov.addEventListener('click', function(e) {
         if (e.target === this) this.classList.remove('open');
