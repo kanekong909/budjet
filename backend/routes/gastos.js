@@ -5,10 +5,9 @@ const multer = require('multer');
 
 router.use(authMiddleware);
 
-// Config multer para memoria (luego se sube a Cloudinary)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
       cb(null, true);
@@ -18,7 +17,6 @@ const upload = multer({
   }
 });
 
-// Helper para verificar acceso a obra
 async function verificarAcceso(obraId, usuarioId) {
   const [rows] = await pool.query(
     'SELECT rol FROM obra_usuarios WHERE obra_id = ? AND usuario_id = ?',
@@ -27,7 +25,6 @@ async function verificarAcceso(obraId, usuarioId) {
   return rows.length > 0 ? rows[0].rol : null;
 }
 
-// Helper para subir imagen a Cloudinary
 async function subirImagen(buffer, mimetype) {
   if (!process.env.CLOUDINARY_API_KEY) return null;
   const cloudinary = require('cloudinary').v2;
@@ -36,7 +33,6 @@ async function subirImagen(buffer, mimetype) {
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
   });
-
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder: 'obra-gastos', resource_type: 'auto' },
@@ -49,7 +45,16 @@ async function subirImagen(buffer, mimetype) {
   });
 }
 
-// GET /api/gastos?obra_id=&fecha_desde=&fecha_hasta=&categoria_id=&page=&limit=
+// Helper para parsear categorías del JOIN
+function parsearCategorias(raw) {
+  if (!raw) return [];
+  return raw.split('|').map(s => {
+    const parts = s.split(':');
+    return { id: parseInt(parts[0]), nombre: parts[1], color: parts[2] };
+  });
+}
+
+// GET /api/gastos
 router.get('/', async (req, res) => {
   try {
     const { obra_id, fecha_desde, fecha_hasta, categoria_id, page = 1, limit = 50 } = req.query;
@@ -63,38 +68,36 @@ router.get('/', async (req, res) => {
 
     if (fecha_desde) { where += ' AND g.fecha >= ?'; params.push(fecha_desde); }
     if (fecha_hasta) { where += ' AND g.fecha <= ?'; params.push(fecha_hasta); }
-    if (categoria_id) { where += ' AND g.categoria_id = ?'; params.push(categoria_id); }
+    if (categoria_id) { where += ' AND gc2.categoria_id = ?'; params.push(categoria_id); }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     const [gastos] = await pool.query(`
       SELECT g.*,
         u.nombre AS usuario_nombre,
-        GROUP_CONCAT(c.nombre ORDER BY c.nombre SEPARATOR ', ') AS categoria_nombre,
-        GROUP_CONCAT(CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
+        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
       FROM gastos g
       LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
       LEFT JOIN categorias c ON c.id = gc.categoria_id
       LEFT JOIN usuarios u ON u.id = g.usuario_id
+      ${categoria_id ? 'LEFT JOIN gasto_categorias gc2 ON gc2.gasto_id = g.id' : ''}
       WHERE ${where}
       GROUP BY g.id
       ORDER BY g.fecha DESC, g.creado_en DESC
       LIMIT ? OFFSET ?
     `, [...params, parseInt(limit), offset]);
 
-    // Parsear categorías como array en cada gasto
     gastos.forEach(g => {
-      g.categorias = g.categorias_raw
-        ? g.categorias_raw.split('|').map(s => {
-            const [id, nombre, color] = s.split(':');
-            return { id: parseInt(id), nombre, color };
-          })
-        : [];
+      g.categorias = parsearCategorias(g.categorias_raw);
+      g.categoria_nombre = g.categorias.map(c => c.nombre).join(', ');
       delete g.categorias_raw;
     });
 
     const [total] = await pool.query(
-      `SELECT COUNT(*) as total, COALESCE(SUM(monto), 0) as suma FROM gastos g WHERE ${where}`,
+      `SELECT COUNT(DISTINCT g.id) as total, COALESCE(SUM(DISTINCT g.monto), 0) as suma 
+       FROM gastos g 
+       ${categoria_id ? 'LEFT JOIN gasto_categorias gc2 ON gc2.gasto_id = g.id' : ''}
+       WHERE ${where}`,
       params
     );
 
@@ -111,10 +114,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/gastos - Crear gasto (con o sin foto)
+// POST /api/gastos
 router.post('/', upload.single('foto'), async (req, res) => {
   try {
-    const { descripcion, monto, fecha, categoria_id, obra_id, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
+    const { descripcion, monto, fecha, obra_id, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
 
     if (!descripcion || !monto || !fecha || !obra_id) {
       return res.status(400).json({ error: 'descripcion, monto, fecha y obra_id son requeridos' });
@@ -125,45 +128,40 @@ router.post('/', upload.single('foto'), async (req, res) => {
 
     let foto_url = null;
     if (req.file) {
-      try {
-        foto_url = await subirImagen(req.file.buffer, req.file.mimetype);
-      } catch (e) {
-        console.error('Error subiendo imagen:', e);
-      }
+      try { foto_url = await subirImagen(req.file.buffer, req.file.mimetype); }
+      catch (e) { console.error('Error subiendo imagen:', e); }
     }
 
-    await pool.query(
-      `UPDATE gastos SET descripcion=?, monto=?, fecha=?, proveedor=?, notas=?, foto_url=?, cantidad=?, unidad=?, valor_unitario=? WHERE id=?`,
-      [descripcion, parseFloat(monto), fecha, proveedor || null, notas || null, foto_url, cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null, req.params.id]
+    const cats = req.body.categorias ? JSON.parse(req.body.categorias) : [];
+    const primeraCat = cats.length ? cats[0] : null;
+
+    const [result] = await pool.query(
+      `INSERT INTO gastos (descripcion, monto, fecha, categoria_id, obra_id, usuario_id, proveedor, notas, foto_url, cantidad, unidad, valor_unitario)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [descripcion, parseFloat(monto), fecha, primeraCat, obra_id, req.usuario.id,
+       proveedor || null, notas || null, foto_url,
+       cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null]
     );
 
-    // Actualizar categorías
-    const cats = req.body.categorias ? JSON.parse(req.body.categorias) : [];
-    await pool.query('DELETE FROM gasto_categorias WHERE gasto_id = ?', [req.params.id]);
     if (cats.length) {
-      const vals = cats.map(cid => [req.params.id, cid]);
+      const vals = cats.map(cid => [result.insertId, cid]);
       await pool.query('INSERT IGNORE INTO gasto_categorias (gasto_id, categoria_id) VALUES ?', [vals]);
-      await pool.query('UPDATE gastos SET categoria_id = ? WHERE id = ?', [cats[0], req.params.id]);
-    } else {
-      await pool.query('UPDATE gastos SET categoria_id = NULL WHERE id = ?', [req.params.id]);
     }
 
     const [gasto] = await pool.query(`
       SELECT g.*, u.nombre AS usuario_nombre,
-        GROUP_CONCAT(CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
+        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
       FROM gastos g
       LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
       LEFT JOIN categorias c ON c.id = gc.categoria_id
       LEFT JOIN usuarios u ON u.id = g.usuario_id
       WHERE g.id = ? GROUP BY g.id
-    `, [req.params.id]);
+    `, [result.insertId]);
 
-    gasto[0].categorias = gasto[0].categorias_raw
-      ? gasto[0].categorias_raw.split('|').map(s => { const [id,nombre,color]=s.split(':'); return {id:parseInt(id),nombre,color}; })
-      : [];
+    gasto[0].categorias = parsearCategorias(gasto[0].categorias_raw);
     delete gasto[0].categorias_raw;
 
-    res.json(gasto[0]);
+    res.status(201).json(gasto[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
@@ -179,34 +177,47 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
     const rol = await verificarAcceso(gastoActual[0].obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
 
-    // Solo el creador o admin puede editar
     if (gastoActual[0].usuario_id !== req.usuario.id && rol !== 'admin') {
       return res.status(403).json({ error: 'Solo puedes editar tus propios gastos' });
     }
 
-    const { descripcion, monto, fecha, categoria_id, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
+    const { descripcion, monto, fecha, proveedor, notas, cantidad, unidad, valor_unitario } = req.body;
 
     let foto_url = gastoActual[0].foto_url;
     if (req.file) {
-      try {
-        foto_url = await subirImagen(req.file.buffer, req.file.mimetype);
-      } catch (e) {
-        console.error('Error subiendo imagen:', e);
-      }
+      try { foto_url = await subirImagen(req.file.buffer, req.file.mimetype); }
+      catch (e) { console.error('Error subiendo imagen:', e); }
     }
 
+    const cats = req.body.categorias ? JSON.parse(req.body.categorias) : [];
+    const primeraCat = cats.length ? cats[0] : null;
+
     await pool.query(
-          `UPDATE gastos SET descripcion=?, monto=?, fecha=?, categoria_id=?, proveedor=?, notas=?, foto_url=?, cantidad=?, unidad=?, valor_unitario=? WHERE id=?`,
-          [descripcion, parseFloat(monto), fecha, categoria_id || null, proveedor || null, notas || null, foto_url, cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null, req.params.id]
-        );
+      `UPDATE gastos SET descripcion=?, monto=?, fecha=?, categoria_id=?, proveedor=?, notas=?, foto_url=?, cantidad=?, unidad=?, valor_unitario=? WHERE id=?`,
+      [descripcion, parseFloat(monto), fecha, primeraCat, proveedor || null, notas || null,
+       foto_url, cantidad || null, unidad || null,
+       valor_unitario ? parseFloat(valor_unitario) : null, req.params.id]
+    );
+
+    // Reemplazar categorías
+    await pool.query('DELETE FROM gasto_categorias WHERE gasto_id = ?', [req.params.id]);
+    if (cats.length) {
+      const vals = cats.map(cid => [req.params.id, parseInt(cid)]);
+      await pool.query('INSERT IGNORE INTO gasto_categorias (gasto_id, categoria_id) VALUES ?', [vals]);
+    }
 
     const [gasto] = await pool.query(`
-      SELECT g.*, c.nombre AS categoria_nombre, c.color AS categoria_color, u.nombre AS usuario_nombre
+      SELECT g.*, u.nombre AS usuario_nombre,
+        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
       FROM gastos g
-      LEFT JOIN categorias c ON c.id = g.categoria_id
+      LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
+      LEFT JOIN categorias c ON c.id = gc.categoria_id
       LEFT JOIN usuarios u ON u.id = g.usuario_id
-      WHERE g.id = ?
+      WHERE g.id = ? GROUP BY g.id
     `, [req.params.id]);
+
+    gasto[0].categorias = parsearCategorias(gasto[0].categorias_raw);
+    delete gasto[0].categorias_raw;
 
     res.json(gasto[0]);
   } catch (err) {
@@ -236,7 +247,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// GET /api/gastos/exportar?obra_id=&fecha_desde=&fecha_hasta= - Exportar CSV
+// GET /api/gastos/exportar
 router.get('/exportar', async (req, res) => {
   try {
     const { obra_id, fecha_desde, fecha_hasta } = req.query;
@@ -251,31 +262,37 @@ router.get('/exportar', async (req, res) => {
     if (fecha_hasta) { where += ' AND g.fecha <= ?'; params.push(fecha_hasta); }
 
     const [gastos] = await pool.query(`
-      SELECT g.fecha, g.descripcion, c.nombre AS categoria, g.proveedor,
-             g.monto, u.nombre AS registrado_por, g.notas
+      SELECT g.fecha, g.descripcion,
+        GROUP_CONCAT(DISTINCT c.nombre ORDER BY c.nombre SEPARATOR ', ') AS categoria,
+        g.proveedor, g.cantidad, g.unidad, g.valor_unitario, g.monto,
+        u.nombre AS registrado_por, g.notas
       FROM gastos g
-      LEFT JOIN categorias c ON c.id = g.categoria_id
+      LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
+      LEFT JOIN categorias c ON c.id = gc.categoria_id
       LEFT JOIN usuarios u ON u.id = g.usuario_id
       WHERE ${where}
+      GROUP BY g.id
       ORDER BY g.fecha DESC
     `, params);
 
     const [obra] = await pool.query('SELECT nombre FROM obras WHERE id = ?', [obra_id]);
 
-    // Generar CSV
-    const headers = ['Fecha', 'Descripción', 'Categoría', 'Proveedor', 'Monto', 'Registrado por', 'Notas'];
+    const headers = ['Fecha','Descripción','Categoría','Proveedor','Cantidad','Unidad','Valor unitario','Monto','Registrado por','Notas'];
     const rows = gastos.map(g => [
       g.fecha ? new Date(g.fecha).toLocaleDateString('es-CO') : '',
       `"${(g.descripcion || '').replace(/"/g, '""')}"`,
       g.categoria || '',
       `"${(g.proveedor || '').replace(/"/g, '""')}"`,
+      g.cantidad || '',
+      g.unidad || '',
+      g.valor_unitario || '',
       g.monto,
       g.registrado_por || '',
       `"${(g.notas || '').replace(/"/g, '""')}"`
     ]);
 
     const total = gastos.reduce((sum, g) => sum + parseFloat(g.monto), 0);
-    rows.push(['', 'TOTAL', '', '', total.toFixed(2), '', '']);
+    rows.push(['','TOTAL','','','','','',total.toFixed(2),'','']);
 
     const csv = [
       `# Gastos: ${obra[0]?.nombre || 'Obra'}`,
@@ -285,14 +302,14 @@ router.get('/exportar', async (req, res) => {
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="gastos-obra-${obra_id}.csv"`);
-    res.send('\uFEFF' + csv); // BOM para Excel
+    res.send('\uFEFF' + csv);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
 
-// GET /api/gastos/categorias?obra_id=
+// GET /api/gastos/categorias
 router.get('/categorias', async (req, res) => {
   try {
     const { obra_id } = req.query;
@@ -306,7 +323,7 @@ router.get('/categorias', async (req, res) => {
   }
 });
 
-// POST /api/gastos/categorias - Crear categoría personalizada
+// POST /api/gastos/categorias
 router.post('/categorias', async (req, res) => {
   try {
     const { nombre, color, obra_id } = req.body;
