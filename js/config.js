@@ -58,11 +58,11 @@ function formatMoney(n) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  // Normalizar: tomar solo YYYY-MM-DD sin importar si viene con T o Z
   const clean = String(dateStr).substring(0, 10);
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+  const [y, m, d] = clean.split('-').map(Number);
+  if (!y || !m || !d) return '';
+  const fecha = new Date(y, m - 1, d);
+  return fecha.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function todayISO() {
