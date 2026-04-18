@@ -181,7 +181,7 @@ input, select, textarea { font-family: var(--font); }
 }
 .btn-fab {
   position: fixed;
-  bottom: 88px;
+  bottom: 110px;
   right: 20px;
   width: 56px;
   height: 56px;
