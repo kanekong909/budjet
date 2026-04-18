@@ -130,9 +130,13 @@
   <!-- Total bar -->
   <div class="total-bar" id="total-bar">
     <div>
-      <div class="total-label">Total visible</div>
+      <div class="total-label">Egresos</div>
+      <div style="font-size:.7rem;color:var(--verde)" id="total-ingresos-bar"></div>
     </div>
-    <div class="total-monto" id="total-visible">—</div>
+    <div>
+      <div class="total-monto" id="total-visible">—</div>
+      <div style="font-size:.75rem;text-align:right;color:var(--verde)" id="total-disponible"></div>
+    </div>
   </div>
 
   <!-- Nav inferior -->
@@ -386,7 +390,16 @@
         gastos = data.gastos;
         totalPaginas = data.paginas;
         sumaVisible = data.suma;
-        document.getElementById('total-visible').textContent = formatMoney(sumaVisible);
+        sumaVisible = data.suma;
+        const ingresos = data.suma_ingresos || 0;
+        document.getElementById('total-visible').textContent = formatMoney(data.suma);
+        if (ingresos > 0) {
+          document.getElementById('total-ingresos-bar').textContent = `Capital: ${formatMoney(ingresos)}`;
+          document.getElementById('total-disponible').textContent = `Disp: ${formatMoney(ingresos - data.suma)}`;
+        } else {
+          document.getElementById('total-ingresos-bar').textContent = '';
+          document.getElementById('total-disponible').textContent = '';
+        }
         renderGastos();
         renderPaginacion(data.total, data.paginas);
       } catch (err) {
@@ -424,7 +437,16 @@
         const suma = filtrados.reduce((s, g) => s + parseFloat(g.monto), 0);
         document.getElementById('total-visible').textContent = formatMoney(suma);
       } else {
-        document.getElementById('total-visible').textContent = formatMoney(sumaVisible);
+        sumaVisible = data.suma;
+        const ingresos = data.suma_ingresos || 0;
+        document.getElementById('total-visible').textContent = formatMoney(data.suma);
+        if (ingresos > 0) {
+          document.getElementById('total-ingresos-bar').textContent = `Capital: ${formatMoney(ingresos)}`;
+          document.getElementById('total-disponible').textContent = `Disp: ${formatMoney(ingresos - data.suma)}`;
+        } else {
+          document.getElementById('total-ingresos-bar').textContent = '';
+          document.getElementById('total-disponible').textContent = '';
+        }
       }
     }
 
@@ -584,6 +606,13 @@
         const t = data.totales;
         document.getElementById('res-total').textContent = formatMoney(t.total_gastado);
         document.getElementById('res-cantidad').textContent = t.cantidad_gastos;
+        // Mostrar disponible si hay ingresos
+        if (t.total_ingresos > 0) {
+          document.getElementById('res-total').innerHTML =
+            formatMoney(t.total_gastado) +
+            `<div style="font-size:.75rem;color:var(--verde);margin-top:4px">Capital: ${formatMoney(t.total_ingresos)}</div>` +
+            `<div style="font-size:.75rem;color:${t.total_ingresos >= t.total_gastado ? 'var(--verde)' : 'var(--rojo)'};font-weight:700">Disp: ${formatMoney(t.total_ingresos - t.total_gastado)}</div>`;
+        }
 
         if (data.obra.presupuesto > 0) {
           document.getElementById('card-presupuesto').style.display = 'block';
@@ -601,7 +630,7 @@
         document.getElementById('grafica-cats').innerHTML = data.por_categoria.length ?
           data.por_categoria.map(c => `
             <div class="bar-row">
-              <div class="bar-label">${c.nombre}</div>
+              <div class="bar-label">${c.nombre}${c.tipo==='ingreso' ? ' ↑' : ''}</div>
               <div class="bar-track">
                 <div class="bar-fill" style="background:${c.color};width:${Math.round((c.total/maxVal)*100)}%">
                 </div>

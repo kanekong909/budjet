@@ -94,12 +94,26 @@ router.get('/', async (req, res) => {
     });
 
     const [total] = await pool.query(
-      `SELECT COUNT(DISTINCT g.id) as total, COALESCE(SUM(DISTINCT g.monto), 0) as suma 
-       FROM gastos g 
+      `SELECT 
+        COUNT(DISTINCT g.id) as total,
+        COALESCE(SUM(CASE WHEN COALESCE(cat_tipo.tipo,'egreso') = 'egreso' THEN g.monto ELSE 0 END), 0) as suma,
+        COALESCE(SUM(CASE WHEN cat_tipo.tipo = 'ingreso' THEN g.monto ELSE 0 END), 0) as suma_ingresos
+       FROM gastos g
+       LEFT JOIN gasto_categorias gc_t ON gc_t.gasto_id = g.id
+       LEFT JOIN categorias cat_tipo ON cat_tipo.id = gc_t.categoria_id AND cat_tipo.tipo = 'ingreso'
        ${categoria_id ? 'LEFT JOIN gasto_categorias gc2 ON gc2.gasto_id = g.id' : ''}
        WHERE ${where}`,
       params
     );
+
+    res.json({
+      gastos,
+      total: total[0].total,
+      suma: total[0].suma,
+      suma_ingresos: total[0].suma_ingresos,
+      pagina: parseInt(page),
+      paginas: Math.ceil(total[0].total / parseInt(limit))
+    });
 
     res.json({
       gastos,
@@ -263,7 +277,7 @@ router.get('/exportar', async (req, res) => {
 
     const [gastos] = await pool.query(`
       SELECT g.fecha, g.descripcion,
-        GROUP_CONCAT(DISTINCT c.nombre ORDER BY c.nombre SEPARATOR ', ') AS categoria,
+        GROUP_CONCAT(DISTINCT CONCAT(c.nombre, CASE WHEN c.tipo='ingreso' THEN ' (+)' ELSE '' END) ORDER BY c.nombre SEPARATOR ', ') AS categoria,
         g.proveedor, g.cantidad, g.unidad, g.valor_unitario, g.monto,
         u.nombre AS registrado_por, g.notas
       FROM gastos g

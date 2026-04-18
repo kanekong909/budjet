@@ -86,13 +86,14 @@ router.get('/:id/resumen', async (req, res) => {
     if (obra.length === 0) return res.status(404).json({ error: 'Obra no encontrada' });
 
     const [porCategoria] = await pool.query(`
-      SELECT c.nombre, c.color, COALESCE(SUM(g.monto), 0) AS total
+      SELECT c.nombre, c.color, c.tipo, COALESCE(SUM(g.monto), 0) AS total
       FROM categorias c
-      LEFT JOIN gastos g ON g.categoria_id = c.id AND g.obra_id = ?
+      LEFT JOIN gasto_categorias gc ON gc.categoria_id = c.id
+      LEFT JOIN gastos g ON g.id = gc.gasto_id AND g.obra_id = ?
       WHERE c.es_global = 1 OR c.obra_id = ?
       GROUP BY c.id
       HAVING total > 0
-      ORDER BY total DESC
+      ORDER BY c.tipo ASC, total DESC
     `, [req.params.id, req.params.id]);
 
     const [colaboradores] = await pool.query(`
@@ -104,11 +105,15 @@ router.get('/:id/resumen', async (req, res) => {
 
     const [totales] = await pool.query(`
       SELECT 
-        COUNT(*) AS cantidad_gastos,
-        COALESCE(SUM(monto), 0) AS total_gastado,
-        MIN(fecha) AS primera_fecha,
-        MAX(fecha) AS ultima_fecha
-      FROM gastos WHERE obra_id = ?
+        COUNT(DISTINCT g.id) AS cantidad_gastos,
+        COALESCE(SUM(CASE WHEN COALESCE(c.tipo,'egreso') = 'egreso' THEN g.monto ELSE 0 END), 0) AS total_gastado,
+        COALESCE(SUM(CASE WHEN c.tipo = 'ingreso' THEN g.monto ELSE 0 END), 0) AS total_ingresos,
+        MIN(g.fecha) AS primera_fecha,
+        MAX(g.fecha) AS ultima_fecha
+      FROM gastos g
+      LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
+      LEFT JOIN categorias c ON c.id = gc.categoria_id
+      WHERE g.obra_id = ?
     `, [req.params.id]);
 
     res.json({
