@@ -174,9 +174,9 @@
           </div>
         </div>
         <div class="row" style="gap:10px">
-          <div class="field" style="flex:1">
-            <label>Categoría</label>
-            <select id="g-categoria"></select>
+          <div class="field w-full">
+            <label>Categorías</label>
+            <div id="g-categorias-wrap" style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1.5px solid var(--gris-linea);border-radius:8px;min-height:44px;cursor:pointer"></div>
           </div>
           <div class="field" style="flex:1">
             <label>Proveedor</label>
@@ -352,9 +352,7 @@
     // ── Categorías ──
     async function cargarCategorias() {
       categorias = await api.get(`/api/gastos/categorias?obra_id=${obra.id}`);
-      const sel = document.getElementById('g-categoria');
-      sel.innerHTML = '<option value="">Sin categoría</option>' +
-        categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+      renderSelectorCategorias([]);
 
       const filtros = document.getElementById('filtros-cat');
       filtros.innerHTML = `<div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this,'')">Todos</div>` +
@@ -414,7 +412,7 @@
           <div class="gasto-cat-dot" style="background:${g.categoria_color || '#aeaeb2'}"></div>
           <div class="gasto-info">
             <div class="gasto-desc">${g.descripcion}</div>
-            <div class="gasto-meta">${formatDate(g.fecha)} · ${g.categoria_nombre || 'Sin cat.'} ${g.proveedor ? '· '+g.proveedor : ''}</div>
+            <div class="gasto-meta">${formatDate(g.fecha)} · ${g.categorias?.map(c=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:2px"></span>${c.nombre}`).join(', ') || 'Sin cat.'} ${g.proveedor ? '· '+g.proveedor : ''}</div>
           </div>
           ${g.foto_url ? '<span class="gasto-foto">📷</span>' : ''}
           <div class="gasto-monto">${formatMoney(g.monto)}</div>
@@ -452,7 +450,9 @@
       document.getElementById('detalle-desc').textContent = g.descripcion;
       document.getElementById('detalle-monto').textContent = formatMoney(g.monto);
       document.getElementById('detalle-fecha').textContent = formatDate(g.fecha);
-      document.getElementById('detalle-cat').textContent = g.categoria_nombre || '—';
+      document.getElementById('detalle-cat').innerHTML = g.categorias?.length
+    ? g.categorias.map(c => `<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:600;background:${c.color};color:#fff;margin:1px">${c.nombre}</span>`).join('')
+    : '—';
       document.getElementById('detalle-prov').textContent = g.proveedor || '—';
       document.getElementById('detalle-usuario').textContent = `Registrado por: ${g.usuario_nombre || '—'}`;
 
@@ -516,7 +516,8 @@
       document.getElementById('g-monto').value = montoVal;
       document.getElementById('g-monto-display').value = montoVal ? formatMontoInput(String(Math.round(montoVal))) : '';
       document.getElementById('g-fecha').value = isEdit ? g.fecha?.split('T')[0] : todayISO();
-      document.getElementById('g-categoria').value = isEdit ? (g.categoria_id || '') : '';
+      const selIds = isEdit && g.categorias ? g.categorias.map(c => c.id) : [];
+      renderSelectorCategorias(selIds);
       document.getElementById('g-proveedor').value = isEdit ? (g.proveedor || '') : '';
       document.getElementById('g-notas').value = isEdit ? (g.notas || '') : '';
       document.getElementById('g-cantidad').value = isEdit ? (g.cantidad || '') : '';
@@ -551,7 +552,7 @@
       fd.append('monto', document.getElementById('g-monto').value);
       fd.append('fecha', document.getElementById('g-fecha').value);
       fd.append('obra_id', obra.id);
-      fd.append('categoria_id', document.getElementById('g-categoria').value || '');
+      fd.append('categorias', JSON.stringify(catsSeleccionadas));
       fd.append('proveedor', document.getElementById('g-proveedor').value.trim());
       fd.append('notas', document.getElementById('g-notas').value.trim());
       fd.append('cantidad', document.getElementById('g-cantidad').value || '');
@@ -759,6 +760,32 @@
       } catch (err) {
         showToast('Error al exportar', 'error');
       }
+    }
+
+    // ── Selector múltiple de categorías ──
+    let catsSeleccionadas = [];
+
+    function renderSelectorCategorias(seleccionadas) {
+      catsSeleccionadas = seleccionadas.map(Number);
+      const wrap = document.getElementById('g-categorias-wrap');
+      if (!wrap) return;
+      wrap.innerHTML = categorias.map(c => {
+        const activa = catsSeleccionadas.includes(c.id);
+        return `<div onclick="toggleCategoria(${c.id})" style="
+          padding:5px 12px;border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;
+          transition:all .15s;user-select:none;
+          background:${activa ? c.color : 'var(--gris-bg)'};
+          color:${activa ? '#fff' : 'var(--texto-2)'};
+          border:2px solid ${activa ? c.color : 'transparent'};
+        ">${c.nombre}</div>`;
+      }).join('');
+    }
+
+    function toggleCategoria(id) {
+      const idx = catsSeleccionadas.indexOf(id);
+      if (idx === -1) catsSeleccionadas.push(id);
+      else catsSeleccionadas.splice(idx, 1);
+      renderSelectorCategorias(catsSeleccionadas);
     }
 
     // ── Calcular monto automático ──

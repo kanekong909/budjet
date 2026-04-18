@@ -68,16 +68,30 @@ router.get('/', async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     const [gastos] = await pool.query(`
-      SELECT g.*, 
-        c.nombre AS categoria_nombre, c.color AS categoria_color,
-        u.nombre AS usuario_nombre
+      SELECT g.*,
+        u.nombre AS usuario_nombre,
+        GROUP_CONCAT(c.nombre ORDER BY c.nombre SEPARATOR ', ') AS categoria_nombre,
+        GROUP_CONCAT(CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
       FROM gastos g
-      LEFT JOIN categorias c ON c.id = g.categoria_id
+      LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
+      LEFT JOIN categorias c ON c.id = gc.categoria_id
       LEFT JOIN usuarios u ON u.id = g.usuario_id
       WHERE ${where}
+      GROUP BY g.id
       ORDER BY g.fecha DESC, g.creado_en DESC
       LIMIT ? OFFSET ?
     `, [...params, parseInt(limit), offset]);
+
+    // Parsear categorías como array en cada gasto
+    gastos.forEach(g => {
+      g.categorias = g.categorias_raw
+        ? g.categorias_raw.split('|').map(s => {
+            const [id, nombre, color] = s.split(':');
+            return { id: parseInt(id), nombre, color };
+          })
+        : [];
+      delete g.categorias_raw;
+    });
 
     const [total] = await pool.query(
       `SELECT COUNT(*) as total, COALESCE(SUM(monto), 0) as suma FROM gastos g WHERE ${where}`,
@@ -118,21 +132,38 @@ router.post('/', upload.single('foto'), async (req, res) => {
       }
     }
 
-    const [result] = await pool.query(
-      `INSERT INTO gastos (descripcion, monto, fecha, categoria_id, obra_id, usuario_id, proveedor, notas, foto_url, cantidad, unidad, valor_unitario)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [descripcion, parseFloat(monto), fecha, categoria_id || null, obra_id, req.usuario.id, proveedor || null, notas || null, foto_url, cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null]
+    await pool.query(
+      `UPDATE gastos SET descripcion=?, monto=?, fecha=?, proveedor=?, notas=?, foto_url=?, cantidad=?, unidad=?, valor_unitario=? WHERE id=?`,
+      [descripcion, parseFloat(monto), fecha, proveedor || null, notas || null, foto_url, cantidad || null, unidad || null, valor_unitario ? parseFloat(valor_unitario) : null, req.params.id]
     );
 
-    const [gasto] = await pool.query(`
-      SELECT g.*, c.nombre AS categoria_nombre, c.color AS categoria_color, u.nombre AS usuario_nombre
-      FROM gastos g
-      LEFT JOIN categorias c ON c.id = g.categoria_id
-      LEFT JOIN usuarios u ON u.id = g.usuario_id
-      WHERE g.id = ?
-    `, [result.insertId]);
+    // Actualizar categorías
+    const cats = req.body.categorias ? JSON.parse(req.body.categorias) : [];
+    await pool.query('DELETE FROM gasto_categorias WHERE gasto_id = ?', [req.params.id]);
+    if (cats.length) {
+      const vals = cats.map(cid => [req.params.id, cid]);
+      await pool.query('INSERT IGNORE INTO gasto_categorias (gasto_id, categoria_id) VALUES ?', [vals]);
+      await pool.query('UPDATE gastos SET categoria_id = ? WHERE id = ?', [cats[0], req.params.id]);
+    } else {
+      await pool.query('UPDATE gastos SET categoria_id = NULL WHERE id = ?', [req.params.id]);
+    }
 
-    res.status(201).json(gasto[0]);
+    const [gasto] = await pool.query(`
+      SELECT g.*, u.nombre AS usuario_nombre,
+        GROUP_CONCAT(CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
+      FROM gastos g
+      LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
+      LEFT JOIN categorias c ON c.id = gc.categoria_id
+      LEFT JOIN usuarios u ON u.id = g.usuario_id
+      WHERE g.id = ? GROUP BY g.id
+    `, [req.params.id]);
+
+    gasto[0].categorias = gasto[0].categorias_raw
+      ? gasto[0].categorias_raw.split('|').map(s => { const [id,nombre,color]=s.split(':'); return {id:parseInt(id),nombre,color}; })
+      : [];
+    delete gasto[0].categorias_raw;
+
+    res.json(gasto[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
