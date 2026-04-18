@@ -444,12 +444,27 @@
     function verGasto(id) {
       gastoDetalleActual = gastos.find(g => g.id === id);
       const g = gastoDetalleActual;
+
       document.getElementById('detalle-desc').textContent = g.descripcion;
       document.getElementById('detalle-monto').textContent = formatMoney(g.monto);
       document.getElementById('detalle-fecha').textContent = formatDate(g.fecha);
       document.getElementById('detalle-cat').textContent = g.categoria_nombre || '—';
       document.getElementById('detalle-prov').textContent = g.proveedor || '—';
       document.getElementById('detalle-usuario').textContent = `Registrado por: ${g.usuario_nombre || '—'}`;
+
+      // Cantidad / unidad / valor unitario
+      const cantWrap = document.getElementById('detalle-cant-wrap');
+      if (g.cantidad && g.valor_unitario) {
+        cantWrap.style.display = 'grid';
+        document.getElementById('detalle-cantidad').textContent = `${parseFloat(g.cantidad).toLocaleString('es-CO')} ${g.unidad || 'und'}`;
+        document.getElementById('detalle-vunitario').textContent = formatMoney(g.valor_unitario);
+      } else if (g.cantidad) {
+        cantWrap.style.display = 'grid';
+        document.getElementById('detalle-cantidad').textContent = `${parseFloat(g.cantidad).toLocaleString('es-CO')} ${g.unidad || 'und'}`;
+        document.getElementById('detalle-vunitario').textContent = '—';
+      } else {
+        cantWrap.style.display = 'none';
+      }
 
       const notasWrap = document.getElementById('detalle-notas-wrap');
       if (g.notas) {
