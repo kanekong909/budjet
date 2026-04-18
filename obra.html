@@ -221,11 +221,15 @@
       <div class="sheet-handle"></div>
       <img id="detalle-foto" class="foto-gasto-grande" style="display:none" onclick="window.open(this.src)">
       <div class="sheet-title" id="detalle-desc">—</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
         <div class="stat-card"><div class="stat-label">Monto</div><div class="stat-valor grande" id="detalle-monto">—</div></div>
         <div class="stat-card"><div class="stat-label">Fecha</div><div class="stat-valor grande" id="detalle-fecha">—</div></div>
         <div class="stat-card"><div class="stat-label">Categoría</div><div class="stat-valor grande" id="detalle-cat">—</div></div>
         <div class="stat-card"><div class="stat-label">Proveedor</div><div class="stat-valor grande" id="detalle-prov">—</div></div>
+      </div>
+      <div id="detalle-cant-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="stat-card"><div class="stat-label">Cantidad</div><div class="stat-valor grande" id="detalle-cantidad">—</div></div>
+        <div class="stat-card"><div class="stat-label">Valor unitario</div><div class="stat-valor grande" id="detalle-vunitario">—</div></div>
       </div>
       <div id="detalle-notas-wrap" style="display:none" class="card mb-8">
         <div class="stat-label mb-8">Notas</div>
