@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURACIÓN — Edita esta línea con tu URL de Railway
 // ============================================================
-const API_URL = 'https://TU-APP.railway.app'; // ← CAMBIA ESTO
+const API_URL = 'https://budjet-production.up.railway.app'; // ← CAMBIA ESTO
 
 // ============================================================
 // Cliente API — maneja auth y errores automáticamente
