@@ -1312,11 +1312,11 @@
                     style="background:${cfg.color};color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap">
                     ${cfg.next === 'en_progreso' ? '▶ Iniciar' : cfg.next === 'hecho' ? '✓ Listo' : '↩ Reabrir'}
                   </button>
-                  <button onclick="abrirEditarTarea(${t.id})" class="btn-icon" id="edit-tarea">
-                    <img src="./assets/icons/ed.svg" alt="Editar" />
+                  <button onclick="abrirEditarTarea(${t.id})" style="width:28px;height:28px;padding:4px;background:var(--gris-bg);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <img src="./assets/icons/ed.svg" alt="Editar" style="width:14px;height:14px">
                   </button>
-                  <button onclick="pedirEliminarTarea(${t.id})" class="btn-icon" id="delete-tarea">
-                    <img src="./assets/icons/trash.svg" alt="Eliminar" />
+                  <button onclick="pedirEliminarTarea(${t.id})" style="width:28px;height:28px;padding:4px;background:var(--gris-bg);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <img src="./assets/icons/trash.svg" alt="Eliminar" style="width:14px;height:14px">
                   </button>
                 </div>
               </div>
