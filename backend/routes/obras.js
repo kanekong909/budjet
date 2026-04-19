@@ -12,7 +12,10 @@ router.get('/', async (req, res) => {
         u.nombre AS creador_nombre,
         ou.rol AS mi_rol,
         (SELECT COUNT(*) FROM gastos g WHERE g.obra_id = o.id) AS total_gastos_count,
-        (SELECT COALESCE(SUM(g.monto), 0) FROM gastos g WHERE g.obra_id = o.id) AS total_gastado
+        (SELECT COALESCE(SUM(g.monto), 0) FROM gastos g 
+         LEFT JOIN gasto_categorias gc_t ON gc_t.gasto_id = g.id
+         LEFT JOIN categorias cat_t ON cat_t.id = gc_t.categoria_id AND cat_t.tipo = 'ingreso'
+         WHERE g.obra_id = o.id AND COALESCE(cat_t.tipo, 'egreso') = 'egreso') AS total_gastado
       FROM obras o
       JOIN obra_usuarios ou ON ou.obra_id = o.id AND ou.usuario_id = ?
       JOIN usuarios u ON u.id = o.creador_id
