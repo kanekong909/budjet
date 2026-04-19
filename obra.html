@@ -246,7 +246,7 @@
         <div class="field">
           <label>Foto / Factura</label>
           <div class="row" style="gap:8px;margin-bottom:8px">
-            <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('g-foto-camara').click()"><img src="./assets/icons/camara.svg" alt="Cámara" style="width:16px;height:16px"> Cámara</button>
+            <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('g-foto-camara').click()"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"> Cámara</button>
             <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('g-foto-galeria').click()">🖼️ Galería</button>
           </div>
           <input type="file" id="g-foto-camara" accept="image/*" capture="environment" style="display:none" onchange="seleccionarFotoGasto(this)">
@@ -388,7 +388,7 @@
       <div class="field">
         <label>Foto *</label>
         <div class="row" style="gap:8px;margin-bottom:8px">
-          <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('p-foto-camara').click()"><img src="./assets/icons/camara.svg" alt="Cámara" style="width:16px;height:16px"> Cámara</button>
+          <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('p-foto-camara').click()"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"> Cámara</button>
           <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('p-foto-galeria').click()">🖼️ Galería</button>
         </div>
         <input type="file" id="p-foto-camara" accept="image/*" capture="environment" style="display:none" onchange="seleccionarFotoProgreso(this)">
@@ -609,7 +609,7 @@
             <div class="gasto-desc">${g.descripcion}</div>
             <div class="gasto-meta">${formatDate(g.fecha)} · ${g.categorias?.map(c=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:2px"></span>${c.nombre}`).join(', ') || 'Sin cat.'} ${g.proveedor ? '· '+g.proveedor : ''}</div>
           </div>
-          ${g.foto_url ? '<span class="gasto-foto"><img src="./assets/icons/camara.svg" alt="Cámara" style="width:16px;height:16px"></span>' : ''}
+          ${g.foto_url ? '<span class="gasto-foto"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"></span>' : ''}
           <div class="gasto-monto">${formatMoney(g.monto)}</div>
         </div>
       `).join('');
@@ -1153,7 +1153,7 @@
         : todasLasFotos;
 
       if (!fotos.length) {
-        container.innerHTML = `<div class="empty"><div class="empty-icon"><img src="./assets/icons/camara.svg" alt="Cámara" style="width:16px;height:16px"></div><div class="empty-msg">Sin fotos aún.<br>Toca + para agregar la primera.</div></div>`;
+        container.innerHTML = `<div class="empty"><div class="empty-icon"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"></div><div class="empty-msg">Sin fotos aún.<br>Toca + para agregar la primera.</div></div>`;
         return;
       }
 
