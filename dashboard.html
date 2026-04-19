@@ -129,7 +129,7 @@
           <div class="obra-icon">🏗️</div>
           <div class="obra-info">
             <div class="obra-info-nombre">${o.nombre}</div>
-            <div class="obra-info-meta">${o.ubicacion || 'Sin ubicación'} · ${o.total_gastos_count} gastos</div>
+            <div class="obra-info-meta">${o.ubicacion || 'Sin ubicación'} · ${o.total_gastos_count} gastos${o.tareas_pendientes > 0 ? ` · <span style="color:var(--rojo);font-weight:700">⚠️ ${o.tareas_pendientes} tarea${o.tareas_pendientes>1?'s':''} pendiente${o.tareas_pendientes>1?'s':''}</span>` : ''}</div>
             <div class="obra-info-total">${formatMoney(o.total_gastado)}</div>
           </div>
           <button onclick="event.stopPropagation();pedirEliminarObra(${o.id},'${o.nombre.replace(/'/g,"\\\'")}')" 

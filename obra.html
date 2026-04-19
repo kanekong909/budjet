@@ -23,7 +23,7 @@
     <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">📊 Resumen</button>
     <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">👷 Equipo</button>
     <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')">📸 Progreso</button>
-    <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">✅ Tareas</button>
+    <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">✅ Tareas <span id="badge-tareas" style="display:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.7rem;font-weight:700;padding:1px 6px;margin-left:2px"></span></button>
   </div>
 
   <main class="main" style="padding-top:12px">
@@ -1261,6 +1261,12 @@
       const pendientes = lista.filter(t => t.estado === 'pendiente').length;
       const enProgreso = lista.filter(t => t.estado === 'en_progreso').length;
       const hechas     = lista.filter(t => t.estado === 'hecho').length;
+
+      // Badge con pendientes + en progreso
+      const activas = todasLasTareas.filter(t => t.estado !== 'hecho').length;
+      const badge = document.getElementById('badge-tareas');
+      if (activas > 0) { badge.textContent = activas; badge.style.display = 'inline'; }
+      else badge.style.display = 'none';
 
       if (!lista.length) {
         container.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-msg">Sin tareas${estadoFiltro ? ' en este estado' : ''}.<br>Toca + para agregar.</div></div>`;
