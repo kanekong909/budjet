@@ -18,7 +18,7 @@
   </header>
 
   <!-- Nav tabs -->
-  <div style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px">
+  <div style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
     <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">💰 Gastos</button>
     <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">📊 Resumen</button>
     <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">👷 Equipo</button>
@@ -401,6 +401,22 @@
         <button class="btn btn-danger btn-sm" onclick="eliminarFotoProgreso()">🗑️ Eliminar</button>
       </div>
       <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-ver-foto')">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Confirmar eliminar foto ===== -->
+  <div class="overlay" id="overlay-confirmar-foto">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div style="text-align:center;padding:8px 0 16px">
+        <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar foto?</div>
+        <div class="text-2">Esta acción no se puede deshacer.</div>
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-foto')">Cancelar</button>
+        <button class="btn btn-danger w-full" onclick="confirmarEliminarFoto()">Sí, eliminar</button>
+      </div>
     </div>
   </div>
 
@@ -1080,11 +1096,15 @@
       setLoading(btn, false);
     }
 
-    async function eliminarFotoProgreso() {
-      if (!confirm('¿Eliminar esta foto?')) return;
+    function eliminarFotoProgreso() {
+      document.getElementById('overlay-ver-foto').classList.remove('open');
+      document.getElementById('overlay-confirmar-foto').classList.add('open');
+    }
+
+    async function confirmarEliminarFoto() {
       try {
         await api.delete(`/api/progreso/${fotoActual.id}`);
-        cerrarSheet('overlay-ver-foto');
+        cerrarSheet('overlay-confirmar-foto');
         showToast('Foto eliminada');
         await cargarProgreso();
       } catch (err) {
