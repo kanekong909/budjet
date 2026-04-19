@@ -161,4 +161,22 @@ router.delete('/:id/colaboradores/:uid', async (req, res) => {
   }
 });
 
+// DELETE /api/obras/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const [acceso] = await pool.query(
+      'SELECT rol FROM obra_usuarios WHERE obra_id = ? AND usuario_id = ?',
+      [req.params.id, req.usuario.id]
+    );
+    if (!acceso.length) return res.status(403).json({ error: 'Sin acceso' });
+    if (acceso[0].rol !== 'admin') return res.status(403).json({ error: 'Solo el admin puede eliminar la obra' });
+
+    await pool.query('DELETE FROM obras WHERE id = ?', [req.params.id]);
+    res.json({ mensaje: 'Obra eliminada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 module.exports = router;

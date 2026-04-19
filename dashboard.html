@@ -76,6 +76,23 @@
     </div>
   </div>
 
+  <!-- Sheet: Confirmar eliminar obra -->
+  <div class="overlay" id="overlay-confirmar-obra">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div style="text-align:center;padding:8px 0 16px">
+        <div style="font-size:2.5rem;margin-bottom:12px">⚠️</div>
+        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar obra?</div>
+        <div class="fw-700" id="confirmar-obra-nombre" style="font-size:1rem;margin-bottom:8px"></div>
+        <div class="text-2">Se eliminarán <strong>todos los gastos</strong> asociados.<br>Esta acción no se puede deshacer.</div>
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-obra')">Cancelar</button>
+        <button class="btn btn-danger w-full" id="btn-confirmar-eliminar-obra" onclick="confirmarEliminarObra()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script>
     if (!requireAuth()) void 0;
@@ -115,7 +132,8 @@
             <div class="obra-info-meta">${o.ubicacion || 'Sin ubicación'} · ${o.total_gastos_count} gastos</div>
             <div class="obra-info-total">${formatMoney(o.total_gastado)}</div>
           </div>
-          <div style="color:var(--texto-3);font-size:1.1rem">›</div>
+          <button onclick="event.stopPropagation();pedirEliminarObra(${o.id},'${o.nombre.replace(/'/g,"\\\'")}')" 
+            style="background:none;border:none;padding:8px;color:var(--texto-3);font-size:1.1rem;cursor:pointer">🗑️</button>
         </div>
       `).join('');
     }
@@ -186,6 +204,28 @@
       const diff = this.value.length - prevLen;
       this.setSelectionRange(cursor + diff, cursor + diff);
     });
+
+    let obraAEliminarId = null;
+
+    function pedirEliminarObra(id, nombre) {
+      obraAEliminarId = id;
+      document.getElementById('confirmar-obra-nombre').textContent = nombre;
+      document.getElementById('overlay-confirmar-obra').classList.add('open');
+    }
+
+    async function confirmarEliminarObra() {
+      const btn = document.getElementById('btn-confirmar-eliminar-obra');
+      setLoading(btn, true);
+      try {
+        await api.delete(`/api/obras/${obraAEliminarId}`);
+        cerrarSheet('overlay-confirmar-obra');
+        showToast('Obra eliminada');
+        await cargarObras();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
+    }
   </script>
 </body>
 </html>
