@@ -688,3 +688,12 @@ input, select, textarea { font-family: var(--font); }
   .nav-bottom { padding-bottom: env(safe-area-inset-bottom); }
 }
 
+#edit-tarea, #delete-tarea {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: var(--gris-bg);
+  border-radius: 10px;
+  font-size: 1.1rem;
+}
+
