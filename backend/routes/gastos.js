@@ -193,6 +193,8 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
     if (req.file) {
       try { foto_url = await subirImagen(req.file.buffer, req.file.mimetype); }
       catch (e) { console.error('Error subiendo imagen:', e); }
+    } else if (req.body.borrar_foto === '1') {
+      foto_url = null;
     }
 
     const cats = req.body.categorias ? JSON.parse(req.body.categorias) : [];

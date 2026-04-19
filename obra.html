@@ -226,8 +226,17 @@
         </div>
         <div class="field">
           <label>Foto / Factura</label>
-          <input type="file" id="g-foto" accept="image/*,application/pdf" onchange="previewFoto(this)">
-          <img id="foto-preview" class="foto-preview">
+          <div class="row" style="gap:8px;margin-bottom:8px">
+            <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('g-foto-camara').click()">📷 Cámara</button>
+            <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('g-foto-galeria').click()">🖼️ Galería</button>
+          </div>
+          <input type="file" id="g-foto-camara" accept="image/*" capture="environment" style="display:none" onchange="seleccionarFotoGasto(this)">
+          <input type="file" id="g-foto-galeria" accept="image/*,application/pdf" style="display:none" onchange="seleccionarFotoGasto(this)">
+          <input type="file" id="g-foto" accept="image/*,application/pdf" style="display:none">
+          <div id="foto-preview-wrap" style="display:none;position:relative;margin-top:8px">
+            <img id="foto-preview" class="foto-preview" style="display:block;margin:0">
+            <button type="button" onclick="eliminarFotoGasto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:28px;height:28px;color:white;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+          </div>
         </div>
         <div class="row mt-16" style="gap:10px">
           <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-gasto')">Cancelar</button>
@@ -654,19 +663,45 @@
       document.getElementById('g-vunitario').value = vu;
       document.getElementById('g-vunitario-display').value = vu ? parseInt(vu).toLocaleString('es-CO').replace(/,/g, '.') : '';
       document.getElementById('g-foto').value = '';
+      document.getElementById('g-foto').dataset.borrar = '';
       const prev = document.getElementById('foto-preview');
-      if (isEdit && g.foto_url) { prev.src = g.foto_url; prev.style.display = 'block'; }
-      else prev.style.display = 'none';
+      const wrap = document.getElementById('foto-preview-wrap');
+      if (isEdit && g.foto_url) {
+        prev.src = g.foto_url;
+        wrap.style.display = 'block';
+      } else {
+        prev.src = '';
+        wrap.style.display = 'none';
+      }
       document.getElementById('overlay-gasto').classList.add('open');
     }
 
     function previewFoto(input) {
       const prev = document.getElementById('foto-preview');
+      const wrap = document.getElementById('foto-preview-wrap');
       if (input.files[0] && input.files[0].type.startsWith('image/')) {
         const reader = new FileReader();
-        reader.onload = e => { prev.src = e.target.result; prev.style.display = 'block'; };
+        reader.onload = e => { prev.src = e.target.result; wrap.style.display = 'block'; };
         reader.readAsDataURL(input.files[0]);
       }
+    }
+
+    function seleccionarFotoGasto(input) {
+      if (!input.files[0]) return;
+      const dt = new DataTransfer();
+      dt.items.add(input.files[0]);
+      document.getElementById('g-foto').files = dt.files;
+      previewFoto(input);
+    }
+
+    function eliminarFotoGasto() {
+      document.getElementById('g-foto').value = '';
+      document.getElementById('g-foto-camara').value = '';
+      document.getElementById('g-foto-galeria').value = '';
+      document.getElementById('foto-preview').src = '';
+      document.getElementById('foto-preview-wrap').style.display = 'none';
+      // Marcar para borrar foto existente en edición
+      document.getElementById('g-foto').dataset.borrar = '1';
     }
 
     async function guardarGasto(e) {
@@ -686,8 +721,13 @@
       fd.append('cantidad', document.getElementById('g-cantidad').value || '');
       fd.append('unidad', document.getElementById('g-unidad').value.trim());
       fd.append('valor_unitario', document.getElementById('g-vunitario').value || '');
-      const fotoFile = document.getElementById('g-foto').files[0];
-      if (fotoFile) fd.append('foto', fotoFile);
+      const fotoInput = document.getElementById('g-foto');
+      const fotoFile = fotoInput.files[0];
+      if (fotoFile) {
+        fd.append('foto', fotoFile);
+      } else if (fotoInput.dataset.borrar === '1') {
+        fd.append('borrar_foto', '1');
+      }
 
       try {
         if (editId) {
