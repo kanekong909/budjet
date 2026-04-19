@@ -694,6 +694,6 @@ input, select, textarea { font-family: var(--font); }
   padding: 0;
   background: var(--gris-bg);
   border-radius: 10px;
-  font-size: 1.1rem;
+  /* font-size: 1.1rem; */
 }
 
