@@ -21,11 +21,25 @@
   <div style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
     <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">
       <img src="./assets/icons/money.svg" alt="Gastos" >
+      Gastos
     </button>
-    <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">📊 Resumen</button>
-    <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">👷 Equipo</button>
-    <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')">📸 Progreso</button>
-    <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">✅ Tareas <span id="badge-tareas" style="display:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.7rem;font-weight:700;padding:1px 6px;margin-left:2px"></span></button>
+    <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')"> 
+      <img src="./assets/icons/chart.svg" alt="Resumen">
+      Resumen
+    </button>
+    <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">
+      <img src="./assets/icons/team.svg" alt="Equipo"> 
+      Equipo
+    </button>
+    <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')"> 
+      <img src="./assets/icons/cam.svg" alt="Progreso">
+      Progreso
+    </button>
+    <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">
+      <img src="./assets/icons/task.svg" alt="Tareas"> 
+      Tareas 
+      <span id="badge-tareas" style="display:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.7rem;font-weight:700;padding:1px 6px;margin-left:2px"></span>
+    </button>
   </div>
 
   <main class="main" style="padding-top:12px">
