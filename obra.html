@@ -1308,8 +1308,12 @@
                     style="background:${cfg.color};color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap">
                     ${cfg.next === 'en_progreso' ? '▶ Iniciar' : cfg.next === 'hecho' ? '✓ Listo' : '↩ Reabrir'}
                   </button>
-                  <button onclick="abrirEditarTarea(${t.id})" class="btn-icon" style="width:32px;height:32px;font-size:.85rem">✏️</button>
-                  <button onclick="pedirEliminarTarea(${t.id})" class="btn-icon" style="width:32px;height:32px;font-size:.85rem">🗑️</button>
+                  <button onclick="abrirEditarTarea(${t.id})" class="btn-icon" style="width:32px;height:32px;font-size:.85rem">
+                      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTguODg4IDMuODg4Yy0uNTEyLS41MTItMS4zNDQtLjUxMi0xLjg1NiAwbC0xMSAxMWMtLjI1Mi4yNTItLjQxMi41ODgtLjQxMi45ODhsLS4wMDguMDg4Yy4wMDAuNDEuMTYgLjc0OCAuNDEyLjk4OGwxMSAxMWMuNTEyLjUxMiAxLjM0NC41MTIgMS44NTYgMGwxMS0xMGMuNTEyLS41MTIgLjUxMi0xLjM0NCAwLTEuODU2bC0xMS0xMXptLTkuMDg4IDExbDkuMDg4LTkuMDg4IDExIDExLTkuMDg4IDkuMDg4em0xMC45OTYtOS45ODhsLTkuOTk2IDkuOTk2IDAtMS40MTJsOS45ODgtOS45ODggMS40MTIgMCAwIDEuNDEyek0yMC41ODQgNS40MTJsLTIuOTk2LTIuOTk2IDEuNDEtMS40MTJjLjI1Mi0uMjUyLjY1Mi0uMjUyLjkxIDBsMi45OTYgMi45OTZjLjI1Mi4yNTIuMjUyLjY1MiAwIC45ODhsLTEuNDEgMS40MTJ6Ii8+PC9zdmc+" alt="Editar">
+                  </button>
+                  <button onclick="pedirEliminarTarea(${t.id})" class="btn-icon" style="width:32px;height:32px;font-size:.85rem">
+                      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNOSAxOWMwIC41NTIuNDQ4IDEgMSAxcy0xLS40NDgtMS0xVjZhMSAxIDAgMCAtMiAwdjEzbC0yLTJjLS4yNTItLjI1Mi0uNTg4LS40MTItLjk4OC00MTJsLS4wODgtLjA4OGMtLjQxLS40MS0uNDEtMS4wODggMC0xLjQ5OGwxIDEgYy40MS40MSAxLjA4OCAuNDEgMS40OTggMGwxIDEgYy40MS40MSAxLjA4OCAuNDEgMS40OTggMGMuNDEtLjQxIDAtMS4wODgtLjQxLTEuNDk4bC0uMDg4LS4wODhjLS40MTQtNDEtMS4wODgtNDEtMS40OTgtNGwtMiAyYy0uMjUyLjI1Mi0uNTg4LjQxMi0uOTg4IDQxem05LTExYzAtLjU1Mi00LTEtOS00cy05IC40NDgtOSAxdjFjMCAuNTUyIDQgMSA5IDFzOS0uNDQ4IDktMXoiLz48L3N2Zz4=" alt="Eliminar">  
+                  </button>
                 </div>
               </div>
             </div>
