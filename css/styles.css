@@ -383,6 +383,12 @@ input, select, textarea { font-family: var(--font); }
   border-color: var(--gris-obra);
 }
 
+.filtro-chip img {
+  width: 16px;
+  height: 16px;
+  /* filter: invert(100%) sepia(100%) grayscale(100%) brightness(200%); */
+}
+
 .gasto-item {
   display: flex;
   align-items: center;
