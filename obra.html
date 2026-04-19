@@ -359,7 +359,13 @@
       <div class="sheet-title">📸 Foto de progreso</div>
       <div class="field">
         <label>Foto *</label>
-        <input type="file" id="p-foto" accept="image/*" onchange="previewProgreso(this)">
+        <div class="row" style="gap:8px;margin-bottom:8px">
+          <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('p-foto-camara').click()">📷 Cámara</button>
+          <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('p-foto-galeria').click()">🖼️ Galería</button>
+        </div>
+        <input type="file" id="p-foto-camara" accept="image/*" capture="environment" style="display:none" onchange="seleccionarFotoProgreso(this)">
+        <input type="file" id="p-foto-galeria" accept="image/*" style="display:none" onchange="seleccionarFotoProgreso(this)">
+        <input type="file" id="p-foto" accept="image/*" style="display:none">
         <img id="p-foto-preview" class="foto-preview" style="display:none">
       </div>
       <div class="row" style="gap:10px">
@@ -1009,6 +1015,15 @@
         reader.onload = e => { prev.src = e.target.result; prev.style.display = 'block'; };
         reader.readAsDataURL(input.files[0]);
       }
+    }
+
+    function seleccionarFotoProgreso(input) {
+      if (!input.files[0]) return;
+      // Transferir el archivo al input principal que usa guardarProgreso()
+      const dt = new DataTransfer();
+      dt.items.add(input.files[0]);
+      document.getElementById('p-foto').files = dt.files;
+      previewProgreso(input);
     }
 
     async function cargarProgreso() {
