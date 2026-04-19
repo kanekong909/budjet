@@ -153,7 +153,14 @@
         <div class="filtro-chip active" onclick="filtrarTareas(this,'')">Todas</div>
         <div class="filtro-chip" onclick="filtrarTareas(this,'pendiente')">🔴 Pendiente</div>
         <div class="filtro-chip" onclick="filtrarTareas(this,'en_progreso')">🟡 En progreso</div>
-        <div class="filtro-chip" onclick="filtrarTareas(this,'hecho')">🟢 Hecho</div>
+      </div>
+      <div id="tareas-lista"></div>
+      <button class="btn btn-secundario w-full mt-8" onclick="toggleHistorial()" id="btn-historial">
+        📋 Ver historial de completadas
+      </button>
+      <div id="tareas-historial" style="display:none;margin-top:12px">
+        <div class="seccion-titulo" style="margin-bottom:10px">✅ Completadas</div>
+        <div id="historial-lista"></div>
       </div>
 
       <div id="tareas-lista"></div>
@@ -1256,50 +1263,71 @@
       renderTareas();
     }
 
-    function renderTareas() {
+function renderTareas() {
       const container = document.getElementById('tareas-lista');
-      const lista = estadoFiltro
-        ? todasLasTareas.filter(t => t.estado === estadoFiltro)
-        : todasLasTareas;
 
-      const pendientes = lista.filter(t => t.estado === 'pendiente').length;
-      const enProgreso = lista.filter(t => t.estado === 'en_progreso').length;
-      const hechas     = lista.filter(t => t.estado === 'hecho').length;
+      // Solo mostrar pendientes y en progreso en la vista principal
+      const activas = estadoFiltro
+        ? todasLasTareas.filter(t => t.estado === estadoFiltro && t.estado !== 'hecho')
+        : todasLasTareas.filter(t => t.estado !== 'hecho');
 
-      // Badge con pendientes + en progreso
-      const activas = todasLasTareas.filter(t => t.estado !== 'hecho').length;
+      const hechas = todasLasTareas.filter(t => t.estado === 'hecho');
+
+      // Badge
       const badge = document.getElementById('badge-tareas');
-      if (activas > 0) { badge.textContent = activas; badge.style.display = 'inline'; }
+      const nActivas = todasLasTareas.filter(t => t.estado !== 'hecho').length;
+      if (nActivas > 0) { badge.textContent = nActivas; badge.style.display = 'inline'; }
       else badge.style.display = 'none';
 
-      if (!lista.length) {
-        container.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-msg">Sin tareas${estadoFiltro ? ' en este estado' : ''}.<br>Toca + para agregar.</div></div>`;
+      // Contador
+      const pendientes = todasLasTareas.filter(t => t.estado === 'pendiente').length;
+      const enProgreso = todasLasTareas.filter(t => t.estado === 'en_progreso').length;
+
+      // Botón historial
+      const btnHistorial = document.getElementById('btn-historial');
+      if (hechas.length > 0) {
+        btnHistorial.style.display = 'block';
+        btnHistorial.textContent = `📋 Historial de completadas (${hechas.length})`;
+      } else {
+        btnHistorial.style.display = 'none';
+      }
+
+      if (!activas.length) {
+        container.innerHTML = `
+          <div class="stats-row" style="margin-bottom:12px">
+            <div class="stat-card" style="text-align:center;padding:10px">
+              <div style="font-size:1.1rem;font-weight:700;color:var(--rojo)">${pendientes}</div>
+              <div class="stat-label">Pendiente</div>
+            </div>
+            <div class="stat-card" style="text-align:center;padding:10px">
+              <div style="font-size:1.1rem;font-weight:700;color:var(--amarillo)">${enProgreso}</div>
+              <div class="stat-label">En progreso</div>
+            </div>
+          </div>
+          <div class="empty"><div class="empty-icon">✅</div>
+          <div class="empty-msg">${hechas.length ? '¡Todo completado!' : 'Sin tareas. Toca + para agregar.'}</div></div>`;
         return;
       }
 
       container.innerHTML = `
-        <div class="row" style="gap:8px;margin-bottom:12px">
-          <div class="stat-card" style="flex:1;text-align:center;padding:10px">
+        <div class="stats-row" style="margin-bottom:12px">
+          <div class="stat-card" style="text-align:center;padding:10px">
             <div style="font-size:1.1rem;font-weight:700;color:var(--rojo)">${pendientes}</div>
             <div class="stat-label">Pendiente</div>
           </div>
-          <div class="stat-card" style="flex:1;text-align:center;padding:10px">
+          <div class="stat-card" style="text-align:center;padding:10px">
             <div style="font-size:1.1rem;font-weight:700;color:var(--amarillo)">${enProgreso}</div>
             <div class="stat-label">En progreso</div>
           </div>
-          <div class="stat-card" style="flex:1;text-align:center;padding:10px">
-            <div style="font-size:1.1rem;font-weight:700;color:var(--verde)">${hechas}</div>
-            <div class="stat-label">Hechas</div>
-          </div>
         </div>
-        ${lista.map(t => {
+        ${activas.map(t => {
           const cfg = ESTADO_CONFIG[t.estado];
-          const vencida = t.fecha_limite && t.estado !== 'hecho' && new Date(t.fecha_limite) < new Date();
+          const vencida = t.fecha_limite && new Date(t.fecha_limite) < new Date();
           return `
-            <div class="card" style="margin-bottom:8px;padding:12px 14px;opacity:${t.estado==='hecho'?'.6':'1'}">
+            <div class="card" style="margin-bottom:8px;padding:12px 14px">
               <div class="row-between" style="align-items:flex-start;gap:8px">
                 <div style="flex:1;min-width:0">
-                  <div style="font-weight:600;font-size:.95rem;${t.estado==='hecho'?'text-decoration:line-through;':''}">${t.titulo}</div>
+                  <div style="font-weight:600;font-size:.95rem">${t.titulo}</div>
                   ${t.descripcion ? `<div class="text-2" style="margin-top:3px">${t.descripcion}</div>` : ''}
                   <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">
                     <span style="font-size:.72rem;font-weight:700;color:${cfg.color}">${cfg.emoji} ${cfg.label}</span>
@@ -1308,9 +1336,9 @@
                   </div>
                 </div>
                 <div class="row" style="gap:6px;flex-shrink:0">
-                  <button onclick="cambiarEstadoTarea(${t.id},'${cfg.next}')" 
+                  <button onclick="cambiarEstadoTarea(${t.id},'${cfg.next}')"
                     style="background:${cfg.color};color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap">
-                    ${cfg.next === 'en_progreso' ? '▶ Iniciar' : cfg.next === 'hecho' ? '✓ Listo' : '↩ Reabrir'}
+                    ${cfg.next === 'en_progreso' ? '▶ Iniciar' : '✓ Listo'}
                   </button>
                   <button onclick="abrirEditarTarea(${t.id})" style="width:28px;height:28px;padding:4px;background:var(--gris-bg);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <img src="./assets/icons/ed.svg" alt="Editar" style="width:14px;height:14px">
@@ -1320,10 +1348,47 @@
                   </button>
                 </div>
               </div>
+            </div>`;
+        }).join('')}`;
+
+      // Renderizar historial si está visible
+      if (document.getElementById('tareas-historial').style.display !== 'none') {
+        renderHistorial(hechas);
+      }
+    }
+
+    function renderHistorial(hechas) {
+      document.getElementById('historial-lista').innerHTML = hechas.map(t => `
+        <div class="card" style="margin-bottom:8px;padding:12px 14px;opacity:.65">
+          <div class="row-between" style="align-items:flex-start;gap:8px">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.9rem;text-decoration:line-through">${t.titulo}</div>
+              ${t.descripcion ? `<div class="text-2" style="margin-top:2px">${t.descripcion}</div>` : ''}
+              <div class="row" style="gap:8px;margin-top:4px;flex-wrap:wrap">
+                <span style="font-size:.72rem;color:var(--verde);font-weight:700">🟢 Completada</span>
+                ${t.completado_en ? `<span style="font-size:.72rem;color:var(--texto-3)">${formatDate(t.completado_en)}</span>` : ''}
+                ${t.completado_por_nombre ? `<span style="font-size:.72rem;color:var(--texto-3)">por ${t.completado_por_nombre}</span>` : ''}
+              </div>
             </div>
-          `;
-        }).join('')}
-      `;
+            <button onclick="cambiarEstadoTarea(${t.id},'pendiente')"
+              style="background:var(--gris-bg);color:var(--texto);border:none;border-radius:8px;padding:6px 10px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">
+              ↩ Reabrir
+            </button>
+          </div>
+        </div>
+      `).join('') || '<div class="text-2" style="padding:12px 0">Sin tareas completadas aún.</div>';
+    }
+
+    function toggleHistorial() {
+      const wrap = document.getElementById('tareas-historial');
+      const btn = document.getElementById('btn-historial');
+      const visible = wrap.style.display !== 'none';
+      wrap.style.display = visible ? 'none' : 'block';
+      const hechas = todasLasTareas.filter(t => t.estado === 'hecho');
+      btn.textContent = visible
+        ? `📋 Historial de completadas (${hechas.length})`
+        : `🔼 Ocultar historial`;
+      if (!visible) renderHistorial(hechas);
     }
 
     function abrirNuevaTarea() {
