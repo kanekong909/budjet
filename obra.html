@@ -23,6 +23,7 @@
     <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">📊 Resumen</button>
     <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">👷 Equipo</button>
     <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')">📸 Progreso</button>
+    <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">✅ Tareas</button>
   </div>
 
   <main class="main" style="padding-top:12px">
@@ -138,6 +139,20 @@
       </div>
 
       <div id="progreso-timeline"></div>
+    </div>
+
+    <!-- ====== TAB: TAREAS ====== -->
+    <div id="tab-tareas" class="seccion">
+
+      <!-- Filtro por estado -->
+      <div class="filtros" id="filtros-estado">
+        <div class="filtro-chip active" onclick="filtrarTareas(this,'')">Todas</div>
+        <div class="filtro-chip" onclick="filtrarTareas(this,'pendiente')">🔴 Pendiente</div>
+        <div class="filtro-chip" onclick="filtrarTareas(this,'en_progreso')">🟡 En progreso</div>
+        <div class="filtro-chip" onclick="filtrarTareas(this,'hecho')">🟢 Hecho</div>
+      </div>
+
+      <div id="tareas-lista"></div>
     </div>
 
   </main>
@@ -435,6 +450,48 @@
     </div>
   </div>
 
+  <!-- ===== SHEET: Nueva/Editar tarea ===== -->
+  <div class="overlay" id="overlay-tarea">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="tarea-sheet-title">Nueva tarea</div>
+      <input type="hidden" id="tarea-edit-id">
+      <div class="field">
+        <label>Título *</label>
+        <input type="text" id="t-titulo" placeholder="Ej: Comprar cemento, Llamar al electricista…">
+      </div>
+      <div class="field">
+        <label>Descripción</label>
+        <textarea id="t-desc" rows="2" placeholder="Detalles opcionales…"></textarea>
+      </div>
+      <div class="field">
+        <label>Fecha límite (opcional)</label>
+        <input type="date" id="t-fecha">
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-tarea')">Cancelar</button>
+        <button class="btn btn-primary w-full" id="btn-guardar-tarea" onclick="guardarTarea()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Confirmar eliminar tarea ===== -->
+  <div class="overlay" id="overlay-confirmar-tarea">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div style="text-align:center;padding:8px 0 16px">
+        <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar tarea?</div>
+        <div class="fw-700" id="confirmar-tarea-titulo" style="font-size:1rem;margin-bottom:4px"></div>
+        <div class="text-2 mt-8">Esta acción no se puede deshacer.</div>
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-tarea')">Cancelar</button>
+        <button class="btn btn-danger w-full" onclick="confirmarEliminarTarea()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script>
     if (!requireAuth()) void 0;
@@ -455,18 +512,19 @@
 
     // ── Tabs ──
     function mostrarTab(tab) {
-      ['gastos','resumen','equipo','progreso'].forEach(t => {
+      ['gastos','resumen','equipo','progreso','tareas'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.toggle('activa', t === tab);
         document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tab);
       });
-      document.getElementById('fab-agregar').style.display = (tab === 'gastos' || tab === 'progreso') ? 'flex' : 'none';
+      document.getElementById('fab-agregar').style.display = (tab === 'gastos' || tab === 'progreso' || tab === 'tareas') ? 'flex' : 'none';
       document.getElementById('total-bar').style.display = tab === 'gastos' ? 'flex' : 'none';
       if (tab === 'resumen') cargarResumen();
       if (tab === 'equipo') { cargarColaboradores(); renderCategorias(); }
       if (tab === 'progreso') cargarProgreso();
+      if (tab === 'tareas') cargarTareas();
     }
     // Sincronizar nav tab buttons
-    ['gastos','resumen','equipo','progreso'].forEach(t => {
+    ['gastos','resumen','equipo','progreso','tareas'].forEach(t => {
       document.getElementById(`tab-btn-${t}`)?.addEventListener('click', () => {
         document.querySelectorAll('[id^="tab-btn-"]').forEach(b => b.classList.remove('active'));
         document.getElementById(`tab-btn-${t}`)?.classList.add('active');
@@ -1037,7 +1095,9 @@
 
     function fabAccion() {
       const tabActivo = document.querySelector('[id^="tab-btn-"].active')?.id;
-      if (tabActivo === 'tab-btn-progreso') {
+      if (tabActivo === 'tab-btn-tareas') {
+        abrirNuevaTarea();
+      } else if (tabActivo === 'tab-btn-progreso') {
         document.getElementById('p-fecha').value = todayISO();
         document.getElementById('p-etapa').value = '';
         document.getElementById('p-foto').value = '';
@@ -1162,6 +1222,164 @@
         cerrarSheet('overlay-confirmar-foto');
         showToast('Foto eliminada');
         await cargarProgreso();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ── Tareas ──
+    let todasLasTareas = [], estadoFiltro = '', tareaActual = null;
+
+    const ESTADO_CONFIG = {
+      pendiente:   { label: 'Pendiente',   color: 'var(--rojo)',   emoji: '🔴', next: 'en_progreso' },
+      en_progreso: { label: 'En progreso', color: 'var(--amarillo)', emoji: '🟡', next: 'hecho' },
+      hecho:       { label: 'Hecho',       color: 'var(--verde)',  emoji: '🟢', next: 'pendiente' }
+    };
+
+    async function cargarTareas() {
+      try {
+        todasLasTareas = await api.get(`/api/tareas?obra_id=${obra.id}`);
+        renderTareas();
+      } catch (err) {
+        showToast('Error cargando tareas', 'error');
+      }
+    }
+
+    function filtrarTareas(el, estado) {
+      document.querySelectorAll('#filtros-estado .filtro-chip').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+      estadoFiltro = estado;
+      renderTareas();
+    }
+
+    function renderTareas() {
+      const container = document.getElementById('tareas-lista');
+      const lista = estadoFiltro
+        ? todasLasTareas.filter(t => t.estado === estadoFiltro)
+        : todasLasTareas;
+
+      const pendientes = lista.filter(t => t.estado === 'pendiente').length;
+      const enProgreso = lista.filter(t => t.estado === 'en_progreso').length;
+      const hechas     = lista.filter(t => t.estado === 'hecho').length;
+
+      if (!lista.length) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-msg">Sin tareas${estadoFiltro ? ' en este estado' : ''}.<br>Toca + para agregar.</div></div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="row" style="gap:8px;margin-bottom:12px">
+          <div class="stat-card" style="flex:1;text-align:center;padding:10px">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--rojo)">${pendientes}</div>
+            <div class="stat-label">Pendiente</div>
+          </div>
+          <div class="stat-card" style="flex:1;text-align:center;padding:10px">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--amarillo)">${enProgreso}</div>
+            <div class="stat-label">En progreso</div>
+          </div>
+          <div class="stat-card" style="flex:1;text-align:center;padding:10px">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--verde)">${hechas}</div>
+            <div class="stat-label">Hechas</div>
+          </div>
+        </div>
+        ${lista.map(t => {
+          const cfg = ESTADO_CONFIG[t.estado];
+          const vencida = t.fecha_limite && t.estado !== 'hecho' && new Date(t.fecha_limite) < new Date();
+          return `
+            <div class="card" style="margin-bottom:8px;padding:12px 14px;opacity:${t.estado==='hecho'?'.6':'1'}">
+              <div class="row-between" style="align-items:flex-start;gap:8px">
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:.95rem;${t.estado==='hecho'?'text-decoration:line-through;':''}">${t.titulo}</div>
+                  ${t.descripcion ? `<div class="text-2" style="margin-top:3px">${t.descripcion}</div>` : ''}
+                  <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">
+                    <span style="font-size:.72rem;font-weight:700;color:${cfg.color}">${cfg.emoji} ${cfg.label}</span>
+                    ${t.fecha_limite ? `<span style="font-size:.72rem;color:${vencida?'var(--rojo)':'var(--texto-2)'};font-weight:${vencida?'700':'400'}">${vencida?'⚠️ Vencida: ':'📅 '}${formatDate(t.fecha_limite)}</span>` : ''}
+                    <span style="font-size:.72rem;color:var(--texto-3)">Por: ${t.creador_nombre||'—'}</span>
+                  </div>
+                </div>
+                <div class="row" style="gap:6px;flex-shrink:0">
+                  <button onclick="cambiarEstadoTarea(${t.id},'${cfg.next}')" 
+                    style="background:${cfg.color};color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap">
+                    ${cfg.next === 'en_progreso' ? '▶ Iniciar' : cfg.next === 'hecho' ? '✓ Listo' : '↩ Reabrir'}
+                  </button>
+                  <button onclick="abrirEditarTarea(${t.id})" class="btn-icon" style="width:32px;height:32px;font-size:.85rem">✏️</button>
+                  <button onclick="pedirEliminarTarea(${t.id})" class="btn-icon" style="width:32px;height:32px;font-size:.85rem">🗑️</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      `;
+    }
+
+    function abrirNuevaTarea() {
+      document.getElementById('tarea-sheet-title').textContent = 'Nueva tarea';
+      document.getElementById('tarea-edit-id').value = '';
+      document.getElementById('t-titulo').value = '';
+      document.getElementById('t-desc').value = '';
+      document.getElementById('t-fecha').value = '';
+      abrirSheet('overlay-tarea');
+    }
+
+    function abrirEditarTarea(id) {
+      tareaActual = todasLasTareas.find(t => t.id === id);
+      document.getElementById('tarea-sheet-title').textContent = 'Editar tarea';
+      document.getElementById('tarea-edit-id').value = tareaActual.id;
+      document.getElementById('t-titulo').value = tareaActual.titulo;
+      document.getElementById('t-desc').value = tareaActual.descripcion || '';
+      document.getElementById('t-fecha').value = tareaActual.fecha_limite?.substring(0,10) || '';
+      abrirSheet('overlay-tarea');
+    }
+
+    async function guardarTarea() {
+      const btn = document.getElementById('btn-guardar-tarea');
+      const titulo = document.getElementById('t-titulo').value.trim();
+      if (!titulo) return showToast('Escribe un título', 'error');
+      const editId = document.getElementById('tarea-edit-id').value;
+      setLoading(btn, true);
+      try {
+        const data = {
+          titulo,
+          descripcion: document.getElementById('t-desc').value.trim(),
+          fecha_limite: document.getElementById('t-fecha').value || null,
+          obra_id: obra.id
+        };
+        if (editId) {
+          await api.put(`/api/tareas/${editId}`, data);
+          showToast('Tarea actualizada ✓');
+        } else {
+          await api.post('/api/tareas', data);
+          showToast('Tarea creada ✓');
+        }
+        cerrarSheet('overlay-tarea');
+        await cargarTareas();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    async function cambiarEstadoTarea(id, nuevoEstado) {
+      try {
+        await api.put(`/api/tareas/${id}/estado`, { estado: nuevoEstado });
+        await cargarTareas();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function pedirEliminarTarea(id) {
+      tareaActual = todasLasTareas.find(t => t.id === id);
+      document.getElementById('confirmar-tarea-titulo').textContent = tareaActual.titulo;
+      abrirSheet('overlay-confirmar-tarea');
+    }
+
+    async function confirmarEliminarTarea() {
+      try {
+        await api.delete(`/api/tareas/${tareaActual.id}`);
+        cerrarSheet('overlay-confirmar-tarea');
+        showToast('Tarea eliminada');
+        await cargarTareas();
       } catch (err) {
         showToast(err.message, 'error');
       }

@@ -33,6 +33,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/obras', require('./routes/obras'));
 app.use('/api/gastos', require('./routes/gastos'));
 app.use('/api/progreso', require('./routes/progreso'));
+app.use('/api/tareas', require('./routes/tareas'));
 
 // Health check
 app.get('/api/health', (req, res) => {
