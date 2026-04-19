@@ -366,27 +366,34 @@ input, select, textarea { font-family: var(--font); }
 }
 .filtros::-webkit-scrollbar { display: none; }
 .filtro-chip {
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: .8rem;
-  font-weight: 600;
-  background: var(--blanco);
-  color: var(--texto-2);
-  border: 1.5px solid var(--gris-linea);
-  cursor: pointer;
-  transition: all .15s;
+    display: inline-flex;           /* ← Esto es lo más importante */
+    align-items: center;            /* Centra verticalmente icono y texto */
+    justify-content: center;        /* Centra el contenido horizontalmente */
+    flex-shrink: 0;
+    gap: 6px;                       /* Espacio entre icono y texto */
+    padding: 8px 14px;              /* Aumenté un poco el padding vertical */
+    border-radius: 20px;
+    font-size: 0.85rem;             /* Un poco más grande se ve mejor */
+    font-weight: 600;
+    background: var(--blanco);
+    color: var(--texto-2);
+    border: 1.5px solid var(--gris-linea);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;            /* Evita que el texto se rompa */
+    height: 42px;                   /* Altura fija recomendada */
 }
+
 .filtro-chip.active {
-  background: var(--gris-obra);
-  color: var(--blanco);
-  border-color: var(--gris-obra);
+    background: var(--gris-obra);
+    color: var(--blanco);
+    border-color: var(--gris-obra);
 }
 
 .filtro-chip img {
-  width: 16px;
-  height: 16px;
-  /* filter: invert(100%) sepia(100%) grayscale(100%) brightness(200%); */
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;                 /* Evita que el icono se encoja */
 }
 
 .gasto-item {
