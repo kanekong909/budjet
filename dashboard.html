@@ -133,7 +133,9 @@
             <div class="obra-info-total">${formatMoney(o.total_gastado)}</div>
           </div>
           <button onclick="event.stopPropagation();pedirEliminarObra(${o.id},'${o.nombre.replace(/'/g,"\\\'")}')" 
-            style="background:none;border:none;padding:8px;color:var(--texto-3);font-size:1.1rem;cursor:pointer">🗑️</button>
+            style="background:none;border:none;padding:8px;color:var(--texto-3);font-size:1.1rem;cursor:pointer">
+              <img src="./assets/icons/trash.svg" alt="Eliminar" style="width:16px;height:16px">
+            </button>
         </div>
       `).join('');
     }
