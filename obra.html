@@ -424,21 +424,21 @@
 
     // ── Tabs ──
     function mostrarTab(tab) {
-      ['gastos','resumen','equipo'].forEach(t => {
+      ['gastos','resumen','equipo','progreso'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.toggle('activa', t === tab);
         document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tab);
       });
-      document.getElementById('fab-agregar').style.display = tab === 'gastos' ? 'flex' : 'none';
+      document.getElementById('fab-agregar').style.display = (tab === 'gastos' || tab === 'progreso') ? 'flex' : 'none';
       document.getElementById('total-bar').style.display = tab === 'gastos' ? 'flex' : 'none';
       if (tab === 'resumen') cargarResumen();
       if (tab === 'equipo') { cargarColaboradores(); renderCategorias(); }
       if (tab === 'progreso') cargarProgreso();
     }
     // Sincronizar nav tab buttons
-    ['gastos','resumen','equipo'].forEach(t => {
-      document.getElementById(`tab-btn-${t}`).addEventListener('click', () => {
+    ['gastos','resumen','equipo','progreso'].forEach(t => {
+      document.getElementById(`tab-btn-${t}`)?.addEventListener('click', () => {
         document.querySelectorAll('[id^="tab-btn-"]').forEach(b => b.classList.remove('active'));
-        document.getElementById(`tab-btn-${t}`).classList.add('active');
+        document.getElementById(`tab-btn-${t}`)?.classList.add('active');
       });
     });
 
