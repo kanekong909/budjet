@@ -2,7 +2,7 @@
 // CONFIGURACIÓN — Edita esta línea con tu URL de Railway
 // ============================================================
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:3001'       // ← local
+  ? 'http://localhost:5500'       // ← local
   : 'https://budjet-production.up.railway.app'; // ← producción
 
 // ============================================================
@@ -68,7 +68,11 @@ function formatDate(dateStr) {
 }
 
 function todayISO() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function showToast(msg, tipo = 'ok') {
