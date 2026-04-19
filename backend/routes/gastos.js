@@ -50,7 +50,7 @@ function parsearCategorias(raw) {
   if (!raw) return [];
   return raw.split('|').map(s => {
     const parts = s.split(':');
-    return { id: parseInt(parts[0]), nombre: parts[1], color: parts[2] };
+    return { id: parseInt(parts[0]), nombre: parts[1], color: parts[2], tipo: parts[3] || 'egreso' };
   });
 }
 
@@ -75,7 +75,7 @@ router.get('/', async (req, res) => {
     const [gastos] = await pool.query(`
       SELECT g.*,
         u.nombre AS usuario_nombre,
-        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
+        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color,':',COALESCE(c.tipo,'egreso')) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
       FROM gastos g
       LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
       LEFT JOIN categorias c ON c.id = gc.categoria_id
@@ -156,7 +156,7 @@ router.post('/', upload.single('foto'), async (req, res) => {
 
     const [gasto] = await pool.query(`
       SELECT g.*, u.nombre AS usuario_nombre,
-        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
+        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color,':',COALESCE(c.tipo,'egreso')) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
       FROM gastos g
       LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
       LEFT JOIN categorias c ON c.id = gc.categoria_id
@@ -214,7 +214,7 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
 
     const [gasto] = await pool.query(`
       SELECT g.*, u.nombre AS usuario_nombre,
-        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
+        GROUP_CONCAT(DISTINCT CONCAT(c.id,':',c.nombre,':',c.color,':',COALESCE(c.tipo,'egreso')) ORDER BY c.nombre SEPARATOR '|') AS categorias_raw
       FROM gastos g
       LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
       LEFT JOIN categorias c ON c.id = gc.categoria_id
