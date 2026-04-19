@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reporte de Obra</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #f2f2f7;
+      color: #1c1c1e;
+      padding: 20px;
+    }
+
+    .page {
+      background: white;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #1c1c1e;
+      margin-bottom: 28px;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 14px; }
+    .logo-img { width: 56px; height: 56px; object-fit: contain; border-radius: 10px; }
+    .logo-placeholder {
+      width: 56px; height: 56px; background: #1c1c1e; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+    }
+    .empresa-nombre {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1c1c1e;
+    }
+    .reporte-titulo {
+      text-align: right;
+    }
+    .reporte-titulo h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #f5a623;
+    }
+    .reporte-titulo p { font-size: .8rem; color: #6d6d72; margin-top: 3px; }
+
+    /* ── Info obra ── */
+    .obra-info {
+      background: #1c1c1e;
+      color: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .obra-nombre {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #f5a623;
+      grid-column: 1 / -1;
+    }
+    .info-item label { font-size: .72rem; color: #aeaeb2; text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 3px; }
+    .info-item span { font-size: .95rem; font-weight: 600; }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      border: 1.5px solid #e5e5ea;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-box .label { font-size: .72rem; color: #6d6d72; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+    .stat-box .valor { font-size: 1.1rem; font-weight: 700; }
+    .stat-box.destacado { background: #1c1c1e; border-color: #1c1c1e; color: white; }
+    .stat-box.destacado .label { color: #aeaeb2; }
+    .stat-box.destacado .valor { color: #f5a623; }
+
+    /* ── Presupuesto ── */
+    .presup-section {
+      border: 1.5px solid #e5e5ea;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .presup-title { font-weight: 700; margin-bottom: 10px; font-size: .95rem; }
+    .presup-barra-track { height: 10px; background: #f2f2f7; border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
+    .presup-barra-fill { height: 100%; border-radius: 5px; transition: width .6s; }
+    .presup-meta { display: flex; justify-content: space-between; font-size: .8rem; color: #6d6d72; }
+
+    /* ── Sección títulos ── */
+    .seccion-titulo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #f5a623;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Gráfica de barras ── */
+    .grafica-section { margin-bottom: 28px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .bar-label { font-size: .8rem; font-weight: 600; width: 110px; flex-shrink: 0; }
+    .bar-track { flex: 1; height: 24px; background: #f2f2f7; border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: .72rem; font-weight: 700; color: white; min-width: 4px; }
+    .bar-monto { font-size: .8rem; font-weight: 700; width: 110px; text-align: right; flex-shrink: 0; }
+    .bar-tipo-ingreso .bar-fill { opacity: .7; }
+    .bar-ingreso-label { font-size: .7rem; color: #34c759; font-weight: 600; }
+
+    /* ── Tabla de gastos ── */
+    .tabla-section { margin-bottom: 28px; }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    thead tr { background: #1c1c1e; color: white; }
+    thead th { padding: 10px 8px; text-align: left; font-weight: 600; font-size: .75rem; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    tbody tr:hover { background: #f2f2f7; }
+    tbody td { padding: 9px 8px; border-bottom: 1px solid #f2f2f7; vertical-align: top; }
+    .td-monto { font-weight: 700; text-align: right; white-space: nowrap; }
+    .td-cat { display: inline-block; padding: 2px 7px; border-radius: 12px; font-size: .7rem; font-weight: 600; color: white; }
+    tfoot tr { background: #f5a623; }
+    tfoot td { padding: 10px 8px; font-weight: 700; font-size: .9rem; }
+
+    /* ── Capital / ingresos ── */
+    .ingresos-section {
+      background: #f0fdf4;
+      border: 1.5px solid #34c759;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+    }
+    .ingresos-title { font-weight: 700; color: #16a34a; margin-bottom: 8px; font-size: .9rem; }
+    .ingreso-row { display: flex; justify-content: space-between; font-size: .85rem; padding: 4px 0; border-bottom: 1px solid #dcfce7; }
+    .ingreso-row:last-child { border: none; font-weight: 700; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e5ea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .75rem;
+      color: #aeaeb2;
+    }
+
+    /* ── Loading ── */
+    .loading { text-align: center; padding: 60px; color: #6d6d72; font-size: 1rem; }
+
+    /* ── Botones (no imprimen) ── */
+    .no-print {
+      max-width: 800px;
+      margin: 16px auto;
+      display: flex;
+      gap: 10px;
+    }
+    .btn-pdf {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-pdf-primary { background: #f5a623; color: #1c1c1e; }
+    .btn-pdf-sec { background: #e5e5ea; color: #1c1c1e; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; padding: 20px; max-width: 100%; }
+      .no-print { display: none !important; }
+      table { font-size: .75rem; }
+      thead th, tbody td, tfoot td { padding: 6px 5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print">
+    <button class="btn-pdf btn-pdf-sec" onclick="window.location.href='obra.html'">‹ Volver</button>
+    <button class="btn-pdf btn-pdf-primary" onclick="window.print()">🖨️ Guardar / Imprimir PDF</button>
+  </div>
+
+  <div class="page" id="reporte">
+    <div class="loading">⏳ Generando reporte…</div>
+  </div>
+
+  <div class="no-print" id="btn-bottom" style="display:none">
+    <button class="btn-pdf btn-pdf-sec" onclick="window.location.href='obra.html'">‹ Volver</button>
+    <button class="btn-pdf btn-pdf-primary" onclick="window.print()">🖨️ Guardar / Imprimir PDF</button>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    if (!requireAuth()) void 0;
+
+    const obra = obraActual();
+    if (!obra) window.location.href = 'dashboard.html';
+
+    function fmt(n) {
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0);
+    }
+    function fmtFecha(d) {
+      if (!d) return '—';
+      const clean = String(d).substring(0, 10);
+      const [y, m, day] = clean.split('-').map(Number);
+      return new Date(y, m - 1, day).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function hoy() {
+      return new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    async function generarReporte() {
+      try {
+        // Cargar datos en paralelo
+        const [resumen, gastosData] = await Promise.all([
+          api.get(`/api/obras/${obra.id}/resumen`),
+          api.get(`/api/gastos?obra_id=${obra.id}&limit=500`)
+        ]);
+
+        const gastos = gastosData.gastos;
+        const t = resumen.totales;
+        const cats = resumen.por_categoria;
+
+        // Separar egresos e ingresos
+        const egresos = gastos.filter(g => !g.categorias?.some(c => c.tipo === 'ingreso'));
+        const ingresos = gastos.filter(g => g.categorias?.some(c => c.tipo === 'ingreso'));
+        const totalEgresos = egresos.reduce((s, g) => s + parseFloat(g.monto), 0);
+        const totalIngresos = ingresos.reduce((s, g) => s + parseFloat(g.monto), 0);
+        const disponible = totalIngresos - totalEgresos;
+
+        // Presupuesto
+        const presup = parseFloat(obra.presupuesto) || 0;
+        const porc = presup > 0 ? Math.min(Math.round((totalEgresos / presup) * 100), 100) : 0;
+        const barColor = porc > 100 ? '#ff3b30' : porc > 80 ? '#f5a623' : '#34c759';
+
+        // Logo
+        const logoHtml = `<div class="logo-placeholder">🏗️</div>`;
+
+        // Gráfica
+        const maxVal = Math.max(...cats.map(c => c.total), 1);
+        const graficaHtml = cats.length ? cats.map(c => `
+          <div class="bar-row ${c.tipo === 'ingreso' ? 'bar-tipo-ingreso' : ''}">
+            <div class="bar-label">${c.nombre}${c.tipo === 'ingreso' ? ' <span class="bar-ingreso-label">↑</span>' : ''}</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="background:${c.color};width:${Math.round((c.total/maxVal)*100)}%"></div>
+            </div>
+            <div class="bar-monto">${fmt(c.total)}</div>
+          </div>
+        `).join('') : '<p style="color:#aeaeb2;font-size:.85rem">Sin datos</p>';
+
+        // Tabla de gastos
+        const tablaRows = egresos.map((g, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${fmtFecha(g.fecha)}</td>
+            <td><strong>${g.descripcion}</strong>${g.proveedor ? `<br><span style="color:#6d6d72;font-size:.75rem">${g.proveedor}</span>` : ''}${g.cantidad ? `<br><span style="color:#6d6d72;font-size:.75rem">${parseFloat(g.cantidad).toLocaleString('es-CO')} ${g.unidad || 'und'} × ${fmt(g.valor_unitario)}</span>` : ''}</td>
+            <td>${g.categorias?.map(c => `<span class="td-cat" style="background:${c.color}">${c.nombre}</span>`).join(' ') || '—'}</td>
+            <td class="td-monto">${fmt(g.monto)}</td>
+          </tr>
+        `).join('');
+
+        // Tabla ingresos
+        const ingresosHtml = ingresos.length ? `
+          <div class="ingresos-section">
+            <div class="ingresos-title">💰 Capital / Ingresos</div>
+            ${ingresos.map(g => `
+              <div class="ingreso-row">
+                <span>${g.descripcion} <span style="color:#6d6d72;font-size:.78rem">${fmtFecha(g.fecha)}</span></span>
+                <span style="color:#16a34a;font-weight:700">${fmt(g.monto)}</span>
+              </div>
+            `).join('')}
+            <div class="ingreso-row">
+              <span>Total capital</span>
+              <span style="color:#16a34a">${fmt(totalIngresos)}</span>
+            </div>
+          </div>
+        ` : '';
+
+        // Disponible
+        const disponibleHtml = totalIngresos > 0 ? `
+          <div class="stat-box" style="border-color:${disponible >= 0 ? '#34c759' : '#ff3b30'}">
+            <div class="label">Disponible</div>
+            <div class="valor" style="color:${disponible >= 0 ? '#34c759' : '#ff3b30'}">${fmt(disponible)}</div>
+          </div>
+        ` : `
+          <div class="stat-box">
+            <div class="label">Nº gastos</div>
+            <div class="valor">${t.cantidad_gastos}</div>
+          </div>
+        `;
+
+        document.getElementById('reporte').innerHTML = `
+          <!-- Header -->
+          <div class="header">
+            <div class="logo-wrap">
+              ${logoHtml}
+              <div>
+                <div class="empresa-nombre">ObraGastos</div>
+                <div style="font-size:.8rem;color:#6d6d72">Control de obras</div>
+              </div>
+            </div>
+            <div class="reporte-titulo">
+              <h1>REPORTE DE GASTOS</h1>
+              <p>Generado: ${hoy()}</p>
+            </div>
+          </div>
+
+          <!-- Info obra -->
+          <div class="obra-info">
+            <div class="obra-nombre">${obra.nombre}</div>
+            <div class="info-item">
+              <label>Ubicación</label>
+              <span>${obra.ubicacion || '—'}</span>
+            </div>
+            <div class="info-item">
+              <label>Descripción</label>
+              <span>${obra.descripcion || '—'}</span>
+            </div>
+            <div class="info-item">
+              <label>Primer gasto</label>
+              <span>${fmtFecha(t.primera_fecha)}</span>
+            </div>
+            <div class="info-item">
+              <label>Último gasto</label>
+              <span>${fmtFecha(t.ultima_fecha)}</span>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-box destacado">
+              <div class="label">Total egresos</div>
+              <div class="valor">${fmt(totalEgresos)}</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Nº registros</div>
+              <div class="valor">${egresos.length}</div>
+            </div>
+            ${disponibleHtml}
+          </div>
+
+          <!-- Presupuesto -->
+          ${presup > 0 ? `
+          <div class="presup-section">
+            <div class="presup-title">Presupuesto vs Ejecutado</div>
+            <div class="presup-barra-track">
+              <div class="presup-barra-fill" style="width:${porc}%;background:${barColor}"></div>
+            </div>
+            <div class="presup-meta">
+              <span>Ejecutado: <strong>${fmt(totalEgresos)}</strong> (${porc}%)</span>
+              <span>Presupuesto: <strong>${fmt(presup)}</strong></span>
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- Ingresos -->
+          ${ingresosHtml}
+
+          <!-- Gráfica -->
+          <div class="grafica-section">
+            <div class="seccion-titulo">📊 Gastos por categoría</div>
+            ${graficaHtml}
+          </div>
+
+          <!-- Tabla gastos -->
+          <div class="tabla-section">
+            <div class="seccion-titulo">📋 Detalle de gastos</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Descripción</th>
+                  <th>Categoría</th>
+                  <th style="text-align:right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>${tablaRows}</tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4">TOTAL EGRESOS</td>
+                  <td style="text-align:right">${fmt(totalEgresos)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Footer -->
+          <div class="footer">
+            <span>ObraGastos · Reporte generado el ${hoy()}</span>
+            <span>${obra.nombre}</span>
+          </div>
+        `;
+
+        document.getElementById('btn-bottom').style.display = 'flex';
+
+      } catch (err) {
+        document.getElementById('reporte').innerHTML = `
+          <div class="loading">⚠️ Error generando reporte: ${err.message}</div>
+        `;
+      }
+    }
+
+    generarReporte();
+  </script>
+</body>
+</html>
