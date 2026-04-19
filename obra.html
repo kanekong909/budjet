@@ -22,6 +22,7 @@
     <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">💰 Gastos</button>
     <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">📊 Resumen</button>
     <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">👷 Equipo</button>
+    <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')">📸 Progreso</button>
   </div>
 
   <main class="main" style="padding-top:12px">
@@ -122,10 +123,27 @@
       </div>
     </div>
 
+    <!-- ====== TAB: PROGRESO ====== -->
+    <div id="tab-progreso" class="seccion">
+
+      <!-- Selector de etapa -->
+      <div class="filtros" id="filtros-etapa">
+        <div class="filtro-chip active" onclick="filtrarEtapa(this, '')">Todas</div>
+        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Cimientos')">Cimientos</div>
+        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Estructura')">Estructura</div>
+        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Paredes')">Paredes</div>
+        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Techo')">Techo</div>
+        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Acabados')">Acabados</div>
+        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Otro')">Otro</div>
+      </div>
+
+      <div id="progreso-timeline"></div>
+    </div>
+
   </main>
 
   <!-- FAB agregar gasto -->
-  <button class="btn-fab" id="fab-agregar" onclick="abrirGasto()" title="Agregar gasto">+</button>
+  <button class="btn-fab" id="fab-agregar" onclick="fabAccion()" title="Agregar">+</button>
 
   <!-- Total bar -->
   <div class="total-bar" id="total-bar">
@@ -334,6 +352,58 @@
     </div>
   </div>
 
+  <!-- ===== SHEET: Nueva foto de progreso ===== -->
+  <div class="overlay" id="overlay-progreso">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">📸 Foto de progreso</div>
+      <div class="field">
+        <label>Foto *</label>
+        <input type="file" id="p-foto" accept="image/*" capture="environment" onchange="previewProgreso(this)">
+        <img id="p-foto-preview" class="foto-preview" style="display:none">
+      </div>
+      <div class="row" style="gap:10px">
+        <div class="field" style="flex:1">
+          <label>Fecha</label>
+          <input type="date" id="p-fecha">
+        </div>
+        <div class="field" style="flex:1">
+          <label>Etapa</label>
+          <select id="p-etapa">
+            <option value="">Sin etapa</option>
+            <option>Cimientos</option>
+            <option>Estructura</option>
+            <option>Paredes</option>
+            <option>Techo</option>
+            <option>Acabados</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-progreso')">Cancelar</button>
+        <button class="btn btn-primary w-full" id="btn-guardar-progreso" onclick="guardarProgreso()">Subir foto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Ver foto progreso ===== -->
+  <div class="overlay" id="overlay-ver-foto">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <img id="ver-foto-img" style="width:100%;border-radius:12px;max-height:70dvh;object-fit:contain" onclick="window.open(this.src)">
+      <div class="row-between mt-8">
+        <div>
+          <div class="fw-700" id="ver-foto-fecha"></div>
+          <div class="text-2" id="ver-foto-etapa"></div>
+          <div class="text-2" id="ver-foto-usuario"></div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="eliminarFotoProgreso()">🗑️ Eliminar</button>
+      </div>
+      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-ver-foto')">Cerrar</button>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script>
     if (!requireAuth()) void 0;
@@ -362,6 +432,7 @@
       document.getElementById('total-bar').style.display = tab === 'gastos' ? 'flex' : 'none';
       if (tab === 'resumen') cargarResumen();
       if (tab === 'equipo') { cargarColaboradores(); renderCategorias(); }
+      if (tab === 'progreso') cargarProgreso();
     }
     // Sincronizar nav tab buttons
     ['gastos','resumen','equipo'].forEach(t => {
@@ -899,7 +970,129 @@
       });
     }
 
-        // ── Cerrar sheets al hacer clic fuera ──
+    // ── Progreso ──
+    let todasLasFotos = [], etapaFiltro = '', fotoActual = null;
+
+    function fabAccion() {
+      const tabActivo = document.querySelector('[id^="tab-btn-"].active')?.id;
+      if (tabActivo === 'tab-btn-progreso') {
+        document.getElementById('p-fecha').value = todayISO();
+        document.getElementById('p-etapa').value = '';
+        document.getElementById('p-foto').value = '';
+        document.getElementById('p-foto-preview').style.display = 'none';
+        abrirSheet('overlay-progreso');
+      } else {
+        abrirGasto();
+      }
+    }
+
+    function previewProgreso(input) {
+      const prev = document.getElementById('p-foto-preview');
+      if (input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { prev.src = e.target.result; prev.style.display = 'block'; };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    async function cargarProgreso() {
+      try {
+        todasLasFotos = await api.get(`/api/progreso?obra_id=${obra.id}`);
+        renderProgreso();
+      } catch (err) {
+        showToast('Error cargando fotos', 'error');
+      }
+    }
+
+    function filtrarEtapa(el, etapa) {
+      document.querySelectorAll('#filtros-etapa .filtro-chip').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+      etapaFiltro = etapa;
+      renderProgreso();
+    }
+
+    function renderProgreso() {
+      const container = document.getElementById('progreso-timeline');
+      let fotos = etapaFiltro
+        ? todasLasFotos.filter(f => f.etapa === etapaFiltro)
+        : todasLasFotos;
+
+      if (!fotos.length) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">📷</div><div class="empty-msg">Sin fotos aún.<br>Toca + para agregar la primera.</div></div>`;
+        return;
+      }
+
+      // Agrupar por fecha
+      const porFecha = {};
+      fotos.forEach(f => {
+        const key = f.fecha?.substring(0, 10) || 'Sin fecha';
+        if (!porFecha[key]) porFecha[key] = [];
+        porFecha[key].push(f);
+      });
+
+      container.innerHTML = Object.entries(porFecha).map(([fecha, imgs]) => `
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--amarillo);flex-shrink:0"></div>
+            <div class="fw-700" style="font-size:.9rem">${formatDate(fecha)}</div>
+            <div style="flex:1;height:1px;background:var(--gris-linea)"></div>
+            <div class="text-2" style="font-size:.75rem">${imgs.length} foto${imgs.length>1?'s':''}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            ${imgs.map(f => `
+              <div onclick="verFotoProgreso(${f.id})" style="position:relative;cursor:pointer">
+                <img src="${f.foto_url}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">
+                ${f.etapa ? `<div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;font-size:.6rem;font-weight:600;padding:2px 5px;border-radius:6px;text-align:center">${f.etapa}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function verFotoProgreso(id) {
+      fotoActual = todasLasFotos.find(f => f.id === id);
+      document.getElementById('ver-foto-img').src = fotoActual.foto_url;
+      document.getElementById('ver-foto-fecha').textContent = formatDate(fotoActual.fecha);
+      document.getElementById('ver-foto-etapa').textContent = fotoActual.etapa || 'Sin etapa';
+      document.getElementById('ver-foto-usuario').textContent = `Por: ${fotoActual.usuario_nombre || '—'}`;
+      abrirSheet('overlay-ver-foto');
+    }
+
+    async function guardarProgreso() {
+      const btn = document.getElementById('btn-guardar-progreso');
+      const file = document.getElementById('p-foto').files[0];
+      if (!file) return showToast('Selecciona una foto', 'error');
+      setLoading(btn, true);
+      try {
+        const fd = new FormData();
+        fd.append('foto', file);
+        fd.append('obra_id', obra.id);
+        fd.append('fecha', document.getElementById('p-fecha').value || todayISO());
+        fd.append('etapa', document.getElementById('p-etapa').value);
+        await api.postForm('/api/progreso', fd);
+        cerrarSheet('overlay-progreso');
+        showToast('Foto guardada ✓');
+        await cargarProgreso();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    async function eliminarFotoProgreso() {
+      if (!confirm('¿Eliminar esta foto?')) return;
+      try {
+        await api.delete(`/api/progreso/${fotoActual.id}`);
+        cerrarSheet('overlay-ver-foto');
+        showToast('Foto eliminada');
+        await cargarProgreso();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ── Cerrar sheets al hacer clic fuera ──
     document.querySelectorAll('.overlay').forEach(ov => {
       ov.addEventListener('click', function(e) {
         if (e.target === this) this.classList.remove('open');
