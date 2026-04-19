@@ -504,6 +504,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/offline.js"></script>
   <script>
     if (!requireAuth()) void 0;
 
@@ -575,10 +576,25 @@
       if (catFiltro) url += `&categoria_id=${catFiltro}`;
 
       try {
+        if (!isOnline) {
+          // Usar cache local
+          const cached = await obtenerGastosCache(obra.id);
+          const pendientes = await dbGetAll('gastos_pendientes', 'obra_id', obra.id);
+          gastos = [...pendientes.map(p => ({...p, _pendiente: true})), ...cached];
+          sumaVisible = gastos.filter(g => !g.categorias?.some(c => c.tipo === 'ingreso'))
+                              .reduce((s, g) => s + parseFloat(g.monto || 0), 0);
+          totalPaginas = 1;
+          document.getElementById('total-visible').textContent = formatMoney(sumaVisible);
+          renderGastos();
+          showToast('📵 Mostrando datos guardados', 'ok');
+          return;
+        }
         const data = await api.get(url);
         gastos = data.gastos;
         totalPaginas = data.paginas;
         sumaVisible = data.suma;
+        // Cachear para uso offline
+        cachearGastos(data.gastos);
         sumaVisible = data.suma;
         const ingresos = data.suma_ingresos || 0;
         document.getElementById('total-visible').textContent = formatMoney(data.suma);
@@ -613,7 +629,7 @@
         <div class="gasto-item" onclick="verGasto(${g.id})">
           <div class="gasto-cat-dot" style="background:${g.categorias?.[0]?.color || g.categoria_color || '#aeaeb2'}"></div>
           <div class="gasto-info">
-            <div class="gasto-desc">${g.descripcion}</div>
+            <div class="gasto-desc">${g._pendiente ? '💾 ' : ''}${g.descripcion}</div>
             <div class="gasto-meta">${formatDate(g.fecha)} · ${g.categorias?.map(c=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:2px"></span>${c.nombre}`).join(', ') || 'Sin cat.'} ${g.proveedor ? '· '+g.proveedor : ''}</div>
           </div>
           ${g.foto_url ? '<span class="gasto-foto"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"></span>' : ''}
@@ -803,13 +819,28 @@
           await api.putForm(`/api/gastos/${editId}`, fd);
           showToast('Gasto actualizado ✓');
         } else {
+          if (!isOnline) {
+            await guardarGastoOffline(fd);
+            cerrarSheet('overlay-gasto');
+            mostrarBadgePendientes();
+            cargarGastos();
+            setLoading(btn, false);
+            return;
+          }
           await api.postForm('/api/gastos', fd);
           showToast('Gasto guardado ✓');
         }
         cerrarSheet('overlay-gasto');
         cargarGastos();
       } catch (err) {
-        showToast(err.message, 'error');
+        if (err.message === 'SIN_CONEXION' || !isOnline) {
+          await guardarGastoOffline(fd);
+          cerrarSheet('overlay-gasto');
+          mostrarBadgePendientes();
+          cargarGastos();
+        } else {
+          showToast(err.message, 'error');
+        }
       }
       setLoading(btn, false);
     }
@@ -865,7 +896,7 @@
           <div class="gasto-item">
             <div class="gasto-cat-dot" style="background:${g.categoria_color||'#aeaeb2'}"></div>
             <div class="gasto-info">
-              <div class="gasto-desc">${g.descripcion}</div>
+              <div class="gasto-desc">${g._pendiente ? '💾 ' : ''}${g.descripcion}</div>
               <div class="gasto-meta">${formatDate(g.fecha)}</div>
             </div>
             <div class="gasto-monto">${formatMoney(g.monto)}</div>
@@ -1249,7 +1280,15 @@
 
     async function cargarTareas() {
       try {
+        if (!isOnline) {
+          const cached = await obtenerTareasCache(obra.id);
+          const pendientes = await dbGetAll('tareas_pendientes', 'obra_id', obra.id);
+          todasLasTareas = [...pendientes.map(p => ({...p, _pendiente: true})), ...cached];
+          renderTareas();
+          return;
+        }
         todasLasTareas = await api.get(`/api/tareas?obra_id=${obra.id}`);
+        cachearTareas(todasLasTareas);
         renderTareas();
       } catch (err) {
         showToast('Error cargando tareas', 'error');
@@ -1427,13 +1466,28 @@ function renderTareas() {
           await api.put(`/api/tareas/${editId}`, data);
           showToast('Tarea actualizada ✓');
         } else {
+          if (!isOnline) {
+            await guardarTareaOffline(data);
+            cerrarSheet('overlay-tarea');
+            mostrarBadgePendientes();
+            await cargarTareas();
+            setLoading(btn, false);
+            return;
+          }
           await api.post('/api/tareas', data);
           showToast('Tarea creada ✓');
         }
         cerrarSheet('overlay-tarea');
         await cargarTareas();
       } catch (err) {
-        showToast(err.message, 'error');
+        if (!isOnline) {
+          await guardarTareaOffline(data);
+          cerrarSheet('overlay-tarea');
+          mostrarBadgePendientes();
+          await cargarTareas();
+        } else {
+          showToast(err.message, 'error');
+        }
       }
       setLoading(btn, false);
     }
