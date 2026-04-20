@@ -1050,6 +1050,14 @@
       }
     }
 
+    function getDiaSemana(indiceLunes) {
+      // indiceLunes: 0=Lun, 1=Mar... 6=Dom
+      const lunes = new Date(getLunesActual());
+      const fecha = new Date(lunes);
+      fecha.setDate(lunes.getDate() + indiceLunes);
+      return fecha.getDate();
+    }
+
     // ── Resumen semanal ──
     function renderSemanal(s) {
       const DIAS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
@@ -1087,7 +1095,10 @@
             <div style="height:48px;display:flex;align-items:flex-end">
               <div style="width:100%;min-height:3px;height:${Math.max(alto,val>0?4:2)}px;background:${esHoy?'var(--amarillo)':'var(--gris-3)'};border-radius:4px 4px 0 0;min-width:10px;transition:height .4s"></div>
             </div>
-            <div style="font-size:.7rem;color:${esHoy?'var(--amarillo)':'var(--texto-2)'};font-weight:${esHoy?'700':'400'}">${nombre}</div>
+            <div style="font-size:.7rem;color:${esHoy?'var(--amarillo)':'var(--texto-2)'};font-weight:${esHoy?'700':'400'};text-align:center;line-height:1.3">
+              ${nombre}<br>
+              <span style="font-size:.65rem;color:${esHoy?'var(--amarillo)':'var(--texto-3)'}">${getDiaSemana(i)}</span>
+            </div>
           </div>
         `;
       }).join('');
