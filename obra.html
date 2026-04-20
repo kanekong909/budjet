@@ -453,8 +453,13 @@
         <button onclick="cerrarSheet('overlay-ver-foto')" style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;color:white;font-size:1.1rem;cursor:pointer">✕</button>
         <div style="color:white;font-size:.85rem;font-weight:600" id="carrusel-contador">1 / 1</div>
         <div style="display:flex;gap:8px">
-          <button onclick="editarFotoProgreso()" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">✏️ Editar</button>
-          <button onclick="eliminarFotoProgreso()" style="background:rgba(255,59,48,.7);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">🗑️</button>
+          <button onclick="editarFotoProgreso()" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
+            <img src="./assets/icons/editar.svg" alt="Editar" style="width:14px;vertical-align:middle;margin-right:4px">
+            Editar
+          </button>
+          <button onclick="eliminarFotoProgreso()" style="background:rgba(255,59,48,.7);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
+            <img src="./assets/icons/delete.svg" alt="Eliminar" style="width:14px;vertical-align:middle;margin-right:4px">
+          </button>
         </div>
       </div>
 
@@ -463,8 +468,8 @@
         <img id="carrusel-img" style="width:100%;max-height:100%;object-fit:contain;user-select:none;touch-action:pan-y pinch-zoom" onclick="window.open(this.src)">
 
         <!-- Flechas -->
-        <button id="carrusel-prev" onclick="carruselNavegar(-1)" style="position:absolute;left:8px; bottom: 8px; background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none">‹</button>
-        <button id="carrusel-next" onclick="carruselNavegar(1)" style="position:absolute;right:8px; bottom: 8px; background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none">›</button>
+        <button id="carrusel-prev" onclick="carruselNavegar(-1)" style="position:absolute;left:8px; background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none">‹</button>
+        <button id="carrusel-next" onclick="carruselNavegar(1)" style="position:absolute;right:8px; background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none">›</button>
       </div>
 
       <!-- Info foto -->
