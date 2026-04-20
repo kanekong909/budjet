@@ -34,6 +34,7 @@ app.use('/api/obras', require('./routes/obras'));
 app.use('/api/gastos', require('./routes/gastos'));
 app.use('/api/progreso', require('./routes/progreso'));
 app.use('/api/tareas', require('./routes/tareas'));
+app.use('/api/bitacora', require('./routes/bitacora'));
 
 // Health check
 app.get('/api/health', (req, res) => {

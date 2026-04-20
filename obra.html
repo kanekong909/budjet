@@ -589,6 +589,42 @@
     </div>
   </div>
 
+  <!-- ===== SHEET: Nota del día ===== -->
+  <div class="overlay" id="overlay-nota">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">📝 Nota del día</div>
+      <div style="font-size:.85rem;color:var(--texto-2);margin-bottom:12px" id="nota-fecha-label"></div>
+      <div class="field">
+        <label>¿Qué pasó hoy?</label>
+        <textarea id="nota-texto" rows="5" placeholder="Ej: Llegaron 3 obreros, se colocaron vigas del segundo piso. Faltó el proveedor de varilla. Clima soleado…"></textarea>
+      </div>
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-nota')">Cancelar</button>
+        <button class="btn btn-primary w-full" id="btn-guardar-nota" onclick="guardarNota()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: FAB Progreso ===== -->
+  <div class="overlay" id="overlay-fab-progreso">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" style="margin-bottom:16px">¿Qué quieres agregar?</div>
+      <div class="row" style="gap:10px">
+        <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
+          onclick="cerrarSheet('overlay-fab-progreso');document.getElementById('p-fecha').value=todayISO();document.getElementById('p-etapa').value='';document.getElementById('p-foto').value='';document.getElementById('p-foto-preview').style.display='none';abrirSheet('overlay-progreso')">
+          📷<span>Foto</span>
+        </button>
+        <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
+          onclick="cerrarSheet('overlay-fab-progreso');abrirNotaDia(todayISO(), null, '')">
+          📝<span>Nota del día</span>
+        </button>
+      </div>
+      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-fab-progreso')">Cancelar</button>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script src="js/offline.js"></script>
   <script>
@@ -1165,6 +1201,7 @@
     // ── Formato valor unitario ──
     const vuDisplay = document.getElementById('g-vunitario-display');
     const vuHidden  = document.getElementById('g-vunitario');
+
     vuDisplay.addEventListener('input', function () {
       const raw = this.value.replace(/\D/g, '');
       vuHidden.value = raw;
@@ -1206,6 +1243,7 @@
     // ── Formato presupuesto (editar obra) ──
     const eoDisplay = document.getElementById('eo-presup-display');
     const eoHidden  = document.getElementById('eo-presup');
+
     if (eoDisplay) {
       eoDisplay.addEventListener('input', function () {
         const raw = this.value.replace(/\D/g, '');
@@ -1226,6 +1264,7 @@
       if (tabActivo === 'tab-btn-tareas') {
         abrirNuevaTarea();
       } else if (tabActivo === 'tab-btn-progreso') {
+        document.getElementById('overlay-fab-progreso').classList.add('open');
         document.getElementById('p-fecha').value = todayISO();
         document.getElementById('p-etapa').value = '';
         document.getElementById('p-foto').value = '';
@@ -1254,12 +1293,17 @@
       previewProgreso(input);
     }
 
+    let bitacora = [];
+
     async function cargarProgreso() {
       try {
-        todasLasFotos = await api.get(`/api/progreso?obra_id=${obra.id}`);
+        [todasLasFotos, bitacora] = await Promise.all([
+          api.get(`/api/progreso?obra_id=${obra.id}`),
+          api.get(`/api/bitacora?obra_id=${obra.id}`)
+        ]);
         renderProgreso();
       } catch (err) {
-        showToast('Error cargando fotos', 'error');
+        showToast('Error cargando progreso', 'error');
       }
     }
 
@@ -1276,37 +1320,59 @@
         ? todasLasFotos.filter(f => f.etapa === etapaFiltro)
         : todasLasFotos;
 
-      if (!fotos.length) {
-        container.innerHTML = `<div class="empty"><div class="empty-icon"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"></div><div class="empty-msg">Sin fotos aún.<br>Toca + para agregar la primera.</div></div>`;
+      // Juntar todas las fechas (fotos + notas)
+      const fechasSet = new Set([
+        ...fotos.map(f => f.fecha?.substring(0, 10)),
+        ...bitacora.map(b => b.fecha?.substring(0, 10))
+      ]);
+      const fechas = [...fechasSet].filter(Boolean).sort((a, b) => b.localeCompare(a));
+
+      if (!fechas.length) {
+        container.innerHTML = `<div class="empty"><div class="empty-icon">📷</div><div class="empty-msg">Sin registros aún.<br>Toca + para agregar.</div></div>`;
         return;
       }
 
-      // Agrupar por fecha
-      const porFecha = {};
-      fotos.forEach(f => {
-        const key = f.fecha?.substring(0, 10) || 'Sin fecha';
-        if (!porFecha[key]) porFecha[key] = [];
-        porFecha[key].push(f);
-      });
+      container.innerHTML = fechas.map(fecha => {
+        const fotosDia = fotos.filter(f => f.fecha?.substring(0, 10) === fecha);
+        const notaDia = bitacora.find(b => b.fecha?.substring(0, 10) === fecha);
 
-      container.innerHTML = Object.entries(porFecha).map(([fecha, imgs]) => `
-        <div style="margin-bottom:20px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div style="width:10px;height:10px;border-radius:50%;background:var(--amarillo);flex-shrink:0"></div>
-            <div class="fw-700" style="font-size:.9rem">${formatDate(fecha)}</div>
-            <div style="flex:1;height:1px;background:var(--gris-linea)"></div>
-            <div class="text-2" style="font-size:.75rem">${imgs.length} foto${imgs.length>1?'s':''}</div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-            ${imgs.map(f => `
-              <div onclick="verFotoProgreso(${f.id})" style="position:relative;cursor:pointer">
-                <img src="${f.foto_url}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">
-                ${f.etapa ? `<div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;font-size:.6rem;font-weight:600;padding:2px 5px;border-radius:6px;text-align:center">${f.etapa}</div>` : ''}
+        return `
+          <div style="margin-bottom:20px">
+            <!-- Cabecera de fecha -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--amarillo);flex-shrink:0"></div>
+              <div class="fw-700" style="font-size:.9rem">${formatDate(fecha)}</div>
+              <div style="flex:1;height:1px;background:var(--gris-linea)"></div>
+              ${fotosDia.length ? `<div class="text-2" style="font-size:.75rem">${fotosDia.length} foto${fotosDia.length>1?'s':''}</div>` : ''}
+              <button onclick="abrirNotaDia('${fecha}', ${notaDia ? notaDia.id : 'null'}, \`${(notaDia?.nota || '').replace(/`/g, '\\`')}\`)"
+                style="background:${notaDia ? 'var(--gris-obra)' : 'var(--gris-bg)'};border:none;border-radius:8px;padding:4px 8px;font-size:.75rem;font-weight:600;color:${notaDia ? 'var(--amarillo)' : 'var(--texto-2)'};cursor:pointer;flex-shrink:0">
+                ${notaDia ? '📝' : '+ Nota'}
+              </button>
+            </div>
+
+            <!-- Nota del día -->
+            ${notaDia ? `
+              <div style="background:#fffbf0;border-left:3px solid var(--amarillo);border-radius:0 8px 8px 0;padding:10px 12px;margin-bottom:10px;position:relative">
+                <div style="font-size:.85rem;line-height:1.5;white-space:pre-wrap">${notaDia.nota}</div>
+                <div style="font-size:.72rem;color:var(--texto-3);margin-top:4px">✍️ ${notaDia.autor_nombre || '—'}</div>
+                <button onclick="eliminarNota(${notaDia.id})" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--texto-3);font-size:.8rem;cursor:pointer">✕</button>
               </div>
-            `).join('')}
+            ` : ''}
+
+            <!-- Fotos del día -->
+            ${fotosDia.length ? `
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                ${fotosDia.map(f => `
+                  <div onclick="verFotoProgreso(${f.id})" style="position:relative;cursor:pointer">
+                    <img src="${f.foto_url}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">
+                    ${f.etapa ? `<div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;font-size:.6rem;font-weight:600;padding:2px 5px;border-radius:6px;text-align:center">${f.etapa}</div>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // ── Carrusel ──
@@ -1762,6 +1828,49 @@
       } catch (err) {
         document.getElementById('historial-tarea-contenido').innerHTML =
           '<div class="text-2" style="padding:16px 0;text-align:center">Error cargando historial.</div>';
+      }
+    }
+
+    // ── Bitácora ──
+    let notaEditandoId = null;
+    let notaEditandoFecha = null;
+
+    function abrirNotaDia(fecha, notaId, textoActual) {
+      notaEditandoFecha = fecha;
+      notaEditandoId = notaId;
+      document.getElementById('nota-fecha-label').textContent = formatDate(fecha);
+      document.getElementById('nota-texto').value = textoActual || '';
+      abrirSheet('overlay-nota');
+    }
+
+    async function guardarNota() {
+      const btn = document.getElementById('btn-guardar-nota');
+      const texto = document.getElementById('nota-texto').value.trim();
+      if (!texto) return showToast('Escribe algo en la nota', 'error');
+      setLoading(btn, true);
+      try {
+        await api.post('/api/bitacora', {
+          obra_id: obra.id,
+          fecha: notaEditandoFecha,
+          nota: texto
+        });
+        cerrarSheet('overlay-nota');
+        showToast('Nota guardada ✓');
+        await cargarProgreso();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
+    }
+
+    async function eliminarNota(id) {
+      if (!confirm('¿Eliminar esta nota?')) return;
+      try {
+        await api.delete(`/api/bitacora/${id}`);
+        showToast('Nota eliminada');
+        await cargarProgreso();
+      } catch (err) {
+        showToast(err.message, 'error');
       }
     }
 
