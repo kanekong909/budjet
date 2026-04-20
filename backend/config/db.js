@@ -89,7 +89,6 @@ async function initDB() {
         FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
       )
     `);
-
     console.log('✅ Base de datos inicializada correctamente');
   } finally {
     conn.release();
