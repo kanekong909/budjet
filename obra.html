@@ -519,6 +519,18 @@
     </div>
   </div>
 
+  <!-- ===== SHEET: Historial de tarea ===== -->
+  <div class="overlay" id="overlay-historial-tarea">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="historial-tarea-titulo">Historial</div>
+      <div id="historial-tarea-contenido">
+        <div class="empty"><div class="empty-icon">⏳</div></div>
+      </div>
+      <button class="btn btn-secundario w-full mt-16" onclick="cerrarSheet('overlay-historial-tarea')">Cerrar</button>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
   <script src="js/offline.js"></script>
   <script>
@@ -1395,6 +1407,9 @@ function renderTareas() {
                     style="background:${cfg.color};color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap">
                     ${cfg.next === 'en_progreso' ? '▶ Iniciar' : '✓ Listo'}
                   </button>
+                  <button onclick="verHistorialTarea(${t.id})" style="width:28px;height:28px;padding:4px;background:var(--gris-bg);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Ver historial">
+                    🕐
+                  </button>
                   <button onclick="abrirEditarTarea(${t.id})" style="width:28px;height:28px;padding:4px;background:var(--gris-bg);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <img src="./assets/icons/ed.svg" alt="Editar" style="width:14px;height:14px">
                   </button>
@@ -1531,6 +1546,60 @@ function renderTareas() {
         await cargarTareas();
       } catch (err) {
         showToast(err.message, 'error');
+      }
+    }
+
+    // ── Historial de tarea ──
+    async function verHistorialTarea(id) {
+      const tarea = todasLasTareas.find(t => t.id === id);
+      document.getElementById('historial-tarea-titulo').textContent = tarea?.titulo || 'Historial';
+      document.getElementById('historial-tarea-contenido').innerHTML =
+        '<div class="empty"><div class="empty-icon">⏳</div></div>';
+      abrirSheet('overlay-historial-tarea');
+
+      const ESTADO_LABELS = {
+        pendiente:   { emoji: '🔴', label: 'Pendiente' },
+        en_progreso: { emoji: '🟡', label: 'En progreso' },
+        hecho:       { emoji: '🟢', label: 'Hecho' }
+      };
+
+      try {
+        const historial = await api.get(`/api/tareas/${id}/historial`);
+        if (!historial.length) {
+          document.getElementById('historial-tarea-contenido').innerHTML =
+            '<div class="text-2" style="padding:16px 0;text-align:center">Sin cambios de estado aún.</div>';
+          return;
+        }
+
+        document.getElementById('historial-tarea-contenido').innerHTML = historial.map(h => {
+          const ant = ESTADO_LABELS[h.estado_anterior] || { emoji: '⚪', label: h.estado_anterior };
+          const nuevo = ESTADO_LABELS[h.estado_nuevo] || { emoji: '⚪', label: h.estado_nuevo };
+          const fecha = new Date(h.cambiado_en);
+          const fechaStr = fecha.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+          const horaStr = fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+          return `
+            <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--gris-linea)">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+                <div style="font-size:1rem">${nuevo.emoji}</div>
+                <div style="width:1px;flex:1;background:var(--gris-linea)"></div>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:.88rem;font-weight:600">
+                  ${ant.emoji} ${ant.label} → ${nuevo.emoji} ${nuevo.label}
+                </div>
+                <div style="font-size:.78rem;color:var(--texto-2);margin-top:3px">
+                  👤 ${h.usuario_nombre || '—'}
+                </div>
+                <div style="font-size:.75rem;color:var(--texto-3);margin-top:2px">
+                  📅 ${fechaStr} · ${horaStr}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        document.getElementById('historial-tarea-contenido').innerHTML =
+          '<div class="text-2" style="padding:16px 0;text-align:center">Error cargando historial.</div>';
       }
     }
 

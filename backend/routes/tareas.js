@@ -80,12 +80,19 @@ router.put('/:id/estado', async (req, res) => {
     const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
 
+    const estadoAnterior = tarea[0].estado;
     const completado_por = estado === 'hecho' ? req.usuario.id : null;
-    const completado_en = estado === 'hecho' ? new Date() : null;
+    const completado_en  = estado === 'hecho' ? new Date() : null;
 
     await pool.query(
       'UPDATE tareas SET estado=?, completado_por=?, completado_en=? WHERE id=?',
       [estado, completado_por, completado_en, req.params.id]
+    );
+
+    // Guardar en historial
+    await pool.query(
+      'INSERT INTO tarea_historial (tarea_id, usuario_id, estado_anterior, estado_nuevo) VALUES (?, ?, ?, ?)',
+      [req.params.id, req.usuario.id, estadoAnterior, estado]
     );
 
     res.json({ mensaje: 'Estado actualizado', estado });
@@ -133,6 +140,30 @@ router.delete('/:id', async (req, res) => {
 
     await pool.query('DELETE FROM tareas WHERE id = ?', [req.params.id]);
     res.json({ mensaje: 'Tarea eliminada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// GET /api/tareas/:id/historial
+router.get('/:id/historial', async (req, res) => {
+  try {
+    const [tarea] = await pool.query('SELECT * FROM tareas WHERE id = ?', [req.params.id]);
+    if (!tarea.length) return res.status(404).json({ error: 'Tarea no encontrada' });
+
+    const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
+    if (!rol) return res.status(403).json({ error: 'Sin acceso' });
+
+    const [historial] = await pool.query(`
+      SELECT h.*, u.nombre AS usuario_nombre
+      FROM tarea_historial h
+      LEFT JOIN usuarios u ON u.id = h.usuario_id
+      WHERE h.tarea_id = ?
+      ORDER BY h.cambiado_en DESC
+    `, [req.params.id]);
+
+    res.json(historial);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
