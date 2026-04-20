@@ -90,4 +90,28 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// PUT /api/progreso/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const { fecha, etapa } = req.body;
+    const [foto] = await pool.query('SELECT * FROM progreso_fotos WHERE id = ?', [req.params.id]);
+    if (!foto.length) return res.status(404).json({ error: 'Foto no encontrada' });
+
+    const [acceso] = await pool.query(
+      'SELECT rol FROM obra_usuarios WHERE obra_id = ? AND usuario_id = ?',
+      [foto[0].obra_id, req.usuario.id]
+    );
+    if (!acceso.length) return res.status(403).json({ error: 'Sin acceso' });
+
+    await pool.query(
+      'UPDATE progreso_fotos SET fecha=?, etapa=? WHERE id=?',
+      [fecha || foto[0].fecha, etapa || null, req.params.id]
+    );
+    res.json({ mensaje: 'Foto actualizada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 module.exports = router;
