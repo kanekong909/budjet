@@ -116,6 +116,14 @@
         <div id="grafica-cats"></div>
       </div>
 
+      <!-- Resumen semanal -->
+      <div class="card" id="card-semanal">
+        <div class="section-title">📅 Esta semana</div>
+        <div id="semanal-contenido">
+          <div class="empty" style="padding:20px"><div class="empty-icon">⏳</div></div>
+        </div>
+      </div>
+
       <!-- Top gastos -->
       <div class="card">
         <div class="section-title">Mayores gastos</div>
@@ -970,7 +978,11 @@
     // ── Resumen ──
     async function cargarResumen() {
       try {
-        const data = await api.get(`/api/obras/${obra.id}/resumen`);
+        const [data, semanal] = await Promise.all([
+          api.get(`/api/obras/${obra.id}/resumen`),
+          api.get(`/api/obras/${obra.id}/semanal`)
+        ]);
+        renderSemanal(semanal);
         const t = data.totales;
         document.getElementById('res-total').textContent = formatMoney(t.total_gastado);
         document.getElementById('res-cantidad').textContent = t.cantidad_gastos;
@@ -1027,6 +1039,85 @@
       } catch (err) {
         showToast('Error cargando resumen', 'error');
       }
+    }
+
+    // ── Resumen semanal ──
+    function renderSemanal(s) {
+      const DIAS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+      const hoy = new Date().getDay(); // 0=Dom...6=Sáb
+      const diaIdx = hoy === 0 ? 6 : hoy - 1; // convertir a Lun=0
+
+      const diffSemana = s.semana_anterior > 0
+        ? Math.round(((s.semana_actual - s.semana_anterior) / s.semana_anterior) * 100)
+        : null;
+      const diffMes = s.mes_anterior > 0
+        ? Math.round(((s.mes_actual - s.mes_anterior) / s.mes_anterior) * 100)
+        : null;
+
+      const flechaSemana = diffSemana === null ? '' : diffSemana > 0
+        ? `<span style="color:var(--rojo);font-size:.75rem;font-weight:700">▲ ${diffSemana}%</span>`
+        : diffSemana < 0
+        ? `<span style="color:var(--verde);font-size:.75rem;font-weight:700">▼ ${Math.abs(diffSemana)}%</span>`
+        : `<span style="color:var(--texto-3);font-size:.75rem">= igual</span>`;
+
+      const flechaMes = diffMes === null ? '' : diffMes > 0
+        ? `<span style="color:var(--rojo);font-size:.75rem;font-weight:700">▲ ${diffMes}%</span>`
+        : diffMes < 0
+        ? `<span style="color:var(--verde);font-size:.75rem;font-weight:700">▼ ${Math.abs(diffMes)}%</span>`
+        : `<span style="color:var(--texto-3);font-size:.75rem">= igual</span>`;
+
+      // Barra de días
+      const maxDia = Math.max(...s.dias_semana, 1);
+      const barrasDias = DIAS.map((nombre, i) => {
+        const val = s.dias_semana[i] || 0;
+        const alto = Math.round((val / maxDia) * 48);
+        const esHoy = i === diaIdx;
+        return `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+            <div style="font-size:.65rem;color:${val>0?'var(--texto)':'var(--texto-3)'};font-weight:${esHoy?'700':'400'}">${val>0?formatMoney(val).replace('$','').trim():''}</div>
+            <div style="height:48px;display:flex;align-items:flex-end">
+              <div style="width:100%;min-height:3px;height:${Math.max(alto,val>0?4:2)}px;background:${esHoy?'var(--amarillo)':'var(--gris-3)'};border-radius:4px 4px 0 0;min-width:10px;transition:height .4s"></div>
+            </div>
+            <div style="font-size:.7rem;color:${esHoy?'var(--amarillo)':'var(--texto-2)'};font-weight:${esHoy?'700':'400'}">${nombre}</div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('semanal-contenido').innerHTML = `
+        <!-- Comparativo semana -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+          <div class="stat-card">
+            <div class="stat-label">Esta semana</div>
+            <div class="stat-valor grande">${formatMoney(s.semana_actual)}</div>
+            <div style="margin-top:4px">${flechaSemana}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Semana pasada</div>
+            <div class="stat-valor grande" style="color:var(--texto-2)">${formatMoney(s.semana_anterior)}</div>
+          </div>
+        </div>
+
+        <!-- Barra de días -->
+        <div style="display:flex;gap:4px;align-items:flex-end;margin-bottom:16px;padding:8px 0">
+          ${barrasDias}
+        </div>
+
+        <!-- Separador -->
+        <div style="height:1px;background:var(--gris-linea);margin-bottom:14px"></div>
+
+        <!-- Comparativo mes -->
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="stat-label">Este mes</div>
+            <div class="fw-700" style="font-size:1rem">${formatMoney(s.mes_actual)}</div>
+          </div>
+          <div style="text-align:center">${flechaMes}</div>
+          <div style="text-align:right">
+            <div class="stat-label">Mes anterior</div>
+            <div style="font-size:.9rem;color:var(--texto-2);font-weight:600">${formatMoney(s.mes_anterior)}</div>
+          </div>
+        </div>
+      `;
     }
 
     // ── Equipo ──
