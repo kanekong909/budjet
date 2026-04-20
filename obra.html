@@ -1053,11 +1053,11 @@
     }
 
     function getDiaSemana(indiceLunes) {
-      // indiceLunes: 0=Lun, 1=Mar... 6=Dom
-      const lunes = new Date(getLunesActual());
-      const fecha = new Date(lunes);
-      fecha.setDate(lunes.getDate() + indiceLunes);
-      return fecha.getDate();
+      const lunesStr = getLunesActual();
+      const [y, m, d] = lunesStr.split('-').map(Number);
+      const lunes = new Date(y, m - 1, d); // sin zona horaria
+      lunes.setDate(lunes.getDate() + indiceLunes);
+      return lunes.getDate();
     }
 
     // ── Resumen semanal ──
