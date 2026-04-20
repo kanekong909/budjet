@@ -975,12 +975,21 @@
       setLoading(btn, false);
     }
 
+    function getLunesActual() {
+      const hoy = new Date();
+      const dia = hoy.getDay(); // 0=Dom, 1=Lun...
+      const diffLunes = dia === 0 ? -6 : 1 - dia;
+      const lunes = new Date(hoy);
+      lunes.setDate(hoy.getDate() + diffLunes);
+      return lunes.toISOString().split('T')[0];
+    }
+
     // ── Resumen ──
     async function cargarResumen() {
       try {
         const [data, semanal] = await Promise.all([
           api.get(`/api/obras/${obra.id}/resumen`),
-          api.get(`/api/obras/${obra.id}/semanal`)
+          api.get(`/api/obras/${obra.id}/semanal?lunes=${getLunesActual()}`)
         ]);
         renderSemanal(semanal);
         const t = data.totales;

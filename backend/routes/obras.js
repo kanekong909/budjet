@@ -180,7 +180,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// GET /api/obras/:id/semanal
+// GET /api/obras/:id/semanal?lunes=YYYY-MM-DD
 router.get('/:id/semanal', async (req, res) => {
   try {
     const [acceso] = await pool.query(
@@ -189,50 +189,48 @@ router.get('/:id/semanal', async (req, res) => {
     );
     if (!acceso.length) return res.status(403).json({ error: 'Sin acceso' });
 
-    const [semanas] = await pool.query(`
+    // Recibir fechas calculadas en el cliente (evita problemas de zona horaria)
+    const { lunes } = req.query;
+    if (!lunes) return res.status(400).json({ error: 'lunes requerido' });
+
+    const lunesActual   = lunes; // YYYY-MM-DD
+    const lunesAnterior = new Date(new Date(lunesActual).getTime() - 7*24*60*60*1000)
+                            .toISOString().split('T')[0];
+    const domingoActual = new Date(new Date(lunesActual).getTime() + 6*24*60*60*1000)
+                            .toISOString().split('T')[0];
+    const domingoAnterior = new Date(new Date(lunesAnterior).getTime() + 6*24*60*60*1000)
+                            .toISOString().split('T')[0];
+
+    // Primer y último día del mes actual
+    const hoy = new Date(lunesActual);
+    const primerDiaMes = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-01`;
+    const hoyStr = lunesActual; // aproximación, el cliente manda el lunes
+
+    const [rows] = await pool.query(`
       SELECT
-        -- Semana actual (lunes a hoy)
         COALESCE(SUM(CASE
-          WHEN g.fecha >= DATE(NOW() - INTERVAL WEEKDAY(NOW()) DAY)
+          WHEN g.fecha >= ? AND g.fecha <= ?
           AND COALESCE(c.tipo,'egreso') = 'egreso'
           THEN g.monto ELSE 0 END), 0) AS semana_actual,
 
-        -- Semana pasada (lunes a domingo anteriores)
         COALESCE(SUM(CASE
-          WHEN g.fecha >= DATE(NOW() - INTERVAL (WEEKDAY(NOW())+7) DAY)
-          AND g.fecha < DATE(NOW() - INTERVAL WEEKDAY(NOW()) DAY)
+          WHEN g.fecha >= ? AND g.fecha <= ?
           AND COALESCE(c.tipo,'egreso') = 'egreso'
           THEN g.monto ELSE 0 END), 0) AS semana_anterior,
 
-        -- Últimos 7 días vs 7 días anteriores
         COALESCE(SUM(CASE
-          WHEN g.fecha >= DATE(NOW() - INTERVAL 7 DAY)
-          AND COALESCE(c.tipo,'egreso') = 'egreso'
-          THEN g.monto ELSE 0 END), 0) AS ultimos_7,
-
-        COALESCE(SUM(CASE
-          WHEN g.fecha >= DATE(NOW() - INTERVAL 14 DAY)
-          AND g.fecha < DATE(NOW() - INTERVAL 7 DAY)
-          AND COALESCE(c.tipo,'egreso') = 'egreso'
-          THEN g.monto ELSE 0 END), 0) AS anteriores_7,
-
-        -- Mes actual
-        COALESCE(SUM(CASE
-          WHEN MONTH(g.fecha) = MONTH(NOW())
-          AND YEAR(g.fecha) = YEAR(NOW())
+          WHEN g.fecha >= ?
           AND COALESCE(c.tipo,'egreso') = 'egreso'
           THEN g.monto ELSE 0 END), 0) AS mes_actual,
 
-        -- Mes anterior
         COALESCE(SUM(CASE
-          WHEN MONTH(g.fecha) = MONTH(NOW() - INTERVAL 1 MONTH)
-          AND YEAR(g.fecha) = YEAR(NOW() - INTERVAL 1 MONTH)
+          WHEN MONTH(g.fecha) = MONTH(? - INTERVAL 1 MONTH)
+          AND YEAR(g.fecha) = YEAR(? - INTERVAL 1 MONTH)
           AND COALESCE(c.tipo,'egreso') = 'egreso'
           THEN g.monto ELSE 0 END), 0) AS mes_anterior,
 
-        -- Por día de la semana actual
         GROUP_CONCAT(
-          CASE WHEN g.fecha >= DATE(NOW() - INTERVAL WEEKDAY(NOW()) DAY)
+          CASE WHEN g.fecha >= ? AND g.fecha <= ?
                AND COALESCE(c.tipo,'egreso') = 'egreso'
           THEN CONCAT(WEEKDAY(g.fecha),':',g.monto) END
           ORDER BY g.fecha SEPARATOR '|'
@@ -242,26 +240,29 @@ router.get('/:id/semanal', async (req, res) => {
       LEFT JOIN gasto_categorias gc ON gc.gasto_id = g.id
       LEFT JOIN categorias c ON c.id = gc.categoria_id
       WHERE g.obra_id = ?
-    `, [req.params.id]);
+    `, [
+      lunesActual, domingoActual,
+      lunesAnterior, domingoAnterior,
+      primerDiaMes,
+      primerDiaMes, primerDiaMes,
+      lunesActual, domingoActual,
+      req.params.id
+    ]);
 
-    // Procesar gastos por día de la semana actual
-    const diasSemana = [0,0,0,0,0,0,0]; // Lun-Dom
-    if (semanas[0].dias_raw) {
-      semanas[0].dias_raw.split('|').filter(Boolean).forEach(entry => {
-        if (!entry) return;
+    const diasSemana = [0,0,0,0,0,0,0];
+    if (rows[0].dias_raw) {
+      rows[0].dias_raw.split('|').filter(Boolean).forEach(entry => {
         const [dia, monto] = entry.split(':');
         if (dia !== undefined) diasSemana[parseInt(dia)] += parseFloat(monto) || 0;
       });
     }
 
     res.json({
-      semana_actual: semanas[0].semana_actual,
-      semana_anterior: semanas[0].semana_anterior,
-      ultimos_7: semanas[0].ultimos_7,
-      anteriores_7: semanas[0].anteriores_7,
-      mes_actual: semanas[0].mes_actual,
-      mes_anterior: semanas[0].mes_anterior,
-      dias_semana: diasSemana
+      semana_actual:   rows[0].semana_actual,
+      semana_anterior: rows[0].semana_anterior,
+      mes_actual:      rows[0].mes_actual,
+      mes_anterior:    rows[0].mes_anterior,
+      dias_semana:     diasSemana
     });
   } catch (err) {
     console.error(err);
