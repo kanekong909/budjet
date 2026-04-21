@@ -49,8 +49,8 @@ async function solicitarPermisoPush() {
 
     // Registrar el SW manualmente con la ruta correcta para GitHub Pages
     const swRegistration = await navigator.serviceWorker.register(
-      '/obra-gastos/firebase-messaging-sw.js',
-      { scope: '/obra-gastos/' }
+      '/budjet/firebase-messaging-sw.js',
+      { scope: '/budjet/' }
     );
     const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swRegistration });
     if (token) {
