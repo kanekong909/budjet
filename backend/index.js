@@ -6,6 +6,8 @@ const { initDB } = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const { router: notifRouter, iniciarCronNotificaciones } = require('./routes/notificaciones');
+
 // CORS - permite solo tu frontend de GitHub Pages
 const allowedOrigins = [
   process.env.FRONTEND_URL,
@@ -35,6 +37,7 @@ app.use('/api/gastos', require('./routes/gastos'));
 app.use('/api/progreso', require('./routes/progreso'));
 app.use('/api/tareas', require('./routes/tareas'));
 app.use('/api/bitacora', require('./routes/bitacora'));
+app.use('/api/notificaciones', notifRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -46,6 +49,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: err.message || 'Error interno del servidor' });
 });
+
+iniciarCronNotificaciones();
 
 // Iniciar servidor
 initDB()
