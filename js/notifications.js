@@ -52,6 +52,20 @@ async function solicitarPermisoPush() {
       '/budjet/firebase-messaging-sw.js',
       { scope: '/budjet/' }
     );
+
+    // Esperar a que el SW esté activo
+    await new Promise((resolve, reject) => {
+      if (swRegistration.active) { resolve(); return; }
+      const sw = swRegistration.installing || swRegistration.waiting;
+      if (!sw) { reject(new Error('No SW found')); return; }
+      sw.addEventListener('statechange', e => {
+        if (e.target.state === 'activated') resolve();
+        if (e.target.state === 'redundant') reject(new Error('SW redundant'));
+      });
+      // Timeout de seguridad
+      setTimeout(resolve, 4000);
+    });
+
     const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swRegistration });
     if (token) {
       // Guardar token en el backend
