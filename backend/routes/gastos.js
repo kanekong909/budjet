@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
 const multer = require('multer');
+const { registrarAuditoria } = require('../middleware/auditoria');
 
 router.use(authMiddleware);
 
@@ -167,6 +168,10 @@ router.post('/', upload.single('foto'), async (req, res) => {
     gasto[0].categorias = parsearCategorias(gasto[0].categorias_raw);
     delete gasto[0].categorias_raw;
 
+    await registrarAuditoria({ req, accion: 'CREAR', entidad: 'gasto',
+      entidad_id: result.insertId, obra_id: parseInt(obra_id),
+      datos_despues: gasto[0] });
+
     res.status(201).json(gasto[0]);
   } catch (err) {
     console.error(err);
@@ -227,6 +232,10 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
     gasto[0].categorias = parsearCategorias(gasto[0].categorias_raw);
     delete gasto[0].categorias_raw;
 
+    await registrarAuditoria({ req, accion: 'EDITAR', entidad: 'gasto',
+      entidad_id: parseInt(req.params.id), obra_id: gastoActual[0].obra_id,
+      datos_antes: gastoActual[0], datos_despues: gasto[0] });
+
     res.json(gasto[0]);
   } catch (err) {
     console.error(err);
@@ -246,6 +255,10 @@ router.delete('/:id', async (req, res) => {
     if (gastoActual[0].usuario_id !== req.usuario.id && rol !== 'admin') {
       return res.status(403).json({ error: 'Solo puedes eliminar tus propios gastos' });
     }
+
+    await registrarAuditoria({ req, accion: 'ELIMINAR', entidad: 'gasto',
+      entidad_id: parseInt(req.params.id), obra_id: gastoActual[0].obra_id,
+      datos_antes: gastoActual[0] });
 
     await pool.query('DELETE FROM gastos WHERE id = ?', [req.params.id]);
     res.json({ mensaje: 'Gasto eliminado' });

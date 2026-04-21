@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1c1e">
+  <title>ObraGastos — Admin</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .admin-header {
+      background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+      padding: 20px 16px 16px;
+      color: white;
+    }
+    .admin-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #f5a623;
+      margin-bottom: 2px;
+    }
+    .evento-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gris-linea);
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .evento-item:active { background: var(--gris-bg); }
+    .evento-item:last-child { border: none; }
+    .accion-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .accion-CREAR    { background: #d1fae5; color: #065f46; }
+    .accion-EDITAR   { background: #dbeafe; color: #1e40af; }
+    .accion-ELIMINAR { background: #fee2e2; color: #991b1b; }
+    .accion-REVERTIR { background: #fef3c7; color: #92400e; }
+    .accion-LOGIN    { background: #ede9fe; color: #5b21b6; }
+    .revertido-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: .65rem;
+      font-weight: 600;
+      background: #fef3c7;
+      color: #92400e;
+      margin-left: 4px;
+    }
+    .stat-admin {
+      background: var(--blanco);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-admin .num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--amarillo);
+    }
+    .stat-admin .lbl {
+      font-size: .72rem;
+      color: var(--texto-2);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: .4px;
+      margin-top: 3px;
+    }
+    .filtros-admin {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      background: white;
+      border-bottom: 1px solid var(--gris-linea);
+    }
+    .filtros-admin select,
+    .filtros-admin input {
+      padding: 7px 10px;
+      border: 1.5px solid var(--gris-linea);
+      border-radius: 8px;
+      font-size: .82rem;
+      font-family: var(--font);
+      background: white;
+    }
+    .tabs-admin {
+      display: flex;
+      background: #1c1c1e;
+      padding: 0 12px 10px;
+      gap: 6px;
+    }
+    .tab-admin {
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #aeaeb2;
+      border: none;
+      background: none;
+    }
+    .tab-admin.active {
+      background: var(--amarillo);
+      color: #1c1c1e;
+    }
+    .usuario-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--gris-linea);
+    }
+    .usuario-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #1c1c1e;
+      color: var(--amarillo);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .85rem; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-header">
+    <div class="row-between">
+      <div>
+        <div class="admin-title">⚙️ Panel Admin</div>
+        <div style="font-size:.8rem;color:#aeaeb2">ObraGastos — Auditoría</div>
+      </div>
+      <button onclick="window.location.href='dashboard.html'"
+        style="background:rgba(255,255,255,.1);border:none;border-radius:8px;padding:8px 12px;color:white;font-size:.82rem;cursor:pointer">
+        ← App
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-admin">
+    <button class="tab-admin active" onclick="mostrarTab('resumen')">📊 Resumen</button>
+    <button class="tab-admin" onclick="mostrarTab('auditoria')">🔍 Auditoría</button>
+    <button class="tab-admin" onclick="mostrarTab('usuarios')">👥 Usuarios</button>
+  </div>
+
+  <main style="padding: 0 0 80px">
+
+    <!-- ====== TAB: RESUMEN ====== -->
+    <div id="tab-resumen">
+      <div style="padding:14px 16px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px" id="stats-grid">
+          <div class="stat-admin"><div class="num">—</div><div class="lbl">Usuarios</div></div>
+          <div class="stat-admin"><div class="num">—</div><div class="lbl">Obras</div></div>
+          <div class="stat-admin"><div class="num">—</div><div class="lbl">Gastos</div></div>
+          <div class="stat-admin"><div class="num">—</div><div class="lbl">Tareas</div></div>
+          <div class="stat-admin"><div class="num">—</div><div class="lbl">Eventos hoy</div></div>
+          <div class="stat-admin"><div class="num">—</div><div class="lbl">Total eventos</div></div>
+        </div>
+
+        <!-- Top usuarios -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="section-title">👤 Más activos (7 días)</div>
+          <div id="top-usuarios"></div>
+        </div>
+
+        <!-- Top acciones -->
+        <div class="card">
+          <div class="section-title">📋 Acciones más frecuentes</div>
+          <div id="top-acciones"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== TAB: AUDITORÍA ====== -->
+    <div id="tab-auditoria" style="display:none">
+
+      <!-- Filtros -->
+      <div class="filtros-admin">
+        <input type="text" id="buscar-audit" placeholder="🔍 Buscar usuario, obra…" oninput="cargarAuditoria()" style="flex:1;min-width:150px">
+        <select id="filtro-accion" onchange="cargarAuditoria()">
+          <option value="">Todas las acciones</option>
+          <option>CREAR</option>
+          <option>EDITAR</option>
+          <option>ELIMINAR</option>
+          <option>REVERTIR</option>
+          <option>LOGIN</option>
+        </select>
+        <select id="filtro-entidad" onchange="cargarAuditoria()">
+          <option value="">Todas las entidades</option>
+          <option value="gasto">Gasto</option>
+          <option value="tarea">Tarea</option>
+          <option value="obra">Obra</option>
+          <option value="progreso">Progreso</option>
+        </select>
+        <input type="date" id="filtro-desde" onchange="cargarAuditoria()" style="width:130px">
+        <input type="date" id="filtro-hasta" onchange="cargarAuditoria()" style="width:130px">
+        <button onclick="exportarAuditoria()" class="btn btn-sm btn-secundario">📥 CSV</button>
+      </div>
+
+      <div id="audit-lista" style="background:white"></div>
+
+      <!-- Paginación -->
+      <div class="row-between" style="padding:10px 16px" id="audit-pag" style="display:none">
+        <button class="btn btn-sm btn-secundario" id="btn-prev-a" onclick="cambiarPagAudit(-1)">‹ Anterior</button>
+        <span class="text-2" id="pag-info-a">1 / 1</span>
+        <button class="btn btn-sm btn-secundario" id="btn-next-a" onclick="cambiarPagAudit(1)">Siguiente ›</button>
+      </div>
+    </div>
+
+    <!-- ====== TAB: USUARIOS ====== -->
+    <div id="tab-usuarios" style="display:none">
+      <div id="usuarios-lista" style="background:white"></div>
+    </div>
+
+  </main>
+
+  <!-- Sheet: Detalle evento -->
+  <div class="overlay" id="overlay-evento">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title" id="evento-titulo">Detalle</div>
+      <div id="evento-contenido"></div>
+      <div class="row mt-16" style="gap:10px" id="evento-acciones"></div>
+      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-evento')">Cerrar</button>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    if (!requireAuth()) void 0;
+    const u = usuario();
+    if (u?.rol !== 'superadmin') {
+      alert('Acceso denegado');
+      window.location.href = 'dashboard.html';
+    }
+
+    let paginaAudit = 1;
+    let eventoActual = null;
+
+    // ── Tabs ──
+    function mostrarTab(tab) {
+      ['resumen','auditoria','usuarios'].forEach(t => {
+        document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+      });
+      document.querySelectorAll('.tab-admin').forEach((b, i) => {
+        b.classList.toggle('active', ['resumen','auditoria','usuarios'][i] === tab);
+      });
+      if (tab === 'resumen') cargarStats();
+      if (tab === 'auditoria') cargarAuditoria();
+      if (tab === 'usuarios') cargarUsuarios();
+    }
+
+    // ── Stats ──
+    async function cargarStats() {
+      try {
+        const s = await api.get('/api/admin/stats');
+        const grid = document.getElementById('stats-grid');
+        grid.innerHTML = `
+          <div class="stat-admin"><div class="num">${s.usuarios}</div><div class="lbl">Usuarios</div></div>
+          <div class="stat-admin"><div class="num">${s.obras}</div><div class="lbl">Obras</div></div>
+          <div class="stat-admin"><div class="num">${s.gastos}</div><div class="lbl">Gastos</div></div>
+          <div class="stat-admin"><div class="num">${s.tareas}</div><div class="lbl">Tareas</div></div>
+          <div class="stat-admin"><div class="num">${s.eventos_hoy}</div><div class="lbl">Eventos hoy</div></div>
+          <div class="stat-admin"><div class="num">${s.eventos_auditoria}</div><div class="lbl">Total eventos</div></div>
+        `;
+
+        document.getElementById('top-usuarios').innerHTML = s.top_usuarios.length
+          ? s.top_usuarios.map(u => `
+            <div class="row-between" style="padding:7px 0;border-bottom:1px solid var(--gris-linea)">
+              <span style="font-size:.88rem;font-weight:500">${u.usuario_nombre}</span>
+              <span class="text-2">${u.acciones} acciones</span>
+            </div>
+          `).join('')
+          : '<div class="text-2" style="padding:10px 0">Sin actividad reciente</div>';
+
+        document.getElementById('top-acciones').innerHTML = s.top_acciones.map(a => `
+          <div class="row-between" style="padding:7px 0;border-bottom:1px solid var(--gris-linea)">
+            <span class="accion-badge accion-${a.accion}">${a.accion}</span>
+            <span class="text-2">${a.total} veces</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        showToast('Error cargando stats', 'error');
+      }
+    }
+
+    // ── Auditoría ──
+    async function cargarAuditoria() {
+      const buscar  = document.getElementById('buscar-audit').value;
+      const accion  = document.getElementById('filtro-accion').value;
+      const entidad = document.getElementById('filtro-entidad').value;
+      const desde   = document.getElementById('filtro-desde').value;
+      const hasta   = document.getElementById('filtro-hasta').value;
+
+      let url = `/api/admin/auditoria?page=${paginaAudit}&limit=30`;
+      if (buscar)  url += `&buscar=${encodeURIComponent(buscar)}`;
+      if (accion)  url += `&accion=${accion}`;
+      if (entidad) url += `&entidad=${entidad}`;
+      if (desde)   url += `&fecha_desde=${desde}`;
+      if (hasta)   url += `&fecha_hasta=${hasta}`;
+
+      try {
+        const data = await api.get(url);
+        renderAuditoria(data);
+      } catch (err) {
+        showToast('Error cargando auditoría', 'error');
+      }
+    }
+
+    function renderAuditoria(data) {
+      const lista = document.getElementById('audit-lista');
+      if (!data.eventos.length) {
+        lista.innerHTML = '<div class="empty" style="padding:30px"><div class="empty-icon">🔍</div><div class="empty-msg">Sin eventos</div></div>';
+        return;
+      }
+
+      lista.innerHTML = data.eventos.map(e => {
+        const fecha = new Date(e.creado_en);
+        const fechaStr = fecha.toLocaleDateString('es-CO', { day:'2-digit', month:'short' });
+        const horaStr  = fecha.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+        return `
+          <div class="evento-item" onclick="verEvento(${e.id})">
+            <div class="row-between">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="accion-badge accion-${e.accion}">${e.accion}</span>
+                <span style="font-size:.8rem;font-weight:600">${e.entidad}</span>
+                ${e.revertido ? '<span class="revertido-badge">revertido</span>' : ''}
+              </div>
+              <span style="font-size:.72rem;color:var(--texto-3)">${fechaStr} ${horaStr}</span>
+            </div>
+            <div style="font-size:.82rem;margin-top:4px">
+              👤 ${e.usuario_nombre || '—'}
+              ${e.obra_nombre ? ` · 🏗️ ${e.obra_nombre}` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const pag = document.getElementById('audit-pag');
+      pag.style.display = data.paginas > 1 ? 'flex' : 'none';
+      document.getElementById('pag-info-a').textContent = `${data.pagina} / ${data.paginas}`;
+      document.getElementById('btn-prev-a').disabled = data.pagina <= 1;
+      document.getElementById('btn-next-a').disabled = data.pagina >= data.paginas;
+
+      // Guardar eventos para ver detalle
+      window._eventos = {};
+      data.eventos.forEach(e => window._eventos[e.id] = e);
+    }
+
+    function cambiarPagAudit(dir) {
+      paginaAudit = Math.max(1, paginaAudit + dir);
+      cargarAuditoria();
+    }
+
+    function verEvento(id) {
+      const e = window._eventos[id];
+      if (!e) return;
+      eventoActual = e;
+
+      const fecha = new Date(e.creado_en).toLocaleString('es-CO');
+      const antes  = e.datos_antes  ? JSON.parse(e.datos_antes)  : null;
+      const despues= e.datos_despues? JSON.parse(e.datos_despues): null;
+
+      document.getElementById('evento-titulo').textContent = `${e.accion} ${e.entidad} #${e.entidad_id || ''}`;
+
+      document.getElementById('evento-contenido').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div class="stat-card"><div class="stat-label">Acción</div>
+            <span class="accion-badge accion-${e.accion}">${e.accion}</span></div>
+          <div class="stat-card"><div class="stat-label">Entidad</div>
+            <div style="font-weight:600">${e.entidad} #${e.entidad_id||'—'}</div></div>
+          <div class="stat-card"><div class="stat-label">Usuario</div>
+            <div style="font-weight:600;font-size:.85rem">${e.usuario_nombre||'—'}</div></div>
+          <div class="stat-card"><div class="stat-label">Fecha</div>
+            <div style="font-weight:600;font-size:.75rem">${fecha}</div></div>
+        </div>
+        ${e.obra_nombre ? `<div class="text-2 mb-8">🏗️ Obra: <strong>${e.obra_nombre}</strong></div>` : ''}
+        ${e.ip ? `<div class="text-2 mb-8">🌐 IP: ${e.ip}</div>` : ''}
+        ${e.revertido ? `<div style="background:#fef3c7;padding:8px 12px;border-radius:8px;font-size:.82rem;margin-bottom:10px">
+          ↩️ Revertido por <strong>${e.revertido_por}</strong> el ${new Date(e.revertido_en).toLocaleString('es-CO')}
+        </div>` : ''}
+        ${antes ? `
+          <div style="margin-bottom:10px">
+            <div class="stat-label mb-8">Datos anteriores</div>
+            <pre style="background:#fee2e2;padding:10px;border-radius:8px;font-size:.72rem;overflow-x:auto;white-space:pre-wrap">${JSON.stringify(antes, null, 2)}</pre>
+          </div>
+        ` : ''}
+        ${despues ? `
+          <div>
+            <div class="stat-label mb-8">Datos nuevos</div>
+            <pre style="background:#d1fae5;padding:10px;border-radius:8px;font-size:.72rem;overflow-x:auto;white-space:pre-wrap">${JSON.stringify(despues, null, 2)}</pre>
+          </div>
+        ` : ''}
+      `;
+
+      // Botón revertir
+      const acciones = document.getElementById('evento-acciones');
+      const puedeRevertir = !e.revertido && (e.accion === 'ELIMINAR' || e.accion === 'EDITAR');
+      acciones.innerHTML = puedeRevertir
+        ? `<button class="btn btn-danger w-full" onclick="revertirEvento(${e.id})">↩️ Revertir esta acción</button>`
+        : '';
+
+      document.getElementById('overlay-evento').classList.add('open');
+    }
+
+    async function revertirEvento(id) {
+      if (!confirm('¿Revertir esta acción? Se restaurarán los datos anteriores.')) return;
+      try {
+        await api.post(`/api/admin/revertir/${id}`, {});
+        cerrarSheet('overlay-evento');
+        showToast('✅ Acción revertida');
+        cargarAuditoria();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function exportarAuditoria() {
+      const desde   = document.getElementById('filtro-desde').value;
+      const hasta   = document.getElementById('filtro-hasta').value;
+      const accion  = document.getElementById('filtro-accion').value;
+      const entidad = document.getElementById('filtro-entidad').value;
+
+      let url = `${API_URL}/api/admin/exportar?`;
+      if (desde)   url += `fecha_desde=${desde}&`;
+      if (hasta)   url += `fecha_hasta=${hasta}&`;
+      if (accion)  url += `accion=${accion}&`;
+      if (entidad) url += `entidad=${entidad}&`;
+
+      try {
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${api.token()}` } });
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'auditoria.csv';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      } catch (err) {
+        showToast('Error exportando', 'error');
+      }
+    }
+
+    // ── Usuarios ──
+    async function cargarUsuarios() {
+      try {
+        const usuarios = await api.get('/api/admin/usuarios');
+        document.getElementById('usuarios-lista').innerHTML = usuarios.map(u => `
+          <div class="usuario-row">
+            <div class="usuario-avatar">${u.nombre.charAt(0).toUpperCase()}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.9rem">${u.nombre}
+                <span class="badge-rol badge-${u.rol}" style="margin-left:4px">${u.rol}</span>
+              </div>
+              <div class="text-2">${u.email}</div>
+              <div style="font-size:.75rem;color:var(--texto-3);margin-top:2px">
+                ${u.total_obras} obra${u.total_obras!=1?'s':''} ·
+                ${u.total_gastos} gasto${u.total_gastos!=1?'s':''} ·
+                ${u.ultima_actividad ? 'Activo: '+formatDate(u.ultima_actividad) : 'Sin actividad'}
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        showToast('Error cargando usuarios', 'error');
+      }
+    }
+
+    // Cerrar overlay al hacer clic fuera
+    document.getElementById('overlay-evento').addEventListener('click', function(e) {
+      if (e.target === this) cerrarSheet('overlay-evento');
+    });
+
+    // Iniciar
+    cargarStats();
+  </script>
+</body>
+</html>
+```
