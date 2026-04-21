@@ -6,7 +6,7 @@ const VAPID_KEY = 'DEsAEqmTnjRPCApw27FSzDosBQRPUtSnTHKfKo9XzlM';
 
 // Inicializar Firebase
 const firebaseConfig = {
-  apiKey: "REEMPLAZA_CON_TU_NUEVA_API_KEY",
+  apiKey: "AIzaSyDZA5_zkZei7PkBPa3DUjz7HV9AcaN7c6Y",
   authDomain: "obra-gastos.firebaseapp.com",
   projectId: "obra-gastos",
   storageBucket: "obra-gastos.firebasestorage.app",
@@ -47,7 +47,12 @@ async function solicitarPermisoPush() {
     await initFirebase();
     if (!messaging) return null;
 
-    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+    // Registrar el SW manualmente con la ruta correcta para GitHub Pages
+    const swRegistration = await navigator.serviceWorker.register(
+      '/obra-gastos/firebase-messaging-sw.js',
+      { scope: '/obra-gastos/' }
+    );
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swRegistration });
     if (token) {
       // Guardar token en el backend
       await api.post('/api/notificaciones/token', { token });
