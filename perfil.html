@@ -57,6 +57,10 @@
     </div>
 
     <!-- Cerrar sesión -->
+    <div id="card-admin" style="display:none" class="card mb-8">
+      <button class="btn btn-primary w-full" onclick="window.location.href='admin.html'">⚙️ Panel de administración</button>
+    </div>
+
     <div class="card">
       <button class="btn btn-danger w-full" onclick="confirmarLogout()">🚪 Cerrar sesión</button>
     </div>
@@ -87,6 +91,9 @@
       document.getElementById('info-nombre').textContent = u.nombre;
       document.getElementById('info-email').textContent = u.email;
       document.getElementById('info-rol').textContent = u.rol;
+    }
+    if (u?.rol === 'superadmin') {
+      document.getElementById('card-admin').style.display = 'block';
     }
     function confirmarLogout() {
       if (confirm('¿Seguro que quieres cerrar sesión?')) logout();
