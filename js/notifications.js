@@ -2,7 +2,7 @@
 // NOTIFICATIONS.JS — Push notifications con Firebase
 // ============================================================
 
-const VAPID_KEY = 'DEsAEqmTnjRPCApw27FSzDosBQRPUtSnTHKfKo9XzlM';
+const VAPID_KEY = 'BP4m59-O5wxO6cBnfP9R45SfNwtEnxF4cdxejOEXP_io0Usp0d6GbACl_NDY4h2SCHmCG6JhgcAeyHvwnG8Drmk';
 
 // Inicializar Firebase
 const firebaseConfig = {
