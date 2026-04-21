@@ -621,7 +621,7 @@
       <div class="sheet-title" style="margin-bottom:16px">¿Qué quieres agregar?</div>
       <div class="row" style="gap:10px">
         <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
-          onclick="cerrarSheet('overlay-fab-progreso');document.getElementById('p-fecha').value=todayISO();document.getElementById('p-etapa').value='';document.getElementById('p-foto').value='';document.getElementById('p-foto-preview').style.display='none';abrirSheet('overlay-progreso')">
+          onclick="cerrarSheet('overlay-fab-progreso');setTimeout(()=>{document.getElementById('p-fecha').value=todayISO();document.getElementById('p-etapa').value='';document.getElementById('p-foto').value='';document.getElementById('p-foto-preview').style.display='none';abrirSheet('overlay-progreso');},200)"
           📷<span>Foto</span>
         </button>
         <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
@@ -1385,11 +1385,6 @@
         abrirNuevaTarea();
       } else if (tabActivo === 'tab-btn-progreso') {
         document.getElementById('overlay-fab-progreso').classList.add('open');
-        document.getElementById('p-fecha').value = todayISO();
-        document.getElementById('p-etapa').value = '';
-        document.getElementById('p-foto').value = '';
-        document.getElementById('p-foto-preview').style.display = 'none';
-        abrirSheet('overlay-progreso');
       } else {
         abrirGasto();
       }
@@ -1413,6 +1408,7 @@
       previewProgreso(input);
     }
 
+    // Bitacoras
     let bitacora = [];
 
     async function cargarProgreso() {
