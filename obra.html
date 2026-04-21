@@ -979,11 +979,15 @@
 
     function getLunesActual() {
       const hoy = new Date();
-      const dia = hoy.getDay(); // 0=Dom, 1=Lun...
+      // Usar fecha local del dispositivo, no UTC
+      const y = hoy.getFullYear();
+      const m = hoy.getMonth();
+      const d = hoy.getDate();
+      const local = new Date(y, m, d); // medianoche local, sin UTC
+      const dia = local.getDay(); // 0=Dom...6=Sáb
       const diffLunes = dia === 0 ? -6 : 1 - dia;
-      const lunes = new Date(hoy);
-      lunes.setDate(hoy.getDate() + diffLunes);
-      return lunes.toISOString().split('T')[0];
+      local.setDate(d + diffLunes);
+      return `${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,'0')}-${String(local.getDate()).padStart(2,'0')}`;
     }
 
     // ── Resumen ──
