@@ -17,6 +17,19 @@
     <button class="btn-icon" onclick="abrirEditarObra()" style="background:transparent;color:white">⚙️</button>
   </header>
 
+  <!-- Barra de selección múltiple -->
+  <div class="seleccion-bar" id="seleccion-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="cancelarSeleccion()" style="background:none;border:none;color:white;font-size:1.1rem;cursor:pointer">✕</button>
+      <span id="seleccion-count" style="font-weight:600;font-size:.9rem">0 seleccionados</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="seleccionarTodos()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:white;font-size:.75rem;font-weight:600;cursor:pointer">Todos</button>
+      <button onclick="verSumaSeleccion()" style="background:var(--amarillo);border:none;border-radius:8px;padding:6px 10px;color:var(--gris-obra);font-size:.75rem;font-weight:600;cursor:pointer">Σ Suma</button>
+      <button onclick="abrirEdicionMasiva()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:white;font-size:.75rem;font-weight:600;cursor:pointer">✏️ Editar</button>
+    </div>
+  </div>
+
   <!-- Nav tabs -->
   <div style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
     <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">
@@ -633,6 +646,58 @@
     </div>
   </div>
 
+  <!-- ===== SHEET: Suma selección ===== -->
+  <div class="overlay" id="overlay-suma">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Σ Suma de seleccionados</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+        <div class="stat-card" style="text-align:center">
+          <div class="stat-label">Gastos</div>
+          <div class="stat-valor" id="confirmar-suma-n">0</div>
+        </div>
+        <div class="stat-card" style="text-align:center;grid-column:span 2">
+          <div class="stat-label">Total</div>
+          <div class="stat-valor" id="confirmar-suma-total" style="color:var(--amarillo)">—</div>
+        </div>
+        <div class="stat-card" style="text-align:center;grid-column:span 3">
+          <div class="stat-label">Promedio por gasto</div>
+          <div class="stat-valor grande" id="confirmar-suma-prom">—</div>
+        </div>
+      </div>
+      <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-suma')">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ===== SHEET: Edición masiva ===== -->
+  <div class="overlay" id="overlay-edicion-masiva">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">✏️ Editar <span id="bulk-count">0</span> gastos</div>
+      <p class="text-2 mb-8">Elige qué campo editar. Se aplicará a todos los gastos seleccionados.</p>
+
+      <div class="field">
+        <label>Campo a editar</label>
+        <select id="bulk-campo" onchange="mostrarCampoBulk()">
+          <option value="">Selecciona un campo…</option>
+          <option value="proveedor">Proveedor</option>
+          <option value="categoria_id">Categoría</option>
+          <option value="fecha">Fecha</option>
+          <option value="notas">Notas</option>
+        </select>
+      </div>
+
+      <div id="bulk-valor-wrap" style="display:none">
+        <!-- Se llena dinámicamente -->
+      </div>
+
+      <div class="row mt-16" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-edicion-masiva')">Cancelar</button>
+        <button class="btn btn-primary w-full" id="btn-bulk-guardar" onclick="guardarEdicionMasiva()">Aplicar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
   <script src="js/notifications.js"></script>
@@ -747,6 +812,9 @@
       }
     }
 
+    let modoSeleccion = false;
+    let gastosSeleccionados = new Set();
+
     function renderGastos() {
       const lista = document.getElementById('gastos-lista');
       let filtrados = gastos;
@@ -760,14 +828,25 @@
         lista.innerHTML = `<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><div class="empty-msg">Sin gastos${busqFiltro ? ' para "'+busqFiltro+'"' : ''}</div></div>`;
         return;
       }
+
+      lista.className = modoSeleccion ? 'modo-seleccion' : '';
       lista.innerHTML = filtrados.map(g => `
-        <div class="gasto-item" onclick="verGasto(${g.id})">
+        <div class="gasto-item${gastosSeleccionados.has(g.id) ? ' seleccionado' : ''}"
+          id="gasto-row-${g.id}"
+          onclick="clickGasto(${g.id})"
+          ontouchstart="iniciarLongPress(${g.id})"
+          ontouchend="cancelarLongPress()"
+          ontouchmove="cancelarLongPress()"
+          onmousedown="iniciarLongPress(${g.id})"
+          onmouseup="cancelarLongPress()"
+          onmouseleave="cancelarLongPress()">
+          <div class="check-gasto">${gastosSeleccionados.has(g.id) ? '✓' : ''}</div>
           <div class="gasto-cat-dot" style="background:${g.categorias?.[0]?.color || g.categoria_color || '#aeaeb2'}"></div>
           <div class="gasto-info">
             <div class="gasto-desc">${g._pendiente ? '💾 ' : ''}${g.descripcion}</div>
             <div class="gasto-meta">${formatDate(g.fecha)} · ${g.categorias?.map(c=>`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:2px"></span>${c.nombre}`).join(', ') || 'Sin cat.'} ${g.proveedor ? '· '+g.proveedor : ''}</div>
           </div>
-          ${g.foto_url ? '<span class="gasto-foto"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"></span>' : ''}
+          ${g.foto_url ? '<span class="gasto-foto">📷</span>' : ''}
           <div class="gasto-monto">${formatMoney(g.monto)}</div>
         </div>
       `).join('');
@@ -1988,6 +2067,154 @@
       } catch (err) {
         showToast(err.message, 'error');
       }
+    }
+
+    // ── Selección múltiple ──
+    let longPressTimer = null;
+
+    function iniciarLongPress(id) {
+      longPressTimer = setTimeout(() => {
+        if (!modoSeleccion) activarModoSeleccion();
+        toggleSeleccion(id);
+      }, 500);
+    }
+
+    function cancelarLongPress() {
+      clearTimeout(longPressTimer);
+    }
+
+    function clickGasto(id) {
+      clearTimeout(longPressTimer);
+      if (modoSeleccion) {
+        toggleSeleccion(id);
+      } else {
+        verGasto(id);
+      }
+    }
+
+    function activarModoSeleccion() {
+      modoSeleccion = true;
+      gastosSeleccionados = new Set();
+      document.getElementById('seleccion-bar').classList.add('activa');
+      document.getElementById('fab-agregar').style.display = 'none';
+      document.getElementById('total-bar').style.display = 'none';
+      renderGastos();
+    }
+
+    function cancelarSeleccion() {
+      modoSeleccion = false;
+      gastosSeleccionados = new Set();
+      document.getElementById('seleccion-bar').classList.remove('activa');
+      document.getElementById('fab-agregar').style.display = 'flex';
+      document.getElementById('total-bar').style.display = 'flex';
+      renderGastos();
+    }
+
+    function toggleSeleccion(id) {
+      if (gastosSeleccionados.has(id)) {
+        gastosSeleccionados.delete(id);
+      } else {
+        gastosSeleccionados.add(id);
+      }
+      // Actualizar visualmente solo la fila tocada
+      const row = document.getElementById(`gasto-row-${id}`);
+      if (row) {
+        row.classList.toggle('seleccionado', gastosSeleccionados.has(id));
+        const check = row.querySelector('.check-gasto');
+        if (check) check.textContent = gastosSeleccionados.has(id) ? '✓' : '';
+      }
+      actualizarBarraSeleccion();
+    }
+
+    function seleccionarTodos() {
+      const filtrados = gastos.filter(g =>
+        !busqFiltro ||
+        g.descripcion.toLowerCase().includes(busqFiltro) ||
+        (g.proveedor || '').toLowerCase().includes(busqFiltro)
+      );
+      if (gastosSeleccionados.size === filtrados.length) {
+        // Deseleccionar todos
+        gastosSeleccionados = new Set();
+      } else {
+        filtrados.forEach(g => gastosSeleccionados.add(g.id));
+      }
+      renderGastos();
+      actualizarBarraSeleccion();
+    }
+
+    function actualizarBarraSeleccion() {
+      const n = gastosSeleccionados.size;
+      document.getElementById('seleccion-count').textContent =
+        `${n} seleccionado${n !== 1 ? 's' : ''}`;
+    }
+
+    function verSumaSeleccion() {
+      if (!gastosSeleccionados.size) return showToast('No hay gastos seleccionados', 'error');
+      const seleccionados = gastos.filter(g => gastosSeleccionados.has(g.id));
+      const suma = seleccionados.reduce((s, g) => s + parseFloat(g.monto), 0);
+      const n = seleccionados.length;
+      document.getElementById('confirmar-suma-n').textContent = n;
+      document.getElementById('confirmar-suma-total').textContent = formatMoney(suma);
+      document.getElementById('confirmar-suma-prom').textContent = formatMoney(suma / n);
+      abrirSheet('overlay-suma');
+    }
+
+    // -- Edicion Masiva --
+    function abrirEdicionMasiva() {
+      if (!gastosSeleccionados.size) return showToast('No hay gastos seleccionados', 'error');
+      document.getElementById('bulk-count').textContent = gastosSeleccionados.size;
+      document.getElementById('bulk-campo').value = '';
+      document.getElementById('bulk-valor-wrap').style.display = 'none';
+      abrirSheet('overlay-edicion-masiva');
+    }
+
+    function mostrarCampoBulk() {
+      const campo = document.getElementById('bulk-campo').value;
+      const wrap = document.getElementById('bulk-valor-wrap');
+      if (!campo) { wrap.style.display = 'none'; return; }
+
+      wrap.style.display = 'block';
+      if (campo === 'proveedor') {
+        wrap.innerHTML = `<div class="field"><label>Proveedor</label>
+          <input type="text" id="bulk-valor" placeholder="Nombre del proveedor"></div>`;
+      } else if (campo === 'fecha') {
+        wrap.innerHTML = `<div class="field"><label>Fecha</label>
+          <input type="date" id="bulk-valor" value="${todayISO()}"></div>`;
+      } else if (campo === 'notas') {
+        wrap.innerHTML = `<div class="field"><label>Notas</label>
+          <textarea id="bulk-valor" rows="3" placeholder="Nota para todos los gastos…"></textarea></div>`;
+      } else if (campo === 'categoria_id') {
+        wrap.innerHTML = `<div class="field"><label>Categoría</label>
+          <select id="bulk-valor">
+            <option value="">Sin categoría</option>
+            ${categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('')}
+          </select></div>`;
+      }
+    }
+
+    async function guardarEdicionMasiva() {
+      const campo = document.getElementById('bulk-campo').value;
+      const valor = document.getElementById('bulk-valor')?.value?.trim();
+      if (!campo) return showToast('Selecciona un campo', 'error');
+
+      const btn = document.getElementById('btn-bulk-guardar');
+      setLoading(btn, true);
+      try {
+        const ids = [...gastosSeleccionados];
+        await api.put('/api/gastos/bulk', {
+          ids,
+          campo,
+          valor: valor || null,
+          obra_id: obra.id
+        });
+        cerrarSheet('overlay-edicion-masiva');
+        cancelarSeleccion();
+        showToast(`✅ ${ids.length} gastos actualizados`);
+        cargarGastos();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+      setLoading(btn, false);
     }
 
     // ── Cerrar sheets al hacer clic fuera ──
