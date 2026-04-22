@@ -361,8 +361,8 @@
       eventoActual = e;
 
       const fecha = new Date(e.creado_en).toLocaleString('es-CO');
-      const antes  = e.datos_antes  ? JSON.parse(e.datos_antes)  : null;
-      const despues= e.datos_despues? JSON.parse(e.datos_despues): null;
+      const antes  = e.datos_antes  ? (typeof e.datos_antes  === 'string' ? JSON.parse(e.datos_antes)  : e.datos_antes)  : null;
+      const despues= e.datos_despues? (typeof e.datos_despues === 'string' ? JSON.parse(e.datos_despues) : e.datos_despues) : null;
 
       document.getElementById('evento-titulo').textContent = `${e.accion} ${e.entidad} #${e.entidad_id || ''}`;
 
