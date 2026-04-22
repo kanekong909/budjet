@@ -163,6 +163,12 @@ input, select, textarea { font-family: var(--font); }
   background: var(--gris-bg);
   color: var(--texto);
 }
+.btn-secundario:hover {
+  background-color: #f0f0f0; /* Color de fondo al pasar el mouse */
+  border-color: #cccccc;     /* Color del borde */
+  transform: translateY(-1px); /* Un pequeño salto hacia arriba */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Sombra ligera */
+}
 .btn-danger {
   background: #fff0ef;
   color: var(--rojo);
