@@ -210,6 +210,18 @@ router.put('/bulk', async (req, res) => {
       }
     }
 
+    // Registrar en auditoría
+    const { registrarAuditoria } = require('../middleware/auditoria');
+    await registrarAuditoria({
+      req,
+      accion: 'EDITAR',
+      entidad: 'gasto',
+      entidad_id: null,
+      obra_id: parseInt(obra_id),
+      datos_antes: { ids, campo, nota: 'edición masiva' },
+      datos_despues: { ids, campo, valor: valor || null, cantidad: ids.length }
+    });
+
     res.json({ mensaje: `${ids.length} gastos actualizados` });
   } catch (err) {
     console.error(err);
