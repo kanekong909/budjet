@@ -179,6 +179,44 @@ router.post('/', upload.single('foto'), async (req, res) => {
   }
 });
 
+// PUT /api/gastos/bulk — edición masiva
+router.put('/bulk', async (req, res) => {
+  try {
+    const { ids, campo, valor, obra_id } = req.body;
+    if (!ids?.length || !campo || !obra_id) {
+      return res.status(400).json({ error: 'ids, campo y obra_id requeridos' });
+    }
+
+    const rol = await verificarAcceso(obra_id, req.usuario.id);
+    if (!rol) return res.status(403).json({ error: 'Sin acceso' });
+
+    // Solo campos permitidos para edición masiva
+    const camposPermitidos = ['proveedor', 'categoria_id', 'fecha', 'notas'];
+    if (!camposPermitidos.includes(campo)) {
+      return res.status(400).json({ error: 'Campo no permitido' });
+    }
+
+    const placeholders = ids.map(() => '?').join(',');
+    await pool.query(
+      `UPDATE gastos SET ${campo} = ? WHERE id IN (${placeholders}) AND obra_id = ?`,
+      [valor || null, ...ids, obra_id]
+    );
+
+    // Si cambió categoria_id, actualizar gasto_categorias también
+    if (campo === 'categoria_id' && valor) {
+      for (const id of ids) {
+        await pool.query('DELETE FROM gasto_categorias WHERE gasto_id = ?', [id]);
+        await pool.query('INSERT IGNORE INTO gasto_categorias (gasto_id, categoria_id) VALUES (?, ?)', [id, valor]);
+      }
+    }
+
+    res.json({ mensaje: `${ids.length} gastos actualizados` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 // PUT /api/gastos/:id
 router.put('/:id', upload.single('foto'), async (req, res) => {
   try {
@@ -354,44 +392,6 @@ router.post('/categorias', async (req, res) => {
     );
     res.status(201).json({ id: result.insertId, nombre, color, obra_id });
   } catch (err) {
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
-
-// PUT /api/gastos/bulk — edición masiva
-router.put('/bulk', async (req, res) => {
-  try {
-    const { ids, campo, valor, obra_id } = req.body;
-    if (!ids?.length || !campo || !obra_id) {
-      return res.status(400).json({ error: 'ids, campo y obra_id requeridos' });
-    }
-
-    const rol = await verificarAcceso(obra_id, req.usuario.id);
-    if (!rol) return res.status(403).json({ error: 'Sin acceso' });
-
-    // Solo campos permitidos para edición masiva
-    const camposPermitidos = ['proveedor', 'categoria_id', 'fecha', 'notas'];
-    if (!camposPermitidos.includes(campo)) {
-      return res.status(400).json({ error: 'Campo no permitido' });
-    }
-
-    const placeholders = ids.map(() => '?').join(',');
-    await pool.query(
-      `UPDATE gastos SET ${campo} = ? WHERE id IN (${placeholders}) AND obra_id = ?`,
-      [valor || null, ...ids, obra_id]
-    );
-
-    // Si cambió categoria_id, actualizar gasto_categorias también
-    if (campo === 'categoria_id' && valor) {
-      for (const id of ids) {
-        await pool.query('DELETE FROM gasto_categorias WHERE gasto_id = ?', [id]);
-        await pool.query('INSERT IGNORE INTO gasto_categorias (gasto_id, categoria_id) VALUES (?, ?)', [id, valor]);
-      }
-    }
-
-    res.json({ mensaje: `${ids.length} gastos actualizados` });
-  } catch (err) {
-    console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
