@@ -3,97 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1c1c1e">
-  <title>ObraGastos — Iniciar sesión</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>ObraGastos — Acceder</title>
   <link rel="icon" type="image/x-icon" href="/assets/icons/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { max-width: 100%; background: #1c1c1e; }
+    :root {
+      --negro: #0a0a0a; --carbon: #111111; --gris-obra: #1a1a1a;
+      --gris-medio: #2a2a2a; --gris-linea: #2f2f2f; --gris-texto: #888888;
+      --amarillo: #f5a623; --amarillo-claro: #ffc85a;
+      --blanco: #f5f0e8; --error: #ff4444;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; min-height: 100dvh; font-family: 'DM Sans', sans-serif; background: var(--negro); color: var(--blanco); overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(245,166,35,.03) 40px, rgba(245,166,35,.03) 41px),
+        repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(245,166,35,.03) 40px, rgba(245,166,35,.03) 41px);
+    }
+    body::after {
+      content: ''; position: fixed; top: -30%; left: -20%; width: 70%; height: 70%;
+      background: radial-gradient(ellipse, rgba(245,166,35,.07) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+    .deco-num {
+      position: fixed; bottom: 0; right: 0;
+      font-family: 'Bebas Neue', sans-serif; font-size: 28vw; line-height: .85;
+      color: rgba(245,166,35,.03); pointer-events: none; z-index: 0; user-select: none;
+    }
+    .wrapper { position: relative; z-index: 1; min-height: 100dvh; display: flex; flex-direction: column; }
+    .marca { padding: 32px 28px 0; display: flex; align-items: flex-end; gap: 12px; animation: fadeIn .5s ease both; }
+    .marca-icono {
+      width: 44px; height: 44px; background: var(--amarillo); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+      flex-shrink: 0; position: relative; overflow: hidden;
+    }
+    .marca-icono::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: rgba(255,255,255,.15); }
+    .marca-nombre { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 2px; color: var(--blanco); line-height: .9; }
+    .marca-tagline { font-size: .68rem; color: var(--gris-texto); letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+    .hero { padding: 40px 28px 32px; flex: 1; animation: slideUp .5s .1s ease both; }
+    .hero-eyebrow {
+      font-size: .72rem; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--amarillo); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .hero-eyebrow::before { content: ''; display: block; width: 24px; height: 1.5px; background: var(--amarillo); }
+    .hero-titulo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 12vw, 3.8rem); letter-spacing: 3px; line-height: .92; color: var(--blanco); }
+    .hero-titulo span { color: var(--amarillo); display: block; }
+    .hero-sub { font-size: .82rem; color: var(--gris-texto); line-height: 1.5; margin-top: 14px; max-width: 280px; }
+    .card-form {
+      background: var(--carbon); border-top: 1px solid var(--gris-linea);
+      border-radius: 24px 24px 0 0; padding: 32px 24px calc(28px + env(safe-area-inset-bottom));
+      position: relative; animation: slideUp .5s .2s ease both;
+    }
+    .card-form::before {
+      content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      width: 40px; height: 4px; background: var(--gris-linea); border-radius: 2px;
+    }
+    .tabs { display: flex; background: var(--gris-obra); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
+    .tab { flex: 1; text-align: center; padding: 10px; border-radius: 9px; font-size: .82rem; font-weight: 600; color: var(--gris-texto); cursor: pointer; transition: all .25s; letter-spacing: .5px; }
+    .tab.active { color: var(--negro); background: var(--amarillo); }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: .7rem; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 7px; }
+    .field input {
+      width: 100%; padding: 14px 16px; background: var(--gris-obra);
+      border: 1.5px solid var(--gris-linea); border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--blanco);
+      transition: border-color .2s, background .2s; -webkit-appearance: none;
+    }
+    .field input::placeholder { color: #444; }
+    .field input:focus { outline: none; border-color: var(--amarillo); background: #1f1f1f; }
+    .field input:-webkit-autofill { -webkit-box-shadow: 0 0 0 100px var(--gris-obra) inset; -webkit-text-fill-color: var(--blanco); }
+    .btn-entrar {
+      width: 100%; padding: 15px; background: var(--amarillo); color: var(--negro); border: none;
+      border-radius: 10px; font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem;
+      letter-spacing: 3px; cursor: pointer; transition: all .15s; margin-top: 6px;
+      position: relative; overflow: hidden;
+    }
+    .btn-entrar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%); }
+    .btn-entrar:active { transform: scale(.97); background: var(--amarillo-claro); }
+    .btn-entrar:disabled { opacity: .5; cursor: default; }
+    .features { display: flex; gap: 6px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+    .feat { display: flex; align-items: center; gap: 5px; font-size: .68rem; color: var(--gris-texto); background: var(--gris-obra); padding: 5px 9px; border-radius: 20px; border: 1px solid var(--gris-linea); }
+    .feat-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--amarillo); flex-shrink: 0; }
+    .seguridad { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; font-size: .7rem; color: #555; }
+    .toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--gris-medio); color: var(--blanco); padding: 12px 20px;
+      border-radius: 24px; font-size: .875rem; font-weight: 500; opacity: 0;
+      transition: all .25s; z-index: 9999; white-space: nowrap; border: 1px solid var(--gris-linea);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.toast-error { background: #2a0a0a; border-color: var(--error); color: #ff8888; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
-<body class="auth-page">
-
-  <div class="auth-logo">🏗️ ObraGastos</div>
-  <div class="auth-sub">Control de gastos para tu obra</div>
-
-  <div class="auth-card">
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="tab-login" onclick="showTab('login')">Entrar</div>
-      <div class="auth-tab" id="tab-registro" onclick="showTab('registro')">Registro</div>
+<body>
+  <div class="deco-num">01</div>
+  <div class="wrapper">
+    <div class="marca">
+      <div class="marca-icono">🏗️</div>
+      <div>
+        <div class="marca-nombre">ObraGastos</div>
+        <div class="marca-tagline">Control total de obra</div>
+      </div>
     </div>
-
-    <!-- LOGIN -->
-    <form id="form-login" onsubmit="login(event)">
-      <div class="field">
-        <label>Correo</label>
-        <input type="email" id="login-email" placeholder="tu@correo.com" required autocomplete="email">
+    <div class="hero">
+      <div class="hero-eyebrow">Plataforma profesional</div>
+      <div class="hero-titulo">Controla <span>cada peso</span></div>
+      <p class="hero-sub">Gastos, tareas, progreso y equipo en un solo lugar. Diseñado para la obra real.</p>
+    </div>
+    <div class="card-form">
+      <div class="tabs">
+        <div class="tab active" id="tab-login" onclick="showTab('login')">Entrar</div>
+        <div class="tab" id="tab-registro" onclick="showTab('registro')">Crear cuenta</div>
       </div>
-      <div class="field">
-        <label>Contraseña</label>
-        <input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password">
+      <form id="form-login" onsubmit="login(event)">
+        <div class="field"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="tu@correo.com" required autocomplete="email"></div>
+        <div class="field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password"></div>
+        <button type="submit" class="btn-entrar" id="btn-login">ENTRAR</button>
+      </form>
+      <form id="form-registro" style="display:none" onsubmit="registro(event)">
+        <div class="field"><label>Tu nombre</label><input type="text" id="reg-nombre" placeholder="Juan Pérez" required autocomplete="name"></div>
+        <div class="field"><label>Correo electrónico</label><input type="email" id="reg-email" placeholder="tu@correo.com" required autocomplete="email"></div>
+        <div class="field"><label>Contraseña</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password"></div>
+        <button type="submit" class="btn-entrar" id="btn-registro">CREAR CUENTA</button>
+      </form>
+      <div class="features">
+        <div class="feat"><div class="feat-dot"></div>Gastos</div>
+        <div class="feat"><div class="feat-dot"></div>Tareas</div>
+        <div class="feat"><div class="feat-dot"></div>Progreso</div>
+        <div class="feat"><div class="feat-dot"></div>Offline</div>
       </div>
-      <div class="mt-16">
-        <button type="submit" class="btn btn-primary" id="btn-login">Entrar →</button>
+      <div class="seguridad">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#555"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        Datos seguros y encriptados
       </div>
-    </form>
-
-    <!-- REGISTRO -->
-    <form id="form-registro" style="display:none" onsubmit="registro(event)">
-      <div class="field">
-        <label>Tu nombre</label>
-        <input type="text" id="reg-nombre" placeholder="Juan Pérez" required autocomplete="name">
-      </div>
-      <div class="field">
-        <label>Correo</label>
-        <input type="email" id="reg-email" placeholder="tu@correo.com" required autocomplete="email">
-      </div>
-      <div class="field">
-        <label>Contraseña</label>
-        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
-      </div>
-      <div class="mt-16">
-        <button type="submit" class="btn btn-primary" id="btn-registro">Crear cuenta →</button>
-      </div>
-    </form>
+    </div>
   </div>
-
-  <p style="color:#48484a; font-size:.8rem; margin-top:24px; text-align:center">
-    Tus datos están seguros y encriptados
-  </p>
-
   <script src="js/config.js"></script>
   <script>
-    // Si ya tiene sesión activa, ir al dashboard
     if (api.token()) window.location.href = 'dashboard.html';
-
     function showTab(tab) {
       document.getElementById('tab-login').classList.toggle('active', tab === 'login');
       document.getElementById('tab-registro').classList.toggle('active', tab === 'registro');
       document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
       document.getElementById('form-registro').style.display = tab === 'registro' ? 'block' : 'none';
     }
-
+    function showToastLocal(msg, tipo = 'ok') {
+      let el = document.querySelector('.toast');
+      if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); }
+      el.className = `toast ${tipo === 'error' ? 'toast-error' : ''}`;
+      el.textContent = msg;
+      setTimeout(() => el.classList.add('show'), 10);
+      setTimeout(() => el.classList.remove('show'), 3200);
+    }
     async function login(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-login');
-      setLoading(btn, true);
+      const orig = btn.textContent;
+      btn.textContent = 'ENTRANDO…'; btn.disabled = true;
       try {
         const data = await api.post('/api/auth/login', {
           email: document.getElementById('login-email').value.trim(),
           password: document.getElementById('login-pass').value
         });
         guardarSesion(data.token, data.usuario);
-        window.location.href = 'dashboard.html';
+        btn.textContent = '✓ BIENVENIDO';
+        setTimeout(() => window.location.href = 'dashboard.html', 400);
       } catch (err) {
-        showToast(err.message, 'error');
-        setLoading(btn, false);
+        showToastLocal(err.message, 'error');
+        btn.textContent = orig; btn.disabled = false;
       }
     }
-
     async function registro(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-registro');
-      setLoading(btn, true);
+      const orig = btn.textContent;
+      btn.textContent = 'CREANDO…'; btn.disabled = true;
       try {
         const data = await api.post('/api/auth/registro', {
           nombre: document.getElementById('reg-nombre').value.trim(),
@@ -101,10 +190,11 @@
           password: document.getElementById('reg-pass').value
         });
         guardarSesion(data.token, data.usuario);
-        window.location.href = 'dashboard.html';
+        btn.textContent = '✓ LISTO';
+        setTimeout(() => window.location.href = 'dashboard.html', 400);
       } catch (err) {
-        showToast(err.message, 'error');
-        setLoading(btn, false);
+        showToastLocal(err.message, 'error');
+        btn.textContent = orig; btn.disabled = false;
       }
     }
   </script>
