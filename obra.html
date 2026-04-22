@@ -1324,9 +1324,15 @@
           activa: 1
         });
         obra.nombre = document.getElementById('eo-nombre').value.trim();
+        obra.descripcion = document.getElementById('eo-desc').value.trim();
+        obra.ubicacion = document.getElementById('eo-ubic').value.trim();
         obra.presupuesto = parseFloat(document.getElementById('eo-presup').value) || 0;
         localStorage.setItem('og_obra', JSON.stringify(obra));
         document.getElementById('header-obra-nombre').textContent = obra.nombre;
+        // Refrescar los campos del form por si se vuelve a abrir
+        document.getElementById('eo-presup-display').value = obra.presupuesto
+          ? parseInt(obra.presupuesto).toLocaleString('es-CO').replace(/,/g, '.')
+          : '';
         showToast('Obra actualizada ✓');
         cerrarSheet('overlay-edit-obra');
       } catch (err) {
