@@ -62,13 +62,14 @@ async function initDB() {
     `);
 
     await conn.query(`
-      INSERT IGNORE INTO categorias (id, nombre, color, es_global) VALUES
-      (1, 'Materiales', '#f59e0b', 1),
-      (2, 'Mano de obra', '#3b82f6', 1),
-      (3, 'Herramientas', '#10b981', 1),
-      (4, 'Transporte', '#8b5cf6', 1),
-      (5, 'Administrativo', '#ef4444', 1),
-      (6, 'Otros', '#6b7280', 1)
+        INSERT IGNORE INTO categorias (id, nombre, color, es_global, tipo) VALUES
+        (1, 'Materiales', '#f59e0b', 1, 'egreso'),
+        (2, 'Mano de obra', '#3b82f6', 1, 'egreso'),
+        (3, 'Herramientas', '#10b981', 1, 'egreso'),
+        (4, 'Transporte', '#8b5cf6', 1, 'egreso'),
+        (5, 'Administrativo', '#ef4444', 1, 'egreso'),
+        (6, 'Otros', '#6b7280', 1, 'egreso'),
+        (7, 'Capital', '#34c759', 1, 'ingreso')
     `);
 
     await conn.query(`

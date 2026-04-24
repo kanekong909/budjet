@@ -109,7 +109,7 @@ router.get('/:id/resumen', async (req, res) => {
 
     const [totales] = await pool.query(`
       SELECT 
-        COUNT(DISTINCT g.id) AS cantidad_gastos,
+        COUNT(DISTINCT CASE WHEN COALESCE(c.tipo,'egreso') = 'egreso' THEN g.id END) AS cantidad_gastos,
         COALESCE(SUM(CASE WHEN COALESCE(c.tipo,'egreso') = 'egreso' THEN g.monto ELSE 0 END), 0) AS total_gastado,
         COALESCE(SUM(CASE WHEN c.tipo = 'ingreso' THEN g.monto ELSE 0 END), 0) AS total_ingresos,
         MIN(g.fecha) AS primera_fecha,
