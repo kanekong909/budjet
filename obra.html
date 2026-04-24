@@ -69,10 +69,17 @@
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
         <input type="text" id="busqueda" placeholder="Buscar gasto, proveedor…" oninput="filtrarBusqueda()">
+        <button id="btn-limpiar-busqueda" onclick="limpiarBusqueda()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:1rem;cursor:pointer;padding:4px">✕</button>
       </div>
       <div class="row mb-8" style="gap:8px">
-        <input type="date" id="fecha-desde" style="flex:1;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem; color: black;" oninput="cargarGastos()">
-        <input type="date" id="fecha-hasta" style="flex:1;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem; color: black;" oninput="cargarGastos()">
+        <div style="flex:1;position:relative">
+          <input type="date" id="fecha-desde" style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px" oninput="cargarGastos();actualizarBtnFechas()">
+          <button id="btn-limpiar-desde" onclick="limpiarFecha('desde')" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
+        </div>
+        <div style="flex:1;position:relative">
+          <input type="date" id="fecha-hasta" style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px" oninput="cargarGastos();actualizarBtnFechas()">
+          <button id="btn-limpiar-hasta" onclick="limpiarFecha('hasta')" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
+        </div>
       </div>
 
       <!-- Tabla de gastos -->
@@ -763,6 +770,7 @@
 
     function filtrarBusqueda() {
       busqFiltro = document.getElementById('busqueda').value.toLowerCase();
+      document.getElementById('btn-limpiar-busqueda').style.display = busqFiltro ? 'block' : 'none';
       renderGastos();
     }
 
@@ -2222,6 +2230,34 @@
       }
       setLoading(btn, false);
     }
+
+    // Limpiar busqueda
+    function limpiarBusqueda() {
+      document.getElementById('busqueda').value = '';
+      document.getElementById('btn-limpiar-busqueda').style.display = 'none';
+      busqFiltro = '';
+      renderGastos();
+    }
+
+    function limpiarFecha(cual) {
+      if (cual === 'desde') {
+        document.getElementById('fecha-desde').value = '';
+        document.getElementById('btn-limpiar-desde').style.display = 'none';
+      } else {
+        document.getElementById('fecha-hasta').value = '';
+        document.getElementById('btn-limpiar-hasta').style.display = 'none';
+      }
+      cargarGastos();
+    }
+
+    function actualizarBtnFechas() {
+      document.getElementById('btn-limpiar-desde').style.display =
+        document.getElementById('fecha-desde').value ? 'block' : 'none';
+      document.getElementById('btn-limpiar-hasta').style.display =
+        document.getElementById('fecha-hasta').value ? 'block' : 'none';
+    }
+
+    
 
     // ── Cerrar sheets al hacer clic fuera ──
     document.querySelectorAll('.overlay').forEach(ov => {
