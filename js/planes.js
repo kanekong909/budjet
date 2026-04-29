@@ -1,0 +1,23 @@
+async function suscribirse(planId, monto, nombrePlan) {
+  const u = usuario();
+  const referencia = `${u.id}_${planId}_${Date.now()}`;
+
+  const checkout = new WidgetCheckout({
+    currency: 'COP',
+    amountInCents: monto * 100,
+    reference: referencia,
+    publicKey: 'pub_stagtest_...', // tu WOMPI_PUBLIC_KEY
+    customerData: {
+      email: u.email,
+      fullName: u.nombre
+    },
+    redirectUrl: `https://kanekong909.github.io/budjet/pago-exitoso.html`
+  });
+
+  checkout.open(result => {
+    if (result.transaction.status === 'APPROVED') {
+      showToast('✅ Plan activado');
+      setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    }
+  });
+}

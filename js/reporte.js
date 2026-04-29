@@ -1,0 +1,211 @@
+if (!requireAuth()) void 0;
+
+const obra = obraActual();
+if (!obra) window.location.href = 'dashboard.html';
+
+function fmt(n) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0);
+}
+function fmtFecha(d) {
+    if (!d) return '—';
+    const clean = String(d).substring(0, 10);
+    const [y, m, day] = clean.split('-').map(Number);
+    return new Date(y, m - 1, day).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function hoy() {
+    return new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+async function generarReporte() {
+    try {
+        // Cargar datos en paralelo
+        const [resumen, gastosData] = await Promise.all([
+            api.get(`/api/obras/${obra.id}/resumen`),
+            api.get(`/api/gastos?obra_id=${obra.id}&limit=500`)
+        ]);
+
+        const gastos = gastosData.gastos;
+        const t = resumen.totales;
+        const cats = resumen.por_categoria;
+
+        // Separar egresos e ingresos
+        const egresos = gastos.filter(g => !g.categorias?.some(c => c.tipo === 'ingreso'));
+        const ingresos = gastos.filter(g => g.categorias?.some(c => c.tipo === 'ingreso'));
+        const totalEgresos = egresos.reduce((s, g) => s + parseFloat(g.monto), 0);
+        const totalIngresos = ingresos.reduce((s, g) => s + parseFloat(g.monto), 0);
+        const disponible = totalIngresos - totalEgresos;
+
+        // Presupuesto
+        const presup = parseFloat(obra.presupuesto) || 0;
+        const porc = presup > 0 ? Math.min(Math.round((totalEgresos / presup) * 100), 100) : 0;
+        const barColor = porc > 100 ? '#ff3b30' : porc > 80 ? '#f5a623' : '#34c759';
+
+        // Logo
+        const logoHtml = `<div class="logo-placeholder">🏗️</div>`;
+
+        // Gráfica
+        const maxVal = Math.max(...cats.map(c => c.total), 1);
+        const graficaHtml = cats.length ? cats.map(c => `
+          <div class="bar-row ${c.tipo === 'ingreso' ? 'bar-tipo-ingreso' : ''}">
+            <div class="bar-label">${c.nombre}${c.tipo === 'ingreso' ? ' <span class="bar-ingreso-label">↑</span>' : ''}</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="background:${c.color};width:${Math.round((c.total / maxVal) * 100)}%"></div>
+            </div>
+            <div class="bar-monto">${fmt(c.total)}</div>
+          </div>
+        `).join('') : '<p style="color:#aeaeb2;font-size:.85rem">Sin datos</p>';
+
+        // Tabla de gastos
+        const tablaRows = egresos.map((g, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${fmtFecha(g.fecha)}</td>
+            <td><strong>${g.descripcion}</strong>${g.proveedor ? `<br><span style="color:#6d6d72;font-size:.75rem">${g.proveedor}</span>` : ''}${g.cantidad ? `<br><span style="color:#6d6d72;font-size:.75rem">${parseFloat(g.cantidad).toLocaleString('es-CO')} ${g.unidad || 'und'} × ${fmt(g.valor_unitario)}</span>` : ''}</td>
+            <td>${g.categorias?.map(c => `<span class="td-cat" style="background:${c.color}">${c.nombre}</span>`).join(' ') || '—'}</td>
+            <td class="td-monto">${fmt(g.monto)}</td>
+          </tr>
+        `).join('');
+
+        // Tabla ingresos
+        const ingresosHtml = ingresos.length ? `
+          <div class="ingresos-section">
+            <div class="ingresos-title">💰 Capital / Ingresos</div>
+            ${ingresos.map(g => `
+              <div class="ingreso-row">
+                <span>${g.descripcion} <span style="color:#6d6d72;font-size:.78rem">${fmtFecha(g.fecha)}</span></span>
+                <span style="color:#16a34a;font-weight:700">${fmt(g.monto)}</span>
+              </div>
+            `).join('')}
+            <div class="ingreso-row">
+              <span>Total capital</span>
+              <span style="color:#16a34a">${fmt(totalIngresos)}</span>
+            </div>
+          </div>
+        ` : '';
+
+        // Disponible
+        const disponibleHtml = totalIngresos > 0 ? `
+          <div class="stat-box" style="border-color:${disponible >= 0 ? '#34c759' : '#ff3b30'}">
+            <div class="label">Disponible</div>
+            <div class="valor" style="color:${disponible >= 0 ? '#34c759' : '#ff3b30'}">${fmt(disponible)}</div>
+          </div>
+        ` : `
+          <div class="stat-box">
+            <div class="label">Nº gastos</div>
+            <div class="valor">${t.cantidad_gastos}</div>
+          </div>
+        `;
+
+        document.getElementById('reporte').innerHTML = `
+          <!-- Header -->
+          <div class="header">
+            <div class="logo-wrap">
+              ${logoHtml}
+              <div>
+                <div class="empresa-nombre">TrackOb</div>
+                <div style="font-size:.8rem;color:#6d6d72">Control de obras</div>
+              </div>
+            </div>
+            <div class="reporte-titulo">
+              <h1>REPORTE DE GASTOS</h1>
+              <p>Generado: ${hoy()}</p>
+            </div>
+          </div>
+
+          <!-- Info obra -->
+          <div class="obra-info">
+            <div class="obra-nombre">${obra.nombre}</div>
+            <div class="info-item">
+              <label>Ubicación</label>
+              <span>${obra.ubicacion || '—'}</span>
+            </div>
+            <div class="info-item">
+              <label>Descripción</label>
+              <span>${obra.descripcion || '—'}</span>
+            </div>
+            <div class="info-item">
+              <label>Primer gasto</label>
+              <span>${fmtFecha(t.primera_fecha)}</span>
+            </div>
+            <div class="info-item">
+              <label>Último gasto</label>
+              <span>${fmtFecha(t.ultima_fecha)}</span>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-box destacado">
+              <div class="label">Total egresos</div>
+              <div class="valor">${fmt(totalEgresos)}</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Nº registros</div>
+              <div class="valor">${egresos.length}</div>
+            </div>
+            ${disponibleHtml}
+          </div>
+
+          <!-- Presupuesto -->
+          ${presup > 0 ? `
+          <div class="presup-section">
+            <div class="presup-title">Presupuesto vs Ejecutado</div>
+            <div class="presup-barra-track">
+              <div class="presup-barra-fill" style="width:${porc}%;background:${barColor}"></div>
+            </div>
+            <div class="presup-meta">
+              <span>Ejecutado: <strong>${fmt(totalEgresos)}</strong> (${porc}%)</span>
+              <span>Presupuesto: <strong>${fmt(presup)}</strong></span>
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- Ingresos -->
+          ${ingresosHtml}
+
+          <!-- Gráfica -->
+          <div class="grafica-section">
+            <div class="seccion-titulo">📊 Gastos por categoría</div>
+            ${graficaHtml}
+          </div>
+
+          <!-- Tabla gastos -->
+          <div class="tabla-section">
+            <div class="seccion-titulo">📋 Detalle de gastos</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Descripción</th>
+                  <th>Categoría</th>
+                  <th style="text-align:right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>${tablaRows}</tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4">TOTAL EGRESOS</td>
+                  <td style="text-align:right">${fmt(totalEgresos)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Footer -->
+          <div class="footer">
+            <span>TrackOb · Reporte generado el ${hoy()}</span>
+            <span>${obra.nombre}</span>
+          </div>
+        `;
+
+        document.getElementById('btn-bottom').style.display = 'flex';
+
+    } catch (err) {
+        document.getElementById('reporte').innerHTML = `
+          <div class="loading">⚠️ Error generando reporte: ${err.message}</div>
+        `;
+    }
+}
+
+generarReporte();
