@@ -177,7 +177,7 @@
     async function abrirNuevaObra() {
       const plan = await api.get('/api/pagos/mi-plan');
       const obras = obras.length;
-      const limite = plan.max_obras || 1;
+      const limite = plan.max_obras || 2;
 
       if (obras >= limite) {
         // Mostrar mensaje de upgrade
