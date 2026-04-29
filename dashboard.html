@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="icon" type="image/x-icon" href="./assets/icons/logo.svg">
 </head>
+
 <body>
 
   <!-- Header -->
@@ -71,7 +73,8 @@
           <input type="hidden" id="obra-presupuesto">
         </div>
         <div class="row mt-16" style="gap:10px">
-          <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-obra')">Cancelar</button>
+          <button type="button" class="btn btn-secundario w-full"
+            onclick="cerrarSheet('overlay-obra')">Cancelar</button>
           <button type="submit" class="btn btn-primary w-full" id="btn-guardar-obra">Guardar</button>
         </div>
       </form>
@@ -86,12 +89,32 @@
         <div style="font-size:2.5rem;margin-bottom:12px">⚠️</div>
         <div class="sheet-title" style="margin-bottom:8px">¿Eliminar obra?</div>
         <div class="fw-700" id="confirmar-obra-nombre" style="font-size:1rem;margin-bottom:8px"></div>
-        <div class="text-2">Se eliminarán <strong>todos los gastos</strong> asociados.<br>Esta acción no se puede deshacer.</div>
+        <div class="text-2">Se eliminarán <strong>todos los gastos</strong> asociados.<br>Esta acción no se puede
+          deshacer.</div>
       </div>
       <div class="row mt-16" style="gap:10px">
         <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-obra')">Cancelar</button>
-        <button class="btn btn-danger w-full" id="btn-confirmar-eliminar-obra" onclick="confirmarEliminarObra()">Sí, eliminar</button>
+        <button class="btn btn-danger w-full" id="btn-confirmar-eliminar-obra" onclick="confirmarEliminarObra()">Sí,
+          eliminar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Sheet: Upgrade plan -->
+  <div class="overlay" id="overlay-upgrade">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:2.5rem;margin-bottom:12px">🚀</div>
+        <div class="sheet-title">Límite alcanzado</div>
+        <p class="text-2 mt-8">Tu plan actual no permite más obras.<br>Actualiza para continuar.</p>
+      </div>
+      <button class="btn btn-primary w-full mt-16" onclick="window.location.href='planes.html'">
+        Ver planes
+      </button>
+      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-upgrade')">
+        Ahora no
+      </button>
     </div>
   </div>
 
@@ -134,10 +157,10 @@
           <div class="obra-icon">🏗️</div>
           <div class="obra-info">
             <div class="obra-info-nombre">${o.nombre}</div>
-            <div class="obra-info-meta">${o.ubicacion || 'Sin ubicación'} · ${o.total_gastos_count} gastos${o.tareas_pendientes > 0 ? ` · <span style="color:var(--rojo);font-weight:700">⚠️ ${o.tareas_pendientes} tarea${o.tareas_pendientes>1?'s':''} pendiente${o.tareas_pendientes>1?'s':''}</span>` : ''}</div>
+            <div class="obra-info-meta">${o.ubicacion || 'Sin ubicación'} · ${o.total_gastos_count} gastos${o.tareas_pendientes > 0 ? ` · <span style="color:var(--rojo);font-weight:700">⚠️ ${o.tareas_pendientes} tarea${o.tareas_pendientes > 1 ? 's' : ''} pendiente${o.tareas_pendientes > 1 ? 's' : ''}</span>` : ''}</div>
             <div class="obra-info-total">${formatMoney(o.total_gastado)}</div>
           </div>
-          <button onclick="event.stopPropagation();pedirEliminarObra(${o.id},'${o.nombre.replace(/'/g,"\\\'")}')" 
+          <button onclick="event.stopPropagation();pedirEliminarObra(${o.id},'${o.nombre.replace(/'/g, "\\\'")}')" 
             style="background:none;border:none;padding:8px;color:var(--texto-3);font-size:1.1rem;cursor:pointer">
               <img src="./assets/icons/trash.svg" alt="Eliminar" style="width:16px;height:16px">
             </button>
@@ -151,7 +174,17 @@
       window.location.href = 'obra.html';
     }
 
-    function abrirNuevaObra() {
+    async function abrirNuevaObra() {
+      const plan = await api.get('/api/pagos/mi-plan');
+      const obras = obras.length;
+      const limite = plan.max_obras || 1;
+
+      if (obras >= limite) {
+        // Mostrar mensaje de upgrade
+        document.getElementById('overlay-upgrade').classList.add('open');
+        return;
+      }
+
       document.getElementById('obra-sheet-title').textContent = 'Nueva obra';
       document.getElementById('obra-edit-id').value = '';
       document.getElementById('obra-nombre').value = '';
@@ -166,7 +199,7 @@
       document.getElementById(id).classList.remove('open');
     }
 
-    document.getElementById('overlay-obra').addEventListener('click', function(e) {
+    document.getElementById('overlay-obra').addEventListener('click', function (e) {
       if (e.target === this) cerrarSheet('overlay-obra');
     });
 
@@ -201,7 +234,7 @@
 
     // ── Formato presupuesto ──
     const presupDisplay = document.getElementById('obra-presupuesto-display');
-    const presupHidden  = document.getElementById('obra-presupuesto');
+    const presupHidden = document.getElementById('obra-presupuesto');
     presupDisplay.addEventListener('input', function () {
       const raw = this.value.replace(/\D/g, '');
       presupHidden.value = raw;
@@ -235,4 +268,5 @@
     }
   </script>
 </body>
+
 </html>
