@@ -1,4 +1,4 @@
-# 🏗️ ObraGastos — Guía de instalación completa
+# 🏗️ TrackOb — Guía de instalación completa
 
 Sistema de gestión de gastos para obras de construcción.
 - **Frontend**: GitHub Pages (HTML + CSS + JS puro)

@@ -2,7 +2,7 @@
 // CONFIGURACIÓN — Edita esta línea con tu URL de Railway
 // ============================================================
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5500'       // ← local
+  ? 'http://localhost:3000'       // ← backend local
   : 'https://budjet-production.up.railway.app'; // ← producción
 
 // ============================================================
