@@ -7,62 +7,164 @@
   <title>ObraGastos — Acceder</title>
   <link rel="icon" type="image/x-icon" href="/assets/icons/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css">
-  <link rel="icon" type="image/x-icon" href="./assets/icons/logo.svg">
 </head>
 <body>
+
   <div class="deco-num">01</div>
+
   <div class="wrapper">
-    <div class="marca">
-      <div class="marca-icono">🏗️</div>
-      <div>
-        <div class="marca-nombre">ObraGastos</div>
-        <div class="marca-tagline">Control total de obra</div>
+
+    <!-- ══ COLUMNA IZQUIERDA ══ -->
+    <div class="col-izq">
+
+      <div class="marca">
+        <div class="marca-icono">🏗️</div>
+        <div>
+          <div class="marca-nombre">ObraGastos</div>
+          <div class="marca-tagline">Control total de obra</div>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="hero-eyebrow">Plataforma profesional</div>
+        <div class="hero-titulo">Controla <span>cada peso</span></div>
+        <p class="hero-sub">Gastos, tareas, progreso y equipo en un solo lugar. Diseñado para la obra real.</p>
+
+        <!-- Features — solo tablet/desktop -->
+        <div class="hero-features">
+          <div class="hero-feat-item">
+            <div class="hero-feat-icon">💰</div>
+            <div class="hero-feat-text">
+              <strong>Control de gastos</strong>
+              Registra cada gasto con foto, categoría y proveedor. Calcula totales automáticamente.
+            </div>
+          </div>
+          <div class="hero-feat-item">
+            <div class="hero-feat-icon">✅</div>
+            <div class="hero-feat-text">
+              <strong>Tareas y pendientes</strong>
+              Asigna tareas al equipo, rastrea el estado y recibe notificaciones.
+            </div>
+          </div>
+          <div class="hero-feat-item">
+            <div class="hero-feat-icon">📸</div>
+            <div class="hero-feat-text">
+              <strong>Progreso visual</strong>
+              Lleva una bitácora fotográfica de la obra con timeline por fecha y etapa.
+            </div>
+          </div>
+          <div class="hero-feat-item">
+            <div class="hero-feat-icon">📊</div>
+            <div class="hero-feat-text">
+              <strong>Reportes en PDF</strong>
+              Genera reportes profesionales para entregar al cliente o al dueño de la obra.
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-num">100%</div>
+            <div class="stat-lbl">Mobile first</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">∞</div>
+            <div class="stat-lbl">Obras</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">24/7</div>
+            <div class="stat-lbl">Disponible</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ COLUMNA DERECHA ══ -->
+    <div class="col-der">
+      <div class="card-form">
+
+        <!-- Título solo en desktop -->
+        <div class="form-titulo" id="form-titulo-desktop">Bienvenido</div>
+        <div class="form-sub" id="form-sub-desktop">Ingresa a tu cuenta para continuar</div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" id="tab-login" onclick="showTab('login')">Entrar</div>
+          <div class="tab" id="tab-registro" onclick="showTab('registro')">Crear cuenta</div>
+        </div>
+
+        <!-- LOGIN -->
+        <form id="form-login" onsubmit="login(event)">
+          <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" id="login-email" placeholder="tu@correo.com" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn-entrar" id="btn-login">ENTRAR</button>
+        </form>
+
+        <!-- REGISTRO -->
+        <form id="form-registro" style="display:none" onsubmit="registro(event)">
+          <div class="field">
+            <label>Tu nombre</label>
+            <input type="text" id="reg-nombre" placeholder="Juan Pérez" required autocomplete="name">
+          </div>
+          <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" id="reg-email" placeholder="tu@correo.com" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn-entrar" id="btn-registro">CREAR CUENTA</button>
+        </form>
+
+        <div class="features-pills">
+          <div class="feat"><div class="feat-dot"></div>Offline</div>
+          <div class="feat"><div class="feat-dot"></div>Multi-obra</div>
+          <div class="feat"><div class="feat-dot"></div>Equipo</div>
+        </div>
+
+        <div class="seguridad">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#555"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+          Datos seguros y encriptados
+        </div>
+
       </div>
     </div>
-    <div class="hero">
-      <div class="hero-eyebrow">Plataforma profesional</div>
-      <div class="hero-titulo">Controla <span>cada peso</span></div>
-      <p class="hero-sub">Gastos, tareas, progreso y equipo en un solo lugar. Diseñado para la obra real.</p>
-    </div>
-    <div class="card-form">
-      <div class="tabs">
-        <div class="tab active" id="tab-login" onclick="showTab('login')">Entrar</div>
-        <div class="tab" id="tab-registro" onclick="showTab('registro')">Crear cuenta</div>
-      </div>
-      <form id="form-login" onsubmit="login(event)">
-        <div class="field"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="tu@correo.com" required autocomplete="email"></div>
-        <div class="field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password"></div>
-        <button type="submit" class="btn-entrar" id="btn-login">ENTRAR</button>
-      </form>
-      <form id="form-registro" style="display:none" onsubmit="registro(event)">
-        <div class="field"><label>Tu nombre</label><input type="text" id="reg-nombre" placeholder="Juan Pérez" required autocomplete="name"></div>
-        <div class="field"><label>Correo electrónico</label><input type="email" id="reg-email" placeholder="tu@correo.com" required autocomplete="email"></div>
-        <div class="field"><label>Contraseña</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password"></div>
-        <button type="submit" class="btn-entrar" id="btn-registro">CREAR CUENTA</button>
-      </form>
-      <div class="features">
-        <div class="feat"><div class="feat-dot"></div>Gastos</div>
-        <div class="feat"><div class="feat-dot"></div>Tareas</div>
-        <div class="feat"><div class="feat-dot"></div>Progreso</div>
-        <div class="feat"><div class="feat-dot"></div>Offline</div>
-      </div>
-      <div class="seguridad">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="#555"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-        Datos seguros y encriptados
-      </div>
-    </div>
+
   </div>
+
   <script src="js/config.js"></script>
   <script>
     if (api.token()) window.location.href = 'dashboard.html';
+
     function showTab(tab) {
       document.getElementById('tab-login').classList.toggle('active', tab === 'login');
       document.getElementById('tab-registro').classList.toggle('active', tab === 'registro');
       document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
       document.getElementById('form-registro').style.display = tab === 'registro' ? 'block' : 'none';
+      // Actualizar título desktop
+      const titulo = document.getElementById('form-titulo-desktop');
+      const sub = document.getElementById('form-sub-desktop');
+      if (tab === 'login') {
+        titulo.textContent = 'Bienvenido';
+        sub.textContent = 'Ingresa a tu cuenta para continuar';
+      } else {
+        titulo.textContent = 'Crear cuenta';
+        sub.textContent = 'Regístrate gratis, sin tarjeta de crédito';
+      }
     }
+
     function showToastLocal(msg, tipo = 'ok') {
       let el = document.querySelector('.toast');
       if (!el) { el = document.createElement('div'); el.className = 'toast'; document.body.appendChild(el); }
@@ -71,6 +173,7 @@
       setTimeout(() => el.classList.add('show'), 10);
       setTimeout(() => el.classList.remove('show'), 3200);
     }
+
     async function login(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-login');
@@ -89,6 +192,7 @@
         btn.textContent = orig; btn.disabled = false;
       }
     }
+
     async function registro(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-registro');
