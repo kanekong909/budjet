@@ -175,15 +175,15 @@
     }
 
     async function abrirNuevaObra() {
-      const plan = await api.get('/api/pagos/mi-plan');
-      const obras = obras.length;
-      const limite = plan.max_obras || 2;
+      // const plan = await api.get('/api/pagos/mi-plan');
+      // const obras = obras.length;
+      // const limite = plan.max_obras || 2;
 
-      if (obras >= limite) {
-        // Mostrar mensaje de upgrade
-        document.getElementById('overlay-upgrade').classList.add('open');
-        return;
-      }
+      // if (obras >= limite) {
+      //   // Mostrar mensaje de upgrade
+      //   document.getElementById('overlay-upgrade').classList.add('open');
+      //   return;
+      // }
 
       document.getElementById('obra-sheet-title').textContent = 'Nueva obra';
       document.getElementById('obra-edit-id').value = '';
