@@ -1161,3 +1161,81 @@ input[type="date"] {
     border-radius: 20px;
   }
 }
+
+.tabs-scroll {
+  background: var(--gris-obra);
+  padding: 0 12px 12px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .tabs-scroll {
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+@media (min-width: 768px) {
+
+  #tab-gastos .card,
+  #tab-resumen .card,
+  #tab-equipo .card,
+  #tab-progreso .card,
+  #tab-tareas .card {
+    padding: 20px;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  #gastos-lista,
+  #tareas-lista,
+  #colaboradores-lista,
+  #progreso-timeline {
+    max-width: 100%;
+  }
+
+  .sheet {
+    max-width: 720px;
+  }
+
+  .btn-fab {
+    right: calc(50% - 340px);
+  }
+
+  .total-bar {
+    max-width: 680px;
+  }
+
+  .seleccion-bar {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .sheet form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sheet .row {
+    align-items: flex-start;
+  }
+}
+
+@media (min-width: 768px) {
+  #overlay-ver-foto > div {
+    max-width: 900px !important;
+  }
+}
