@@ -257,14 +257,18 @@ function abrirGasto(g = null) {
     document.getElementById('g-vunitario').value = vu;
     document.getElementById('g-vunitario-display').value = vu ? parseInt(vu).toLocaleString('es-CO').replace(/,/g, '.') : '';
     document.getElementById('g-foto').value = '';
+    document.getElementById('g-foto-camara').value = '';
+    document.getElementById('g-foto-galeria').value = '';
     document.getElementById('g-foto').dataset.borrar = '';
     const prev = document.getElementById('foto-preview');
     const wrap = document.getElementById('foto-preview-wrap');
     if (isEdit && g.foto_url) {
         prev.src = g.foto_url;
+        prev.dataset.esUrl = '1'; // marca que es URL existente, no archivo nuevo
         wrap.style.display = 'block';
     } else {
         prev.src = '';
+        prev.dataset.esUrl = '';
         wrap.style.display = 'none';
     }
     document.getElementById('overlay-gasto').classList.add('open');
@@ -285,6 +289,9 @@ function seleccionarFotoGasto(input) {
     const dt = new DataTransfer();
     dt.items.add(input.files[0]);
     document.getElementById('g-foto').files = dt.files;
+    // Limpiar referencia a foto anterior
+    document.getElementById('foto-preview').dataset.esUrl = '';
+    document.getElementById('g-foto').dataset.borrar = '';
     previewFoto(input);
 }
 
@@ -292,9 +299,10 @@ function eliminarFotoGasto() {
     document.getElementById('g-foto').value = '';
     document.getElementById('g-foto-camara').value = '';
     document.getElementById('g-foto-galeria').value = '';
-    document.getElementById('foto-preview').src = '';
+    const prev = document.getElementById('foto-preview');
+    prev.src = '';
+    prev.dataset.esUrl = '';
     document.getElementById('foto-preview-wrap').style.display = 'none';
-    // Marcar para borrar foto existente en edición
     document.getElementById('g-foto').dataset.borrar = '1';
 }
 
