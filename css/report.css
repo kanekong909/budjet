@@ -187,9 +187,47 @@ tfoot td { padding: 10px 8px; font-weight: 700; font-size: .9rem; }
 .btn-pdf-sec { background: #e5e5ea; color: #1c1c1e; }
 
 @media print {
-    body { background: white; padding: 0; }
+    body { background: white; padding:0; }
     .page { box-shadow: none; border-radius: 0; padding: 20px; max-width: 100%; }
     .no-print { display: none !important; }
     table { font-size: .75rem; }
     thead th, tbody td, tfoot td { padding: 6px 5px; }
+}
+
+/* ════════════════════════════
+   RESPONSIVE — MÓVIL
+   ════════════════════════════ */
+@media (max-width: 767px) {
+    body { padding: 12px; }
+    .page { padding: 20px 16px; border-radius: 12px; }
+    .header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .reporte-titulo { text-align: left; }
+    .obra-info { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .bar-label { width: 80px; font-size: .72rem; }
+    .bar-monto { width: 80px; font-size: .72rem; }
+    table { font-size: .75rem; }
+    thead th, tbody td, tfoot td { padding: 7px 5px; }
+    .footer { flex-direction: column; gap: 8px; text-align: center; }
+}
+
+/* ════════════════════════════
+   RESPONSIVE — TABLET (≥768px)
+   ════════════════════════════ */
+@media (min-width: 768px) {
+    body { padding: 24px; }
+    .page { padding: 48px; max-width: 900px; }
+    .header { padding-bottom: 28px; margin-bottom: 32px; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ════════════════════════════
+   RESPONSIVE — DESKTOP (≥1024px)
+   ════════════════════════════ */
+@media (min-width: 1024px) {
+    body { padding: 40px; }
+    .page { max-width: 1000px; padding: 60px; }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    .obra-info { grid-template-columns: repeat(3, 1fr); }
+    .obra-nombre { grid-column: 1 / -1; }
 }

@@ -113,3 +113,40 @@
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: .85rem; flex-shrink: 0;
 }
+
+/* ════════════════════════════
+   RESPONSIVE — MÓVIL
+   ════════════════════════════ */
+@media (max-width: 767px) {
+  .admin-header { padding: 16px 12px 14px; }
+  .admin-title { font-size: 1.2rem; }
+  .filtros-admin { padding: 10px 12px; gap: 6px; }
+  .filtros-admin select,
+  .filtros-admin input { padding: 6px 8px; font-size: .78rem; flex: 1; min-width: 0; }
+  .tabs-admin { padding: 0 8px 8px; gap: 4px; overflow-x: auto; }
+  .tab-admin { padding: 6px 10px; font-size: .75rem; white-space: nowrap; }
+  .evento-item { padding: 8px 12px; font-size: .85rem; }
+  .usuario-row { padding: 8px 12px; }
+}
+
+/* ════════════════════════════
+   RESPONSIVE — TABLET (≥768px)
+   ════════════════════════════ */
+@media (min-width: 768px) {
+  .admin-header { padding: 24px 24px 20px; }
+  .admin-title { font-size: 1.6rem; }
+  .stat-admin .num { font-size: 1.6rem; }
+  .filtros-admin { padding: 12px 24px; gap: 10px; }
+  .tabs-admin { padding: 0 20px 12px; }
+  .tab-admin { padding: 8px 16px; font-size: .85rem; }
+}
+
+/* ════════════════════════════
+   RESPONSIVE — DESKTOP (≥1024px)
+   ════════════════════════════ */
+@media (min-width: 1024px) {
+  .admin-header { padding: 32px 32px 24px; }
+  .admin-title { font-size: 1.8rem; }
+  .filtros-admin { padding: 16px 32px; }
+  .tabs-admin { padding: 0 28px 14px; }
+}
