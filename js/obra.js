@@ -2,6 +2,7 @@ if (!requireAuth()) void 0;
 
 let obra = obraActual();
 if (!obra) window.location.href = 'dashboard.html';
+const esDesktop = () => window.innerWidth >= 768;
 
 let gastos = [], categorias = [], paginaActual = 1, totalPaginas = 1, sumaVisible = 0;
 let gastoDetalleActual = null;
@@ -20,17 +21,27 @@ cargarTareas();
 function mostrarTab(tab) {
     tabActualDesktop = tab;
     sincronizarSidebarTab(tab);
-    ['gastos', 'resumen', 'equipo', 'progreso', 'tareas'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.toggle('activa', t === tab);
+
+    // Tabs móvil
+    ['gastos','resumen','equipo','progreso','tareas'].forEach(t => {
+        document.getElementById(`tab-${t}`)?.classList.toggle('activa', t === tab);
         document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tab);
     });
-    document.getElementById('fab-agregar').style.display = (tab === 'gastos' || tab === 'progreso' || tab === 'tareas') ? 'flex' : 'none';
-    document.getElementById('total-bar').style.display = tab === 'gastos' ? 'flex' : 'none';
+
+    // Solo tocar FAB y total-bar si estamos en móvil
+    if (!esDesktop()) {
+        document.getElementById('fab-agregar').style.display =
+            (tab === 'gastos' || tab === 'progreso' || tab === 'tareas') ? 'flex' : 'none';
+        document.getElementById('total-bar').style.display =
+            tab === 'gastos' ? 'flex' : 'none';
+    }
+
     if (tab === 'resumen') cargarResumen();
     if (tab === 'equipo') { cargarColaboradores(); renderCategorias(); }
     if (tab === 'progreso') cargarProgreso();
     if (tab === 'tareas') cargarTareas();
 }
+
 // Sincronizar nav tab buttons
 ['gastos', 'resumen', 'equipo', 'progreso', 'tareas'].forEach(t => {
     document.getElementById(`tab-btn-${t}`)?.addEventListener('click', () => {
