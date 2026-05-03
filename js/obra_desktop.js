@@ -9,10 +9,11 @@ const esDesktop = () => window.innerWidth >= 768;
 function initSidebar() {
   if (!esDesktop()) return;
   const o = obra;
-  document.getElementById('sidebar-obra-nombre').textContent = o.nombre;
-  document.getElementById('sidebar-obra-ubicacion').textContent = o.ubicacion || 'Sin ubicación';
-  document.getElementById('obra-sidebar').style.display = 'flex';
-  document.getElementById('obra-main-desktop').style.display = 'flex';
+  const nombreEl = document.getElementById('sidebar-obra-nombre');
+  const ubicEl = document.getElementById('sidebar-obra-ubicacion');
+  if (nombreEl) nombreEl.textContent = o.nombre;
+  if (ubicEl) ubicEl.textContent = o.ubicacion || 'Sin ubicación';
+  // NO tocar display — el CSS con media query lo maneja
 }
 
 // ── Sincronizar tabs sidebar con tabs móvil ──
