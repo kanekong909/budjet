@@ -18,6 +18,8 @@ cargarTareas();
 
 // ── Tabs ──
 function mostrarTab(tab) {
+    tabActualDesktop = tab;
+    sincronizarSidebarTab(tab);
     ['gastos', 'resumen', 'equipo', 'progreso', 'tareas'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.toggle('activa', t === tab);
         document.getElementById(`tab-btn-${t}`)?.classList.toggle('active', t === tab);
@@ -45,6 +47,8 @@ async function cargarCategorias() {
     const filtros = document.getElementById('filtros-cat');
     filtros.innerHTML = `<div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this,'')">Todos</div>` +
         categorias.map(c => `<div class="filtro-chip" data-cat="${c.id}" onclick="filtrarCategoria(this,'${c.id}')" style="border-left:3px solid ${c.color}">${c.nombre}</div>`).join('');
+    
+    renderFiltrosCatsDesktop();
 }
 
 function filtrarCategoria(el, catId) {
@@ -102,6 +106,10 @@ async function cargarGastos() {
         }
         renderGastos();
         renderPaginacion(data.total, data.paginas);
+        // Desktop
+        renderGastosDesktop(gastos);
+        actualizarTotalDesktop(data.suma, data.suma_ingresos || 0);
+        renderPaginacionDesktop(data.total, data.paginas);
     } catch (err) {
         showToast('Error cargando gastos', 'error');
     }
@@ -151,6 +159,9 @@ function renderGastos() {
         const suma = filtrados.reduce((s, g) => s + parseFloat(g.monto), 0);
         document.getElementById('total-visible').textContent = formatMoney(suma);
     }
+
+    renderGastosDesktop(filtrados);
+    actualizarInfoSeleccionDesktop();
 }
 
 function renderPaginacion(total, paginas) {
@@ -159,6 +170,15 @@ function renderPaginacion(total, paginas) {
     document.getElementById('pag-info').textContent = `${paginaActual} / ${paginas}`;
     document.getElementById('btn-prev').disabled = paginaActual <= 1;
     document.getElementById('btn-next').disabled = paginaActual >= paginas;
+}
+
+function renderPaginacionDesktop(total, paginas) {
+    const wrap = document.getElementById('paginacion-d');
+    if (!wrap) return;
+    wrap.style.display = paginas > 1 ? 'flex' : 'none';
+    document.getElementById('pag-info-d').textContent = `${paginaActual} / ${paginas}`;
+    document.getElementById('btn-prev-d').disabled = paginaActual <= 1;
+    document.getElementById('btn-next-d').disabled = paginaActual >= paginas;
 }
 
 function cambiarPagina(dir) {
@@ -436,6 +456,9 @@ async function cargarResumen() {
             <div class="gasto-monto">${formatMoney(g.monto)}</div>
           </div>
         `).join('');
+
+        renderResumenDesktop(data, semanal);
+        renderTopGastosDesktop(topSorted);
     } catch (err) {
         showToast('Error cargando resumen', 'error');
     }
@@ -544,6 +567,7 @@ async function cargarColaboradores() {
           <span class="badge-rol badge-${c.rol}">${c.rol}</span>
         </div>
       `).join('');
+      renderEquipoDesktop(colabs);
 }
 
 function abrirInvitar() {
@@ -578,6 +602,7 @@ function renderCategorias() {
           ${c.es_global ? '<span class="text-2" style="font-size:.75rem">Global</span>' : ''}
         </div>
       `).join('');
+      renderCatsDesktop();
 }
 
 function abrirNuevaCat() {
@@ -806,6 +831,7 @@ async function cargarProgreso() {
             api.get(`/api/bitacora?obra_id=${obra.id}`)
         ]);
         renderProgreso();
+        renderProgresoDesktop();
     } catch (err) {
         showToast('Error cargando progreso', 'error');
     }
@@ -1157,6 +1183,9 @@ function renderTareas() {
     if (document.getElementById('tareas-historial').style.display !== 'none') {
         renderHistorial(hechas);
     }
+
+    renderTareasDesktop();
+    actualizarBadgeSidebar(nActivas);
 }
 
 function renderHistorial(hechas) {
@@ -1455,6 +1484,7 @@ function actualizarBarraSeleccion() {
     const n = gastosSeleccionados.size;
     document.getElementById('seleccion-count').textContent =
         `${n} seleccionado${n !== 1 ? 's' : ''}`;
+    actualizarInfoSeleccionDesktop();
 }
 
 function verSumaSeleccion() {
