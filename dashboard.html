@@ -12,109 +12,111 @@
 
 <body>
 
-  <!-- Header -->
-  <header class="header">
-    <div class="header-logo">🏗️</div>
-    <div class="header-title" id="header-nombre">Cargando…</div>
-    <button class="btn-icon" onclick="logout()" title="Cerrar sesión">
-      <img src="./assets/icons/logout.svg" style="width:24px;height:24px;" alt="Cerrar sesión">
-    </button>
-  </header>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">🏗️</div>
+      <div class="header-title" id="header-nombre">Cargando…</div>
+      <button class="btn-icon" onclick="logout()" title="Cerrar sesión">
+        <img src="./assets/icons/logout.svg" style="width:24px;height:24px;" alt="Cerrar sesión">
+      </button>
+    </header>
 
-  <!-- Contenido principal -->
-  <main class="main">
-    <div class="row-between mb-8">
-      <div class="section-title">Mis obras</div>
-      <button class="btn btn-sm btn-secundario" onclick="abrirNuevaObra()">+ Nueva</button>
-    </div>
+    <!-- Contenido principal -->
+    <main class="main">
+      <div class="row-between mb-8">
+        <div class="section-title">Mis obras</div>
+        <button class="btn btn-sm btn-secundario" onclick="abrirNuevaObra()">+ Nueva</button>
+      </div>
 
-    <div id="obras-lista" class="obras-grid">
-      <div class="empty">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-msg">Cargando obras…</div>
+      <div id="obras-lista" class="obras-grid">
+        <div class="empty">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-msg">Cargando obras…</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Nav inferior -->
+    <nav class="nav-bottom">
+      <button class="nav-btn active">
+        <span class="icon">🏠</span>
+        <span>Obras</span>
+      </button>
+      <button class="nav-btn" onclick="window.location.href='perfil.html'">
+        <span class="icon">👤</span>
+        <span>Perfil</span>
+      </button>
+    </nav>
+
+    <!-- Sheet: Nueva obra -->
+    <div class="overlay" id="overlay-obra">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="obra-sheet-title">Nueva obra</div>
+        <form onsubmit="guardarObra(event)">
+          <input type="hidden" id="obra-edit-id">
+          <div class="field">
+            <label>Nombre de la obra *</label>
+            <input type="text" id="obra-nombre" placeholder="Ej: Casa Rodríguez, Bodega Norte…" required>
+          </div>
+          <div class="field">
+            <label>Descripción</label>
+            <textarea id="obra-desc" placeholder="Descripción opcional…" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <label>Ubicación</label>
+            <input type="text" id="obra-ubicacion" placeholder="Ej: Calle 45 #23-10">
+          </div>
+          <div class="field">
+            <label>Presupuesto total (COP)</label>
+            <input type="text" id="obra-presupuesto-display" placeholder="0" inputmode="numeric" autocomplete="off">
+            <input type="hidden" id="obra-presupuesto">
+          </div>
+          <div class="row mt-16" style="gap:10px">
+            <button type="button" class="btn btn-secundario w-full"
+              onclick="cerrarSheet('overlay-obra')">Cancelar</button>
+            <button type="submit" class="btn btn-primary w-full" id="btn-guardar-obra">Guardar</button>
+          </div>
+        </form>
       </div>
     </div>
-  </main>
 
-  <!-- Nav inferior -->
-  <nav class="nav-bottom">
-    <button class="nav-btn active">
-      <span class="icon">🏠</span>
-      <span>Obras</span>
-    </button>
-    <button class="nav-btn" onclick="window.location.href='perfil.html'">
-      <span class="icon">👤</span>
-      <span>Perfil</span>
-    </button>
-  </nav>
-
-  <!-- Sheet: Nueva obra -->
-  <div class="overlay" id="overlay-obra">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title" id="obra-sheet-title">Nueva obra</div>
-      <form onsubmit="guardarObra(event)">
-        <input type="hidden" id="obra-edit-id">
-        <div class="field">
-          <label>Nombre de la obra *</label>
-          <input type="text" id="obra-nombre" placeholder="Ej: Casa Rodríguez, Bodega Norte…" required>
-        </div>
-        <div class="field">
-          <label>Descripción</label>
-          <textarea id="obra-desc" placeholder="Descripción opcional…" rows="2"></textarea>
-        </div>
-        <div class="field">
-          <label>Ubicación</label>
-          <input type="text" id="obra-ubicacion" placeholder="Ej: Calle 45 #23-10">
-        </div>
-        <div class="field">
-          <label>Presupuesto total (COP)</label>
-          <input type="text" id="obra-presupuesto-display" placeholder="0" inputmode="numeric" autocomplete="off">
-          <input type="hidden" id="obra-presupuesto">
+    <!-- Sheet: Confirmar eliminar obra -->
+    <div class="overlay" id="overlay-confirmar-obra">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;padding:8px 0 16px">
+          <div style="font-size:2.5rem;margin-bottom:12px">⚠️</div>
+          <div class="sheet-title" style="margin-bottom:8px">¿Eliminar obra?</div>
+          <div class="fw-700" id="confirmar-obra-nombre" style="font-size:1rem;margin-bottom:8px"></div>
+          <div class="text-2">Se eliminarán <strong>todos los gastos</strong> asociados.<br>Esta acción no se puede
+            deshacer.</div>
         </div>
         <div class="row mt-16" style="gap:10px">
-          <button type="button" class="btn btn-secundario w-full"
-            onclick="cerrarSheet('overlay-obra')">Cancelar</button>
-          <button type="submit" class="btn btn-primary w-full" id="btn-guardar-obra">Guardar</button>
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-obra')">Cancelar</button>
+          <button class="btn btn-danger w-full" id="btn-confirmar-eliminar-obra" onclick="confirmarEliminarObra()">Sí,
+            eliminar</button>
         </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Sheet: Confirmar eliminar obra -->
-  <div class="overlay" id="overlay-confirmar-obra">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div style="text-align:center;padding:8px 0 16px">
-        <div style="font-size:2.5rem;margin-bottom:12px">⚠️</div>
-        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar obra?</div>
-        <div class="fw-700" id="confirmar-obra-nombre" style="font-size:1rem;margin-bottom:8px"></div>
-        <div class="text-2">Se eliminarán <strong>todos los gastos</strong> asociados.<br>Esta acción no se puede
-          deshacer.</div>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-obra')">Cancelar</button>
-        <button class="btn btn-danger w-full" id="btn-confirmar-eliminar-obra" onclick="confirmarEliminarObra()">Sí,
-          eliminar</button>
       </div>
     </div>
-  </div>
 
-  <!-- Sheet: Upgrade plan -->
-  <div class="overlay" id="overlay-upgrade">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div style="text-align:center;padding:16px 0">
-        <div style="font-size:2.5rem;margin-bottom:12px">🚀</div>
-        <div class="sheet-title">Límite alcanzado</div>
-        <p class="text-2 mt-8">Tu plan actual no permite más obras.<br>Actualiza para continuar.</p>
+    <!-- Sheet: Upgrade plan -->
+    <div class="overlay" id="overlay-upgrade">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;padding:16px 0">
+          <div style="font-size:2.5rem;margin-bottom:12px">🚀</div>
+          <div class="sheet-title">Límite alcanzado</div>
+          <p class="text-2 mt-8">Tu plan actual no permite más obras.<br>Actualiza para continuar.</p>
+        </div>
+        <button class="btn btn-primary w-full mt-16" onclick="window.location.href='planes.html'">
+          Ver planes
+        </button>
+        <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-upgrade')">
+          Ahora no
+        </button>
       </div>
-      <button class="btn btn-primary w-full mt-16" onclick="window.location.href='planes.html'">
-        Ver planes
-      </button>
-      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-upgrade')">
-        Ahora no
-      </button>
     </div>
   </div>
 
