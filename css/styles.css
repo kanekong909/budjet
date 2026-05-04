@@ -255,6 +255,15 @@ textarea {
   background: var(--gris-bg);
   border-radius: 10px;
   font-size: 1.1rem;
+  animation: rotate-slow 5s linear infinite;
+}
+@keyframes rotate-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-fab {
