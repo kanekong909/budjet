@@ -256,16 +256,13 @@ textarea {
   border-radius: 10px;
   font-size: 1.1rem;
 }
-
 .btn-icon .setting {
   animation: rotate-slow 5s linear infinite;
 }
-
 @keyframes rotate-slow {
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
   }
@@ -1154,215 +1151,159 @@ input[type="date"] {
 
 /* ===================== TABLET ===================== */
 @media (min-width: 768px) {
+    
+    body {
+        max-width: 720px;           /* Ancho para tablets */
+    }
 
-  body {
-    max-width: 720px;
-    /* Ancho para tablets */
-  }
+    .main {
+        padding: 24px 24px 100px;
+    }
 
-  .main {
-    padding: 24px 24px 100px;
-  }
+    .obras-grid {
+        gap: 16px;
+    }
 
-  .obras-grid {
-    gap: 16px;
-  }
+    .obra-list-item {
+        padding: 20px;
+        gap: 18px;
+    }
 
-  .obra-list-item {
-    padding: 20px;
-    gap: 18px;
-  }
+    .obra-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.5rem;
+    }
 
-  .obra-icon {
-    width: 56px;
-    height: 56px;
-    font-size: 1.5rem;
-  }
+    .sheet {
+        max-width: 600px;
+        border-radius: 24px;
+        margin: 20px auto;
+        max-height: 90dvh;
+    }
 
-  .sheet {
-    max-width: 600px;
-    border-radius: 24px;
-    margin: 20px auto;
-    max-height: 90dvh;
-  }
+    .nav-bottom {
+        display: none; /* Ocultamos nav inferior en tablet+ */
+    }
 
-  .nav-bottom {
-    display: none;
-    /* Ocultamos nav inferior en tablet+ */
-  }
+    /* Header más amplio */
+    .header {
+        padding: 18px 28px 16px;
+    }
 
-  /* Header más amplio */
-  .header {
-    padding: 18px 28px 16px;
-  }
+    .header-title {
+        font-size: 1.15rem;
+    }
 
-  .header-title {
-    font-size: 1.15rem;
-  }
+    .total-bar {
+        bottom: 24px;          
+        width: 100%;          
+        max-width: 600px;      
+        padding: 14px 24px;    
+    }
 
-  .total-bar {
-    bottom: 24px;
-    width: 100%;
-    max-width: 600px;
-    padding: 14px 24px;
-  }
-
-  .btn-fab {
-    bottom: 32px;
-    right: calc(50% - 340px);
-  }
+    .btn-fab {
+        bottom: 32px; 
+        right: calc(50% - 340px); 
+    }
 }
 
 /* ===================== DESKTOP ===================== */
 @media (min-width: 1024px) {
-
-  body {
-    max-width: 100%;
-    background:
-      radial-gradient(circle at top left, rgba(245, 166, 35, 0.12), transparent 35%),
-      radial-gradient(circle at bottom right, rgba(245, 166, 35, 0.08), transparent 30%),
-      linear-gradient(135deg, #111214 0%, #1c1c1e 35%, #2a2a2d 100%);
-
-    background-size: cover;
-    background-attachment: fixed;
-    overflow-x: hidden;
-    position: relative;
-  }
-
-  /* Patrón técnico sutil */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Luces animadas */
-  body::after {
-    content: "";
-    position: fixed;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(245, 166, 35, 0.10), transparent 70%);
-    top: -150px;
-    right: -150px;
-    animation: floatGlow 12s ease-in-out infinite alternate;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .app-shell {
-    position: relative;
-    z-index: 2;
-    backdrop-filter: blur(6px);
-    background: rgba(242,242,247,0.96);
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .main {
-    padding: 32px 40px 80px;
-  }
-
-  .obras-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 20px;
-  }
-
-  .obra-list-item {
-    transition: all .2s;
-  }
-
-  .obra-list-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-  }
-
-  .sheet {
-    max-width: 680px;
-  }
-
-  /* Mejorar inputs y botones en desktop */
-  .field input,
-  .field textarea,
-  .field select {
-    font-size: 1.05rem;
-    padding: 14px 16px;
-  }
-
-  .btn {
-    padding: 16px 24px;
-    font-size: 1.05rem;
-  }
-
-  .total-bar {
-    max-width: 680px;
-    bottom: 32px;
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, .3);
-  }
-
-  .btn-fab {
-    bottom: 40px;
-    right: calc(50% - 460px);
-    width: 64px;
-    height: 64px;
-    cursor: pointer;
-  }
-
-  .btn-fab:hover {
-    transform: scale(1.1);
-    /* Efecto feedback al pasar el mouse */
-  }
-
-  @keyframes floatGlow {
-    from {
-      transform: translateY(0px) translateX(0px);
+    
+    body {
+        max-width: 960px;
     }
-    to {
-      transform: translateY(40px) translateX(-30px);
+
+    .main {
+        padding: 32px 40px 80px;
     }
-  }
+
+    .obras-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 20px;
+    }
+
+    .obra-list-item {
+        transition: all .2s;
+    }
+
+    .obra-list-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .sheet {
+        max-width: 680px;
+    }
+
+    /* Mejorar inputs y botones en desktop */
+    .field input,
+    .field textarea,
+    .field select {
+        font-size: 1.05rem;
+        padding: 14px 16px;
+    }
+
+    .btn {
+        padding: 16px 24px;
+        font-size: 1.05rem;
+    }
+
+    .total-bar {
+        max-width: 680px;       
+        bottom: 32px;          
+        border-radius: 16px;   
+        box-shadow: 0 8px 30px rgba(0, 0, 0, .3); 
+    }
+
+    .btn-fab {
+        bottom: 40px;
+        right: calc(50% - 460px); 
+        width: 64px;  
+        height: 64px;
+        cursor: pointer;
+    }
+
+    .btn-fab:hover {
+        transform: scale(1.1); /* Efecto feedback al pasar el mouse */
+    }
 }
 
 /* ===================== ULTRA WIDE (Opcional) ===================== */
 @media (min-width: 1400px) {
-  body {
-    max-width: 1200px;
-  }
-
-  .obras-grid {
-    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-  }
+    body {
+        max-width: 1200px;
+    }
+    
+    .obras-grid {
+        grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    }
 }
 
 .app-shell {
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  min-height: 100dvh;
-  background: var(--gris-bg);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    background: var(--gris-bg);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
 }
 
 @media (min-width: 768px) {
-  .app-shell {
-    max-width: 720px;
-    border-radius: 20px;
-    margin: 20px auto;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  }
+    .app-shell {
+        max-width: 720px;
+        border-radius: 20px;
+        margin: 20px auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
 }
 
 @media (min-width: 1024px) {
-  .app-shell {
-    max-width: 960px;
-  }
+    .app-shell {
+        max-width: 960px;
+    }
 }
