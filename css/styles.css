@@ -817,7 +817,65 @@ textarea {
   display: block;
 }
 
+/* ---- Lista de obras en dashboard ---- */
+.obras-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
+.obra-list-item {
+  background: var(--blanco);
+  border-radius: var(--radio);
+  padding: 16px;
+  box-shadow: var(--sombra);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform .1s;
+}
+
+.obra-list-item:active {
+  transform: scale(.98);
+}
+
+.obra-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--gris-obra);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.obra-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.obra-info-nombre {
+  font-weight: 700;
+  font-size: .95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.obra-info-meta {
+  font-size: .78rem;
+  color: var(--texto-2);
+  margin-top: 3px;
+}
+
+.obra-info-total {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--amarillo);
+}
 
 /* ---- Vacío ---- */
 .empty {
