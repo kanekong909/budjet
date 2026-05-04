@@ -1301,10 +1301,15 @@ input[type="date"] {
   }
 
   .total-bar {
-    max-width: 680px;
-    bottom: 32px;
+    position: sticky;
+    bottom: 60px;
+    margin: 24px 0 auto;
+    width: 100%;
+    max-width: 760px;
+    transform: none;
     border-radius: 16px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, .3);
+    z-index: 50;
   }
 
   .btn-fab {
