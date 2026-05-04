@@ -1201,6 +1201,11 @@ input[type="date"] {
         max-width: 600px;      
         padding: 14px 24px;    
     }
+
+    .btn-fab {
+        bottom: 32px; 
+        right: calc(50% - 340px); 
+    }
 }
 
 /* ===================== DESKTOP ===================== */
@@ -1251,6 +1256,18 @@ input[type="date"] {
         bottom: 32px;          
         border-radius: 16px;   
         box-shadow: 0 8px 30px rgba(0, 0, 0, .3); 
+    }
+
+    .btn-fab {
+        bottom: 40px;
+        right: calc(50% - 460px); 
+        width: 64px;  
+        height: 64px;
+        cursor: pointer;
+    }
+
+    .btn-fab:hover {
+        transform: scale(1.1); /* Efecto feedback al pasar el mouse */
     }
 }
 
