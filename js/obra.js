@@ -473,7 +473,6 @@ async function cargarResumen() {
         renderTopGastosDesktop(topSorted);
 
     } catch (err) {
-        console.error('Error en cargarResumen:', err);
         showToast('Error cargando resumen', 'error');
     }
 }

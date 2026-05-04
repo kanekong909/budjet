@@ -301,7 +301,6 @@ function renderProgresoDesktop() {
 
 // ── Resumen desktop ──
 function renderResumenDesktop(data, semanal) {
-  console.log('renderResumenDesktop llamado', esDesktop(), data);
   if (!esDesktop()) return;
   const t = data.totales;
   const totalIngresos = t.total_ingresos || 0;
