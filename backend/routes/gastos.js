@@ -408,4 +408,31 @@ router.post('/categorias', async (req, res) => {
   }
 });
 
+// PUT /api/gastos/categorias/:id
+router.put('/categorias/:id', async (req, res) => {
+  try {
+    const { nombre, color, tipo } = req.body;
+    await pool.query(
+      'UPDATE categorias SET nombre=?, color=?, tipo=? WHERE id=?',
+      [nombre, color || '#6366f1', tipo || 'egreso', req.params.id]
+    );
+    res.json({ mensaje: 'Categoría actualizada' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// DELETE /api/gastos/categorias/:id
+router.delete('/categorias/:id', async (req, res) => {
+  try {
+    const [cat] = await pool.query('SELECT * FROM categorias WHERE id=?', [req.params.id]);
+    if (!cat.length) return res.status(404).json({ error: 'No encontrada' });
+    if (cat[0].es_global) return res.status(403).json({ error: 'No se pueden eliminar categorías globales' });
+    await pool.query('DELETE FROM categorias WHERE id=?', [req.params.id]);
+    res.json({ mensaje: 'Categoría eliminada' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 module.exports = router;

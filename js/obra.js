@@ -572,12 +572,15 @@ async function invitar() {
 // ── Categorías ──
 function renderCategorias() {
     document.getElementById('cats-lista').innerHTML = categorias.map(c => `
-        <div class="row" style="padding:8px 0;border-bottom:1px solid var(--gris-linea)">
-          <div style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
-          <div style="flex:1;font-size:.9rem">${c.nombre}</div>
-          ${c.es_global ? '<span class="text-2" style="font-size:.75rem">Global</span>' : ''}
+        <div class="row" style="padding:8px 0;border-bottom:1px solid var(--gris-linea);gap:8px">
+          <div style="width:14px;height:14px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
+          <div style="flex:1;font-size:.9rem;font-weight:500">${c.nombre}</div>
+          ${c.tipo === 'ingreso' ? '<span style="font-size:.68rem;font-weight:700;color:var(--verde);background:#f0fdf4;padding:2px 6px;border-radius:10px">Ingreso</span>' : ''}
+          ${c.es_global ? '<span class="text-2" style="font-size:.72rem">Global</span>' : ''}
+          <button onclick="abrirEditarCategoria(${c.id})" style="width:28px;height:28px;background:var(--gris-bg);border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem">✏️</button>
+          ${!c.es_global ? `<button onclick="pedirEliminarCategoria(${c.id},'${c.nombre.replace(/'/g,"\\'")}' )" style="width:28px;height:28px;background:#fff0ef;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem">🗑️</button>` : ''}
         </div>
-      `).join('');
+    `).join('');
 }
 
 function abrirNuevaCat() {
@@ -1550,6 +1553,59 @@ function actualizarBtnFechas() {
         document.getElementById('fecha-desde').value ? 'block' : 'none';
     document.getElementById('btn-limpiar-hasta').style.display =
         document.getElementById('fecha-hasta').value ? 'block' : 'none';
+}
+
+// ── Editar / eliminar categoría ──
+let catEditandoId = null;
+
+function abrirEditarCategoria(id) {
+    const cat = categorias.find(c => c.id === id);
+    if (!cat) return;
+    catEditandoId = id;
+    document.getElementById('edit-cat-nombre').value = cat.nombre;
+    document.getElementById('edit-cat-color').value = cat.color || '#6366f1';
+    document.getElementById('edit-cat-tipo').value = cat.tipo || 'egreso';
+    abrirSheet('overlay-edit-cat');
+}
+
+async function guardarEditCategoria() {
+    const btn = document.getElementById('btn-guardar-edit-cat');
+    const nombre = document.getElementById('edit-cat-nombre').value.trim();
+    if (!nombre) return showToast('Escribe un nombre', 'error');
+    setLoading(btn, true);
+    try {
+        await api.put(`/api/gastos/categorias/${catEditandoId}`, {
+            nombre,
+            color: document.getElementById('edit-cat-color').value,
+            tipo: document.getElementById('edit-cat-tipo').value
+        });
+        showToast('Categoría actualizada ✓');
+        cerrarSheet('overlay-edit-cat');
+        await cargarCategorias();
+        renderCategorias();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+    setLoading(btn, false);
+}
+
+let catAEliminarId = null;
+function pedirEliminarCategoria(id, nombre) {
+    catAEliminarId = id;
+    document.getElementById('confirmar-cat-nombre').textContent = nombre;
+    abrirSheet('overlay-confirmar-cat');
+}
+
+async function confirmarEliminarCategoria() {
+    try {
+        await api.delete(`/api/gastos/categorias/${catAEliminarId}`);
+        cerrarSheet('overlay-confirmar-cat');
+        showToast('Categoría eliminada');
+        await cargarCategorias();
+        renderCategorias();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
 }
 
 // ── Cerrar sheets al hacer clic fuera ──

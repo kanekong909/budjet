@@ -781,6 +781,50 @@
         </div>
       </div>
     </div>
+
+    <!-- ===== SHEET: Editar categoría ===== -->
+    <div class="overlay" id="overlay-edit-cat">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Editar categoría</div>
+        <div class="field"><label>Nombre</label><input type="text" id="edit-cat-nombre"></div>
+        <div class="row" style="gap:10px">
+          <div class="field" style="flex:1">
+            <label>Color</label>
+            <input type="color" id="edit-cat-color" style="height:44px;padding:4px;width:100%">
+          </div>
+          <div class="field" style="flex:1.5">
+            <label>Tipo</label>
+            <select id="edit-cat-tipo">
+              <option value="egreso">Egreso (gasto)</option>
+              <option value="ingreso">Ingreso (capital)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-edit-cat')">Cancelar</button>
+          <button class="btn btn-primary w-full" id="btn-guardar-edit-cat" onclick="guardarEditCategoria()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Confirmar eliminar categoría ===== -->
+    <div class="overlay" id="overlay-confirmar-cat">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;padding:8px 0 16px">
+          <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+          <div class="sheet-title" style="margin-bottom:8px">¿Eliminar categoría?</div>
+          <div class="fw-700" id="confirmar-cat-nombre" style="font-size:1rem;margin-bottom:8px"></div>
+          <div class="text-2">Los gastos con esta categoría quedarán sin categoría.</div>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-cat')">Cancelar</button>
+          <button class="btn btn-danger w-full" onclick="confirmarEliminarCategoria()">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
