@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,701 +9,774 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="icon" type="image/x-icon" href="./assets/icons/logo.svg">
 </head>
+
 <body>
 
-  <!-- Header -->
-  <header class="header">
-    <button class="btn-icon" onclick="window.location.href='dashboard.html'" style="background:transparent;color:white">‹</button>
-    <div class="header-title" id="header-obra-nombre">Cargando…</div>
-    <button class="btn-icon" onclick="abrirEditarObra()" style="background:transparent;color:white">⚙️</button>
-  </header>
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="header">
+      <button class="btn-icon" onclick="window.location.href='dashboard.html'"
+        style="background:transparent;color:white">‹</button>
+      <div class="header-title" id="header-obra-nombre">Cargando…</div>
+      <button class="btn-icon" onclick="abrirEditarObra()" style="background:transparent;color:white">⚙️</button>
+    </header>
 
-  <!-- Barra de selección múltiple -->
-  <div class="seleccion-bar" id="seleccion-bar">
-    <div style="display:flex;align-items:center;gap:10px">
-      <button onclick="cancelarSeleccion()" style="background:none;border:none;color:white;font-size:1.1rem;cursor:pointer">✕</button>
-      <span id="seleccion-count" style="font-weight:600;font-size:.9rem">0 seleccionados</span>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button onclick="seleccionarTodos()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:white;font-size:.75rem;font-weight:600;cursor:pointer">Todos</button>
-      <button onclick="verSumaSeleccion()" style="background:var(--amarillo);border:none;border-radius:8px;padding:6px 10px;color:var(--gris-obra);font-size:.75rem;font-weight:600;cursor:pointer">Σ Suma</button>
-      <button onclick="abrirEdicionMasiva()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:white;font-size:.75rem;font-weight:600;cursor:pointer">✏️ Editar</button>
-    </div>
-  </div>
-
-  <!-- Nav tabs -->
-  <div style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
-    <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">
-      <img src="./assets/icons/money.svg" alt="Gastos" >
-      Gastos
-    </button>
-    <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')"> 
-      <img src="./assets/icons/chart.svg" alt="Resumen">
-      Resumen
-    </button>
-    <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">
-      <img src="./assets/icons/team.svg" alt="Equipo"> 
-      Equipo
-    </button>
-    <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')"> 
-      <img src="./assets/icons/cam.svg" alt="Progreso">
-      Progreso
-    </button>
-    <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">
-      <img src="./assets/icons/task.svg" alt="Tareas"> 
-      Tareas 
-      <span id="badge-tareas" style="display:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.7rem;font-weight:700;padding:1px 6px;margin-left:2px"></span>
-    </button>
-  </div>
-
-  <main class="main" style="padding-top:12px">
-
-    <!-- ====== TAB: GASTOS ====== -->
-    <div id="tab-gastos" class="seccion activa">
-
-      <!-- Filtros rápidos -->
-      <div class="filtros" id="filtros-cat">
-        <div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this, '')">Todos</div>
+    <!-- Barra de selección múltiple -->
+    <div class="seleccion-bar" id="seleccion-bar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="cancelarSeleccion()"
+          style="background:none;border:none;color:white;font-size:1.1rem;cursor:pointer">✕</button>
+        <span id="seleccion-count" style="font-weight:600;font-size:.9rem">0 seleccionados</span>
       </div>
-
-      <!-- Búsqueda + fechas -->
-      <div class="search-wrap">
-        <span class="search-icon">
-          <img src="./assets/icons/search.svg" alt="Buscar" style="width:16px;height:16px">
-        </span>
-        <input type="text" id="busqueda" placeholder="Buscar gasto, proveedor…" oninput="filtrarBusqueda()">
-        <button id="btn-limpiar-busqueda" onclick="limpiarBusqueda()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:1rem;cursor:pointer;padding:4px">✕</button>
-      </div>
-      <div class="row mb-8" style="gap:8px">
-        <div style="flex:1;position:relative">
-          <input type="date" id="fecha-desde" style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px;color:var(--texto)" oninput="cargarGastos();actualizarBtnFechas()">
-          <button id="btn-limpiar-desde" onclick="limpiarFecha('desde')" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
-        </div>
-        <div style="flex:1;position:relative">
-          <input type="date" id="fecha-hasta" style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px;color:var(--texto)" oninput="cargarGastos();actualizarBtnFechas()">
-          <button id="btn-limpiar-hasta" onclick="limpiarFecha('hasta')" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
-        </div>
-      </div>
-
-      <!-- Tabla de gastos -->
-      <div class="card" style="padding:0 16px">
-        <div id="gastos-lista" style="min-height:80px">
-          <div class="empty"><div class="empty-icon">⏳</div></div>
-        </div>
-      </div>
-
-      <!-- Paginación -->
-      <div class="row-between mt-8" id="paginacion" style="display:none">
-        <button class="btn btn-sm btn-secundario" id="btn-prev" onclick="cambiarPagina(-1)">‹ Anterior</button>
-        <span class="text-2" id="pag-info">1 / 1</span>
-        <button class="btn btn-sm btn-secundario" id="btn-next" onclick="cambiarPagina(1)">Siguiente ›</button>
-      </div>
-
-      <!-- Exportar -->
-      <div class="mt-16 row" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="exportarCSV()">📥 Exportar Excel/CSV</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="seleccionarTodos()"
+          style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:white;font-size:.75rem;font-weight:600;cursor:pointer">Todos</button>
+        <button onclick="verSumaSeleccion()"
+          style="background:var(--amarillo);border:none;border-radius:8px;padding:6px 10px;color:var(--gris-obra);font-size:.75rem;font-weight:600;cursor:pointer">Σ
+          Suma</button>
+        <button onclick="abrirEdicionMasiva()"
+          style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:white;font-size:.75rem;font-weight:600;cursor:pointer">✏️
+          Editar</button>
       </div>
     </div>
 
-    <!-- ====== TAB: RESUMEN ====== -->
-    <div id="tab-resumen" class="seccion">
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-label">Total gastado</div>
-          <div class="stat-valor grande" id="res-total">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Nº gastos</div>
-          <div class="stat-valor" id="res-cantidad">—</div>
-        </div>
-      </div>
-
-      <!-- Presupuesto -->
-      <div class="card" id="card-presupuesto" style="display:none">
-        <div class="row-between mb-8">
-          <div class="fw-700">Presupuesto</div>
-          <div class="text-2" id="res-porc">0%</div>
-        </div>
-        <div class="presupuesto-barra">
-          <div class="presupuesto-fill" id="res-barra" style="width:0%"></div>
-        </div>
-        <div class="row-between mt-8">
-          <span class="text-2">Gastado: <strong id="res-gastado">—</strong></span>
-          <span class="text-2">Total: <strong id="res-presup">—</strong></span>
-        </div>
-      </div>
-
-      <!-- Gráfica por categoría -->
-      <div class="card">
-        <div class="section-title">Por categoría</div>
-        <div id="grafica-cats"></div>
-      </div>
-
-      <!-- Resumen semanal -->
-      <div class="card" id="card-semanal">
-        <div class="section-title">📅 Esta semana</div>
-        <div id="semanal-contenido">
-          <div class="empty" style="padding:20px"><div class="empty-icon">⏳</div></div>
-        </div>
-      </div>
-
-      <!-- Top gastos -->
-      <div class="card">
-        <div class="section-title">Mayores gastos</div>
-        <div id="top-gastos"></div>
-      </div>
-
-      <button class="btn btn-primary w-full mt-8" onclick="window.location.href='reporte.html'">
-        🖨️ Generar reporte PDF
+    <!-- Nav tabs -->
+    <div
+      style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+      <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">
+        <img src="./assets/icons/money.svg" alt="Gastos">
+        Gastos
+      </button>
+      <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">
+        <img src="./assets/icons/chart.svg" alt="Resumen">
+        Resumen
+      </button>
+      <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">
+        <img src="./assets/icons/team.svg" alt="Equipo">
+        Equipo
+      </button>
+      <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')">
+        <img src="./assets/icons/cam.svg" alt="Progreso">
+        Progreso
+      </button>
+      <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">
+        <img src="./assets/icons/task.svg" alt="Tareas">
+        Tareas
+        <span id="badge-tareas"
+          style="display:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.7rem;font-weight:700;padding:1px 6px;margin-left:2px"></span>
       </button>
     </div>
 
-    <!-- ====== TAB: EQUIPO ====== -->
-    <div id="tab-equipo" class="seccion">
-      <div class="card">
-        <div class="row-between mb-8">
-          <div class="fw-700">Colaboradores</div>
-          <button class="btn btn-sm btn-secundario" onclick="abrirInvitar()">+ Invitar</button>
+    <main class="main" style="padding-top:12px">
+
+      <!-- ====== TAB: GASTOS ====== -->
+      <div id="tab-gastos" class="seccion activa">
+
+        <!-- Filtros rápidos -->
+        <div class="filtros" id="filtros-cat">
+          <div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this, '')">Todos</div>
         </div>
-        <div id="colaboradores-lista"></div>
+
+        <!-- Búsqueda + fechas -->
+        <div class="search-wrap">
+          <span class="search-icon">
+            <img src="./assets/icons/search.svg" alt="Buscar" style="width:16px;height:16px">
+          </span>
+          <input type="text" id="busqueda" placeholder="Buscar gasto, proveedor…" oninput="filtrarBusqueda()">
+          <button id="btn-limpiar-busqueda" onclick="limpiarBusqueda()"
+            style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:1rem;cursor:pointer;padding:4px">✕</button>
+        </div>
+        <div class="row mb-8" style="gap:8px">
+          <div style="flex:1;position:relative">
+            <input type="date" id="fecha-desde"
+              style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px;color:var(--texto)"
+              oninput="cargarGastos();actualizarBtnFechas()">
+            <button id="btn-limpiar-desde" onclick="limpiarFecha('desde')"
+              style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
+          </div>
+          <div style="flex:1;position:relative">
+            <input type="date" id="fecha-hasta"
+              style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px;color:var(--texto)"
+              oninput="cargarGastos();actualizarBtnFechas()">
+            <button id="btn-limpiar-hasta" onclick="limpiarFecha('hasta')"
+              style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
+          </div>
+        </div>
+
+        <!-- Tabla de gastos -->
+        <div class="card" style="padding:0 16px">
+          <div id="gastos-lista" style="min-height:80px">
+            <div class="empty">
+              <div class="empty-icon">⏳</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="row-between mt-8" id="paginacion" style="display:none">
+          <button class="btn btn-sm btn-secundario" id="btn-prev" onclick="cambiarPagina(-1)">‹ Anterior</button>
+          <span class="text-2" id="pag-info">1 / 1</span>
+          <button class="btn btn-sm btn-secundario" id="btn-next" onclick="cambiarPagina(1)">Siguiente ›</button>
+        </div>
+
+        <!-- Exportar -->
+        <div class="mt-16 row" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="exportarCSV()">📥 Exportar Excel/CSV</button>
+        </div>
       </div>
 
-      <div class="card mt-8">
-        <div class="section-title">Categorías</div>
-        <div id="cats-lista"></div>
-        <button class="btn btn-secundario btn-sm w-full mt-8" onclick="abrirNuevaCat()">+ Nueva categoría</button>
+      <!-- ====== TAB: RESUMEN ====== -->
+      <div id="tab-resumen" class="seccion">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total gastado</div>
+            <div class="stat-valor grande" id="res-total">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Nº gastos</div>
+            <div class="stat-valor" id="res-cantidad">—</div>
+          </div>
+        </div>
+
+        <!-- Presupuesto -->
+        <div class="card" id="card-presupuesto" style="display:none">
+          <div class="row-between mb-8">
+            <div class="fw-700">Presupuesto</div>
+            <div class="text-2" id="res-porc">0%</div>
+          </div>
+          <div class="presupuesto-barra">
+            <div class="presupuesto-fill" id="res-barra" style="width:0%"></div>
+          </div>
+          <div class="row-between mt-8">
+            <span class="text-2">Gastado: <strong id="res-gastado">—</strong></span>
+            <span class="text-2">Total: <strong id="res-presup">—</strong></span>
+          </div>
+        </div>
+
+        <!-- Gráfica por categoría -->
+        <div class="card">
+          <div class="section-title">Por categoría</div>
+          <div id="grafica-cats"></div>
+        </div>
+
+        <!-- Resumen semanal -->
+        <div class="card" id="card-semanal">
+          <div class="section-title">📅 Esta semana</div>
+          <div id="semanal-contenido">
+            <div class="empty" style="padding:20px">
+              <div class="empty-icon">⏳</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top gastos -->
+        <div class="card">
+          <div class="section-title">Mayores gastos</div>
+          <div id="top-gastos"></div>
+        </div>
+
+        <button class="btn btn-primary w-full mt-8" onclick="window.location.href='reporte.html'">
+          🖨️ Generar reporte PDF
+        </button>
+      </div>
+
+      <!-- ====== TAB: EQUIPO ====== -->
+      <div id="tab-equipo" class="seccion">
+        <div class="card">
+          <div class="row-between mb-8">
+            <div class="fw-700">Colaboradores</div>
+            <button class="btn btn-sm btn-secundario" onclick="abrirInvitar()">+ Invitar</button>
+          </div>
+          <div id="colaboradores-lista"></div>
+        </div>
+
+        <div class="card mt-8">
+          <div class="section-title">Categorías</div>
+          <div id="cats-lista"></div>
+          <button class="btn btn-secundario btn-sm w-full mt-8" onclick="abrirNuevaCat()">+ Nueva categoría</button>
+        </div>
+      </div>
+
+      <!-- ====== TAB: PROGRESO ====== -->
+      <div id="tab-progreso" class="seccion">
+
+        <!-- Selector de etapa -->
+        <div class="filtros" id="filtros-etapa">
+          <div class="filtro-chip active" onclick="filtrarEtapa(this, '')">Todas</div>
+          <div class="filtro-chip" onclick="filtrarEtapa(this, 'Cimientos')">Cimientos</div>
+          <div class="filtro-chip" onclick="filtrarEtapa(this, 'Estructura')">Estructura</div>
+          <div class="filtro-chip" onclick="filtrarEtapa(this, 'Paredes')">Paredes</div>
+          <div class="filtro-chip" onclick="filtrarEtapa(this, 'Techo')">Techo</div>
+          <div class="filtro-chip" onclick="filtrarEtapa(this, 'Acabados')">Acabados</div>
+          <div class="filtro-chip" onclick="filtrarEtapa(this, 'Otro')">Otro</div>
+        </div>
+
+        <div id="progreso-timeline"></div>
+      </div>
+
+      <!-- ====== TAB: TAREAS ====== -->
+      <div id="tab-tareas" class="seccion">
+
+        <!-- Filtro por estado -->
+        <div class="filtros" id="filtros-estado">
+          <div class="filtro-chip active" onclick="filtrarTareas(this,'')">Todas</div>
+          <div class="filtro-chip" onclick="filtrarTareas(this,'pendiente')">🔴 Pendiente</div>
+          <div class="filtro-chip" onclick="filtrarTareas(this,'en_progreso')">🟡 En progreso</div>
+        </div>
+        <div id="tareas-lista"></div>
+        <button class="btn btn-secundario w-full mt-8" onclick="toggleHistorial()" id="btn-historial">
+          📋 Ver historial de completadas
+        </button>
+        <div id="tareas-historial" style="display:none;margin-top:12px">
+          <div class="seccion-titulo" style="margin-bottom:10px">✅ Completadas</div>
+          <div id="historial-lista"></div>
+        </div>
+
+        <div id="tareas-lista"></div>
+      </div>
+
+    </main>
+
+    <!-- FAB agregar gasto -->
+    <button class="btn-fab" id="fab-agregar" onclick="fabAccion()" title="Agregar">+</button>
+
+    <!-- Total bar -->
+    <div class="total-bar" id="total-bar">
+      <div>
+        <div class="total-label">Egresos</div>
+        <div style="font-size:.7rem;color:var(--verde)" id="total-ingresos-bar"></div>
+      </div>
+      <div>
+        <div class="total-monto" id="total-visible">—</div>
+        <div style="font-size:.75rem;text-align:right;color:var(--verde)" id="total-disponible"></div>
       </div>
     </div>
 
-    <!-- ====== TAB: PROGRESO ====== -->
-    <div id="tab-progreso" class="seccion">
-
-      <!-- Selector de etapa -->
-      <div class="filtros" id="filtros-etapa">
-        <div class="filtro-chip active" onclick="filtrarEtapa(this, '')">Todas</div>
-        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Cimientos')">Cimientos</div>
-        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Estructura')">Estructura</div>
-        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Paredes')">Paredes</div>
-        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Techo')">Techo</div>
-        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Acabados')">Acabados</div>
-        <div class="filtro-chip" onclick="filtrarEtapa(this, 'Otro')">Otro</div>
-      </div>
-
-      <div id="progreso-timeline"></div>
-    </div>
-
-    <!-- ====== TAB: TAREAS ====== -->
-    <div id="tab-tareas" class="seccion">
-
-      <!-- Filtro por estado -->
-      <div class="filtros" id="filtros-estado">
-        <div class="filtro-chip active" onclick="filtrarTareas(this,'')">Todas</div>
-        <div class="filtro-chip" onclick="filtrarTareas(this,'pendiente')">🔴 Pendiente</div>
-        <div class="filtro-chip" onclick="filtrarTareas(this,'en_progreso')">🟡 En progreso</div>
-      </div>
-      <div id="tareas-lista"></div>
-      <button class="btn btn-secundario w-full mt-8" onclick="toggleHistorial()" id="btn-historial">
-        📋 Ver historial de completadas
+    <!-- Nav inferior -->
+    <nav class="nav-bottom">
+      <button class="nav-btn" onclick="window.location.href='dashboard.html'">
+        <span class="icon">🏠</span>
+        <span>Obras</span>
       </button>
-      <div id="tareas-historial" style="display:none;margin-top:12px">
-        <div class="seccion-titulo" style="margin-bottom:10px">✅ Completadas</div>
-        <div id="historial-lista"></div>
+      <button class="nav-btn active">
+        <span class="icon">💰</span>
+        <span>Gastos</span>
+      </button>
+      <button class="nav-btn" onclick="mostrarTab('resumen');document.getElementById('tab-btn-resumen').click()">
+        <span class="icon">📊</span>
+        <span>Resumen</span>
+      </button>
+    </nav>
+
+    <!-- ===== SHEET: Agregar/Editar gasto ===== -->
+    <div class="overlay" id="overlay-gasto">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="gasto-sheet-title">Nuevo gasto</div>
+        <form id="form-gasto" onsubmit="guardarGasto(event)">
+          <input type="hidden" id="gasto-edit-id">
+          <div class="field">
+            <label>Descripción *</label>
+            <input type="text" id="g-desc" placeholder="Ej: Cemento 50 sacos, Mano de obra cimientos…" required>
+          </div>
+          <div class="row" style="gap:10px">
+            <div class="field" style="flex:1.2">
+              <label>Monto (COP) *</label>
+              <input type="text" id="g-monto-display" placeholder="0" required inputmode="numeric" autocomplete="off">
+              <input type="hidden" id="g-monto">
+            </div>
+            <div class="field" style="flex:1">
+              <label>Fecha *</label>
+              <input type="date" id="g-fecha" required>
+            </div>
+          </div>
+          <div class="row" style="gap:10px">
+            <div class="field w-full">
+              <label>Categorías</label>
+              <div id="g-categorias-wrap"
+                style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1.5px solid var(--gris-linea);border-radius:8px;min-height:44px;cursor:pointer">
+              </div>
+            </div>
+            <div class="field" style="flex:1">
+              <label>Proveedor</label>
+              <input type="text" id="g-proveedor" placeholder="Ferretería, etc">
+            </div>
+          </div>
+          <div class="row" style="gap:10px">
+            <div class="field" style="flex:1">
+              <label>Cantidad</label>
+              <input type="number" id="g-cantidad" placeholder="Ej: 300" min="0" step="any" oninput="calcularMonto()">
+            </div>
+            <div class="field" style="flex:0.8">
+              <label>Unidad</label>
+              <input type="text" id="g-unidad" placeholder="und, m², kg…">
+            </div>
+            <div class="field" style="flex:1">
+              <label>Valor unitario</label>
+              <input type="text" id="g-vunitario-display" placeholder="0" inputmode="numeric" autocomplete="off">
+              <input type="hidden" id="g-vunitario">
+            </div>
+          </div>
+          <div class="field">
+            <label>Notas</label>
+            <textarea id="g-notas" rows="2" placeholder="Observaciones…"></textarea>
+          </div>
+          <div class="field">
+            <label>Foto / Factura</label>
+            <div class="row" style="gap:8px;margin-bottom:8px">
+              <button type="button" class="btn btn-secundario w-full"
+                onclick="document.getElementById('g-foto-camara').click()"><img src="./assets/icons/camera.svg"
+                  alt="Cámara" style="width:16px;height:16px"> Cámara</button>
+              <button type="button" class="btn btn-secundario w-full"
+                onclick="document.getElementById('g-foto-galeria').click()">🖼️ Galería</button>
+            </div>
+            <input type="file" id="g-foto-camara" accept="image/*" capture="environment" style="display:none"
+              onchange="seleccionarFotoGasto(this)">
+            <input type="file" id="g-foto-galeria" accept="image/*,application/pdf" style="display:none"
+              onchange="seleccionarFotoGasto(this)">
+            <input type="file" id="g-foto" accept="image/*,application/pdf" style="display:none">
+            <div id="foto-preview-wrap" style="display:none;position:relative;margin-top:8px">
+              <img id="foto-preview" class="foto-preview" style="display:block;margin:0">
+              <button type="button" onclick="eliminarFotoGasto()"
+                style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:28px;height:28px;color:white;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+            </div>
+          </div>
+          <div class="row mt-16" style="gap:10px">
+            <button type="button" class="btn btn-secundario w-full"
+              onclick="cerrarSheet('overlay-gasto')">Cancelar</button>
+            <button type="submit" class="btn btn-primary w-full" id="btn-guardar-gasto">Guardar</button>
+          </div>
+        </form>
       </div>
-
-      <div id="tareas-lista"></div>
     </div>
 
-  </main>
-
-  <!-- FAB agregar gasto -->
-  <button class="btn-fab" id="fab-agregar" onclick="fabAccion()" title="Agregar">+</button>
-
-  <!-- Total bar -->
-  <div class="total-bar" id="total-bar">
-    <div>
-      <div class="total-label">Egresos</div>
-      <div style="font-size:.7rem;color:var(--verde)" id="total-ingresos-bar"></div>
-    </div>
-    <div>
-      <div class="total-monto" id="total-visible">—</div>
-      <div style="font-size:.75rem;text-align:right;color:var(--verde)" id="total-disponible"></div>
-    </div>
-  </div>
-
-  <!-- Nav inferior -->
-  <nav class="nav-bottom">
-    <button class="nav-btn" onclick="window.location.href='dashboard.html'">
-      <span class="icon">🏠</span>
-      <span>Obras</span>
-    </button>
-    <button class="nav-btn active">
-      <span class="icon">💰</span>
-      <span>Gastos</span>
-    </button>
-    <button class="nav-btn" onclick="mostrarTab('resumen');document.getElementById('tab-btn-resumen').click()">
-      <span class="icon">📊</span>
-      <span>Resumen</span>
-    </button>
-  </nav>
-
-  <!-- ===== SHEET: Agregar/Editar gasto ===== -->
-  <div class="overlay" id="overlay-gasto">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title" id="gasto-sheet-title">Nuevo gasto</div>
-      <form id="form-gasto" onsubmit="guardarGasto(event)">
-        <input type="hidden" id="gasto-edit-id">
-        <div class="field">
-          <label>Descripción *</label>
-          <input type="text" id="g-desc" placeholder="Ej: Cemento 50 sacos, Mano de obra cimientos…" required>
+    <!-- ===== SHEET: Ver detalle gasto ===== -->
+    <div class="overlay" id="overlay-detalle">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <img id="detalle-foto" class="foto-gasto-grande" style="display:none" onclick="window.open(this.src)">
+        <div class="sheet-title" id="detalle-desc">—</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="stat-card">
+            <div class="stat-label">Total</div>
+            <div class="stat-valor grande" id="detalle-monto">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Fecha</div>
+            <div class="stat-valor grande" id="detalle-fecha">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Categoría</div>
+            <div class="stat-valor grande" id="detalle-cat">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Proveedor</div>
+            <div class="stat-valor grande" id="detalle-prov">—</div>
+          </div>
         </div>
+        <div id="detalle-cant-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="stat-card">
+            <div class="stat-label">Cantidad</div>
+            <div class="stat-valor grande" id="detalle-cantidad">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Valor unitario</div>
+            <div class="stat-valor grande" id="detalle-vunitario">—</div>
+          </div>
+        </div>
+        <div id="detalle-notas-wrap" style="display:none" class="card mb-8">
+          <div class="stat-label mb-8">Notas</div>
+          <div id="detalle-notas" class="text-2"></div>
+        </div>
+        <div class="text-2 mb-8" id="detalle-usuario"></div>
         <div class="row" style="gap:10px">
-          <div class="field" style="flex:1.2">
-            <label>Monto (COP) *</label>
-            <input type="text" id="g-monto-display" placeholder="0" required inputmode="numeric" autocomplete="off">
-          <input type="hidden" id="g-monto">
-          </div>
-          <div class="field" style="flex:1">
-            <label>Fecha *</label>
-            <input type="date" id="g-fecha" required>
-          </div>
-        </div>
-        <div class="row" style="gap:10px">
-          <div class="field w-full">
-            <label>Categorías</label>
-            <div id="g-categorias-wrap" style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1.5px solid var(--gris-linea);border-radius:8px;min-height:44px;cursor:pointer"></div>
-          </div>
-          <div class="field" style="flex:1">
-            <label>Proveedor</label>
-            <input type="text" id="g-proveedor" placeholder="Ferretería, etc">
-          </div>
-        </div>
-        <div class="row" style="gap:10px">
-          <div class="field" style="flex:1">
-            <label>Cantidad</label>
-            <input type="number" id="g-cantidad" placeholder="Ej: 300" min="0" step="any" oninput="calcularMonto()">
-          </div>
-          <div class="field" style="flex:0.8">
-            <label>Unidad</label>
-            <input type="text" id="g-unidad" placeholder="und, m², kg…">
-          </div>
-          <div class="field" style="flex:1">
-            <label>Valor unitario</label>
-            <input type="text" id="g-vunitario-display" placeholder="0" inputmode="numeric" autocomplete="off">
-            <input type="hidden" id="g-vunitario">
-          </div>
-        </div>
-        <div class="field">
-          <label>Notas</label>
-          <textarea id="g-notas" rows="2" placeholder="Observaciones…"></textarea>
-        </div>
-        <div class="field">
-          <label>Foto / Factura</label>
-          <div class="row" style="gap:8px;margin-bottom:8px">
-            <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('g-foto-camara').click()"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"> Cámara</button>
-            <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('g-foto-galeria').click()">🖼️ Galería</button>
-          </div>
-          <input type="file" id="g-foto-camara" accept="image/*" capture="environment" style="display:none" onchange="seleccionarFotoGasto(this)">
-          <input type="file" id="g-foto-galeria" accept="image/*,application/pdf" style="display:none" onchange="seleccionarFotoGasto(this)">
-          <input type="file" id="g-foto" accept="image/*,application/pdf" style="display:none">
-          <div id="foto-preview-wrap" style="display:none;position:relative;margin-top:8px">
-            <img id="foto-preview" class="foto-preview" style="display:block;margin:0">
-            <button type="button" onclick="eliminarFotoGasto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:28px;height:28px;color:white;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
-          </div>
-        </div>
-        <div class="row mt-16" style="gap:10px">
-          <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-gasto')">Cancelar</button>
-          <button type="submit" class="btn btn-primary w-full" id="btn-guardar-gasto">Guardar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Ver detalle gasto ===== -->
-  <div class="overlay" id="overlay-detalle">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <img id="detalle-foto" class="foto-gasto-grande" style="display:none" onclick="window.open(this.src)">
-      <div class="sheet-title" id="detalle-desc">—</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-valor grande" id="detalle-monto">—</div></div>
-        <div class="stat-card"><div class="stat-label">Fecha</div><div class="stat-valor grande" id="detalle-fecha">—</div></div>
-        <div class="stat-card"><div class="stat-label">Categoría</div><div class="stat-valor grande" id="detalle-cat">—</div></div>
-        <div class="stat-card"><div class="stat-label">Proveedor</div><div class="stat-valor grande" id="detalle-prov">—</div></div>
-      </div>
-      <div id="detalle-cant-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div class="stat-card"><div class="stat-label">Cantidad</div><div class="stat-valor grande" id="detalle-cantidad">—</div></div>
-        <div class="stat-card"><div class="stat-label">Valor unitario</div><div class="stat-valor grande" id="detalle-vunitario">—</div></div>
-      </div>
-      <div id="detalle-notas-wrap" style="display:none" class="card mb-8">
-        <div class="stat-label mb-8">Notas</div>
-        <div id="detalle-notas" class="text-2"></div>
-      </div>
-      <div class="text-2 mb-8" id="detalle-usuario"></div>
-      <div class="row" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="editarDesdeDetalle()">
-          <img src="./assets/icons/editar.svg" alt="Editar" style="width:16px;"> 
-          Editar
-        </button>
-        <button class="btn btn-danger w-full" onclick="eliminarGasto()">
-          <img src="./assets/icons/delete.svg" alt="Eliminar" style="width:16px;">  
-          Eliminar
-        </button>
-      </div>
-      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-detalle')">Cerrar</button>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Invitar colaborador ===== -->
-  <div class="overlay" id="overlay-invitar">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">Invitar colaborador</div>
-      <p class="text-2 mb-8">El colaborador ya debe estar registrado en la app.</p>
-      <div class="field">
-        <label>Correo del colaborador</label>
-        <input type="email" id="inv-email" placeholder="colaborador@correo.com">
-      </div>
-      <div class="field">
-        <label>Rol</label>
-        <select id="inv-rol">
-          <option value="colaborador">Colaborador (puede agregar gastos)</option>
-          <option value="admin">Admin (puede todo)</option>
-        </select>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-invitar')">Cancelar</button>
-        <button class="btn btn-primary w-full" id="btn-invitar" onclick="invitar()">Invitar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Nueva categoría ===== -->
-  <div class="overlay" id="overlay-cat">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">Nueva categoría</div>
-      <div class="field">
-        <label>Nombre</label>
-        <input type="text" id="cat-nombre" placeholder="Ej: Acabados, Electricidad…">
-      </div>
-      <div class="field">
-        <label>Color</label>
-        <input type="color" id="cat-color" value="#6366f1" style="height:44px;padding:4px">
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-cat')">Cancelar</button>
-        <button class="btn btn-primary w-full" onclick="crearCategoria()">Crear</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Editar obra ===== -->
-  <div class="overlay" id="overlay-edit-obra">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">Editar obra</div>
-      <form onsubmit="actualizarObra(event)">
-        <div class="field"><label>Nombre *</label><input type="text" id="eo-nombre" required></div>
-        <div class="field"><label>Descripción</label><textarea id="eo-desc" rows="2"></textarea></div>
-        <div class="field"><label>Ubicación</label><input type="text" id="eo-ubic"></div>
-        <div class="field"><label>Presupuesto (COP)</label><input type="text" id="eo-presup-display" placeholder="0" inputmode="numeric" autocomplete="off"><input type="hidden" id="eo-presup"></div>
-        <div class="row mt-16" style="gap:10px">
-          <button type="button" class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-edit-obra')">Cancelar</button>
-          <button type="submit" class="btn btn-primary w-full" id="btn-act-obra">Actualizar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Confirmar eliminar ===== -->
-  <div class="overlay" id="overlay-confirmar">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div style="text-align:center;padding:8px 0 16px">
-        <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
-        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar gasto?</div>
-        <div class="fw-700" id="confirmar-desc" style="font-size:1rem;margin-bottom:4px"></div>
-        <div style="font-size:1.1rem;color:var(--rojo);font-weight:700" id="confirmar-monto"></div>
-        <div class="text-2 mt-8">Esta acción no se puede deshacer.</div>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar')">Cancelar</button>
-        <button class="btn btn-danger w-full" onclick="confirmarEliminar()">Sí, eliminar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Nueva foto de progreso ===== -->
-  <div class="overlay" id="overlay-progreso">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">📸 Foto de progreso</div>
-      <div class="field">
-        <label>Foto *</label>
-        <div class="row" style="gap:8px;margin-bottom:8px">
-          <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('p-foto-camara').click()"><img src="./assets/icons/camera.svg" alt="Cámara" style="width:16px;height:16px"> Cámara</button>
-          <button type="button" class="btn btn-secundario w-full" onclick="document.getElementById('p-foto-galeria').click()">🖼️ Galería</button>
-        </div>
-        <input type="file" id="p-foto-camara" accept="image/*" capture="environment" style="display:none" onchange="seleccionarFotoProgreso(this)">
-        <input type="file" id="p-foto-galeria" accept="image/*" style="display:none" onchange="seleccionarFotoProgreso(this)">
-        <input type="file" id="p-foto" accept="image/*" style="display:none">
-        <img id="p-foto-preview" class="foto-preview" style="display:none">
-      </div>
-      <div class="row" style="gap:10px">
-        <div class="field" style="flex:1">
-          <label>Fecha</label>
-          <input type="date" id="p-fecha">
-        </div>
-        <div class="field" style="flex:1">
-          <label>Etapa</label>
-          <select id="p-etapa">
-            <option value="">Sin etapa</option>
-            <option>Cimientos</option>
-            <option>Estructura</option>
-            <option>Paredes</option>
-            <option>Techo</option>
-            <option>Acabados</option>
-            <option>Otro</option>
-          </select>
-        </div>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-progreso')">Cancelar</button>
-        <button class="btn btn-primary w-full" id="btn-guardar-progreso" onclick="guardarProgreso()">Subir foto</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Carrusel fotos progreso ===== -->
-  <div class="overlay" id="overlay-ver-foto" style="align-items:center;background:rgba(0,0,0,.92)">
-    <div style="width:100%;max-width:480px;display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)">
-
-      <!-- Header carrusel -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;flex-shrink:0">
-        <button onclick="cerrarSheet('overlay-ver-foto')" style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;color:white;font-size:1.1rem;cursor:pointer">✕</button>
-        <div style="color:white;font-size:.85rem;font-weight:600" id="carrusel-contador">1 / 1</div>
-        <div style="display:flex;gap:8px">
-          <button onclick="editarFotoProgreso()" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
-            <img src="./assets/icons/editar.svg" alt="Editar" style="width:14px;vertical-align:middle;margin-right:4px">
+          <button class="btn btn-secundario w-full" onclick="editarDesdeDetalle()">
+            <img src="./assets/icons/editar.svg" alt="Editar" style="width:16px;">
             Editar
           </button>
-          <button onclick="eliminarFotoProgreso()" style="background:rgba(255,59,48,.7);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
-            <img src="./assets/icons/delete.svg" alt="Eliminar" style="width:14px;vertical-align:middle;margin-right:4px">
+          <button class="btn btn-danger w-full" onclick="eliminarGasto()">
+            <img src="./assets/icons/delete.svg" alt="Eliminar" style="width:16px;">
+            Eliminar
           </button>
         </div>
+        <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-detalle')">Cerrar</button>
       </div>
+    </div>
 
-      <!-- Imagen principal con swipe -->
-      <div style="flex:1;position:relative;display:flex;align-items:center;overflow:hidden" id="carrusel-wrap">
-        <img id="carrusel-img" style="width:100%;max-height:100%;object-fit:contain;user-select:none;touch-action:pan-y pinch-zoom" onclick="window.open(this.src)">
-
-        <!-- Flechas -->
-        <button id="carrusel-prev" onclick="carruselNavegar(-1)" style="position:absolute;left:8px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;padding:0">‹</button>
-        <button id="carrusel-next" onclick="carruselNavegar(1)" style="position:absolute;right:8px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;padding:0">›</button>
+    <!-- ===== SHEET: Invitar colaborador ===== -->
+    <div class="overlay" id="overlay-invitar">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Invitar colaborador</div>
+        <p class="text-2 mb-8">El colaborador ya debe estar registrado en la app.</p>
+        <div class="field">
+          <label>Correo del colaborador</label>
+          <input type="email" id="inv-email" placeholder="colaborador@correo.com">
+        </div>
+        <div class="field">
+          <label>Rol</label>
+          <select id="inv-rol">
+            <option value="colaborador">Colaborador (puede agregar gastos)</option>
+            <option value="admin">Admin (puede todo)</option>
+          </select>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-invitar')">Cancelar</button>
+          <button class="btn btn-primary w-full" id="btn-invitar" onclick="invitar()">Invitar</button>
+        </div>
       </div>
+    </div>
 
-      <!-- Info foto -->
-      <div style="padding:12px 16px;flex-shrink:0">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="color:white;font-weight:600;font-size:.9rem" id="carrusel-fecha"></div>
-            <div style="color:rgba(255,255,255,.6);font-size:.8rem;margin-top:2px" id="carrusel-etapa"></div>
-            <div style="color:rgba(255,255,255,.5);font-size:.75rem;margin-top:1px" id="carrusel-usuario"></div>
+    <!-- ===== SHEET: Nueva categoría ===== -->
+    <div class="overlay" id="overlay-cat">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Nueva categoría</div>
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="cat-nombre" placeholder="Ej: Acabados, Electricidad…">
+        </div>
+        <div class="field">
+          <label>Color</label>
+          <input type="color" id="cat-color" value="#6366f1" style="height:44px;padding:4px">
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-cat')">Cancelar</button>
+          <button class="btn btn-primary w-full" onclick="crearCategoria()">Crear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Editar obra ===== -->
+    <div class="overlay" id="overlay-edit-obra">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Editar obra</div>
+        <form onsubmit="actualizarObra(event)">
+          <div class="field"><label>Nombre *</label><input type="text" id="eo-nombre" required></div>
+          <div class="field"><label>Descripción</label><textarea id="eo-desc" rows="2"></textarea></div>
+          <div class="field"><label>Ubicación</label><input type="text" id="eo-ubic"></div>
+          <div class="field"><label>Presupuesto (COP)</label><input type="text" id="eo-presup-display" placeholder="0"
+              inputmode="numeric" autocomplete="off"><input type="hidden" id="eo-presup"></div>
+          <div class="row mt-16" style="gap:10px">
+            <button type="button" class="btn btn-secundario w-full"
+              onclick="cerrarSheet('overlay-edit-obra')">Cancelar</button>
+            <button type="submit" class="btn btn-primary w-full" id="btn-act-obra">Actualizar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Confirmar eliminar ===== -->
+    <div class="overlay" id="overlay-confirmar">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;padding:8px 0 16px">
+          <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+          <div class="sheet-title" style="margin-bottom:8px">¿Eliminar gasto?</div>
+          <div class="fw-700" id="confirmar-desc" style="font-size:1rem;margin-bottom:4px"></div>
+          <div style="font-size:1.1rem;color:var(--rojo);font-weight:700" id="confirmar-monto"></div>
+          <div class="text-2 mt-8">Esta acción no se puede deshacer.</div>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar')">Cancelar</button>
+          <button class="btn btn-danger w-full" onclick="confirmarEliminar()">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Nueva foto de progreso ===== -->
+    <div class="overlay" id="overlay-progreso">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">📸 Foto de progreso</div>
+        <div class="field">
+          <label>Foto *</label>
+          <div class="row" style="gap:8px;margin-bottom:8px">
+            <button type="button" class="btn btn-secundario w-full"
+              onclick="document.getElementById('p-foto-camara').click()"><img src="./assets/icons/camera.svg"
+                alt="Cámara" style="width:16px;height:16px"> Cámara</button>
+            <button type="button" class="btn btn-secundario w-full"
+              onclick="document.getElementById('p-foto-galeria').click()">🖼️ Galería</button>
+          </div>
+          <input type="file" id="p-foto-camara" accept="image/*" capture="environment" style="display:none"
+            onchange="seleccionarFotoProgreso(this)">
+          <input type="file" id="p-foto-galeria" accept="image/*" style="display:none"
+            onchange="seleccionarFotoProgreso(this)">
+          <input type="file" id="p-foto" accept="image/*" style="display:none">
+          <img id="p-foto-preview" class="foto-preview" style="display:none">
+        </div>
+        <div class="row" style="gap:10px">
+          <div class="field" style="flex:1">
+            <label>Fecha</label>
+            <input type="date" id="p-fecha">
+          </div>
+          <div class="field" style="flex:1">
+            <label>Etapa</label>
+            <select id="p-etapa">
+              <option value="">Sin etapa</option>
+              <option>Cimientos</option>
+              <option>Estructura</option>
+              <option>Paredes</option>
+              <option>Techo</option>
+              <option>Acabados</option>
+              <option>Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-progreso')">Cancelar</button>
+          <button class="btn btn-primary w-full" id="btn-guardar-progreso" onclick="guardarProgreso()">Subir
+            foto</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Carrusel fotos progreso ===== -->
+    <div class="overlay" id="overlay-ver-foto" style="align-items:center;background:rgba(0,0,0,.92)">
+      <div
+        style="width:100%;max-width:480px;display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)">
+
+        <!-- Header carrusel -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;flex-shrink:0">
+          <button onclick="cerrarSheet('overlay-ver-foto')"
+            style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;color:white;font-size:1.1rem;cursor:pointer">✕</button>
+          <div style="color:white;font-size:.85rem;font-weight:600" id="carrusel-contador">1 / 1</div>
+          <div style="display:flex;gap:8px">
+            <button onclick="editarFotoProgreso()"
+              style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
+              <img src="./assets/icons/editar.svg" alt="Editar"
+                style="width:14px;vertical-align:middle;margin-right:4px">
+              Editar
+            </button>
+            <button onclick="eliminarFotoProgreso()"
+              style="background:rgba(255,59,48,.7);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
+              <img src="./assets/icons/delete.svg" alt="Eliminar"
+                style="width:14px;vertical-align:middle;margin-right:4px">
+            </button>
           </div>
         </div>
 
-        <!-- Thumbnails -->
-        <div id="carrusel-thumbs" style="display:flex;gap:6px;margin-top:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+        <!-- Imagen principal con swipe -->
+        <div style="flex:1;position:relative;display:flex;align-items:center;overflow:hidden" id="carrusel-wrap">
+          <img id="carrusel-img"
+            style="width:100%;max-height:100%;object-fit:contain;user-select:none;touch-action:pan-y pinch-zoom"
+            onclick="window.open(this.src)">
+
+          <!-- Flechas -->
+          <button id="carrusel-prev" onclick="carruselNavegar(-1)"
+            style="position:absolute;left:8px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;padding:0">‹</button>
+          <button id="carrusel-next" onclick="carruselNavegar(1)"
+            style="position:absolute;right:8px;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;color:white;font-size:1.2rem;cursor:pointer;display:none;align-items:center;justify-content:center;line-height:1;padding:0">›</button>
+        </div>
+
+        <!-- Info foto -->
+        <div style="padding:12px 16px;flex-shrink:0">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="color:white;font-weight:600;font-size:.9rem" id="carrusel-fecha"></div>
+              <div style="color:rgba(255,255,255,.6);font-size:.8rem;margin-top:2px" id="carrusel-etapa"></div>
+              <div style="color:rgba(255,255,255,.5);font-size:.75rem;margin-top:1px" id="carrusel-usuario"></div>
+            </div>
+          </div>
+
+          <!-- Thumbnails -->
+          <div id="carrusel-thumbs"
+            style="display:flex;gap:6px;margin-top:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- ===== SHEET: Editar foto progreso ===== -->
-  <div class="overlay" id="overlay-editar-foto">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">Editar foto</div>
-      <input type="hidden" id="editar-foto-id">
-      <div class="row" style="gap:10px">
-        <div class="field" style="flex:1">
-          <label>Fecha</label>
-          <input type="date" id="editar-foto-fecha">
+    <!-- ===== SHEET: Editar foto progreso ===== -->
+    <div class="overlay" id="overlay-editar-foto">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Editar foto</div>
+        <input type="hidden" id="editar-foto-id">
+        <div class="row" style="gap:10px">
+          <div class="field" style="flex:1">
+            <label>Fecha</label>
+            <input type="date" id="editar-foto-fecha">
+          </div>
+          <div class="field" style="flex:1">
+            <label>Etapa</label>
+            <select id="editar-foto-etapa">
+              <option value="">Sin etapa</option>
+              <option>Cimientos</option>
+              <option>Estructura</option>
+              <option>Paredes</option>
+              <option>Techo</option>
+              <option>Acabados</option>
+              <option>Otro</option>
+            </select>
+          </div>
         </div>
-        <div class="field" style="flex:1">
-          <label>Etapa</label>
-          <select id="editar-foto-etapa">
-            <option value="">Sin etapa</option>
-            <option>Cimientos</option>
-            <option>Estructura</option>
-            <option>Paredes</option>
-            <option>Techo</option>
-            <option>Acabados</option>
-            <option>Otro</option>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-editar-foto')">Cancelar</button>
+          <button class="btn btn-primary w-full" id="btn-guardar-editar-foto"
+            onclick="guardarEdicionFoto()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Confirmar eliminar foto ===== -->
+    <div class="overlay" id="overlay-confirmar-foto">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;padding:8px 0 16px">
+          <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+          <div class="sheet-title" style="margin-bottom:8px">¿Eliminar foto?</div>
+          <div class="text-2">Esta acción no se puede deshacer.</div>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-foto')">Cancelar</button>
+          <button class="btn btn-danger w-full" onclick="confirmarEliminarFoto()">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Nueva/Editar tarea ===== -->
+    <div class="overlay" id="overlay-tarea">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="tarea-sheet-title">Nueva tarea</div>
+        <input type="hidden" id="tarea-edit-id">
+        <div class="field">
+          <label>Título *</label>
+          <input type="text" id="t-titulo" placeholder="Ej: Comprar cemento, Llamar al electricista…">
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <textarea id="t-desc" rows="2" placeholder="Detalles opcionales…"></textarea>
+        </div>
+        <div class="field">
+          <label>Fecha límite (opcional)</label>
+          <input type="date" id="t-fecha">
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-tarea')">Cancelar</button>
+          <button class="btn btn-primary w-full" id="btn-guardar-tarea" onclick="guardarTarea()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Confirmar eliminar tarea ===== -->
+    <div class="overlay" id="overlay-confirmar-tarea">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;padding:8px 0 16px">
+          <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+          <div class="sheet-title" style="margin-bottom:8px">¿Eliminar tarea?</div>
+          <div class="fw-700" id="confirmar-tarea-titulo" style="font-size:1rem;margin-bottom:4px"></div>
+          <div class="text-2 mt-8">Esta acción no se puede deshacer.</div>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-tarea')">Cancelar</button>
+          <button class="btn btn-danger w-full" onclick="confirmarEliminarTarea()">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Historial de tarea ===== -->
+    <div class="overlay" id="overlay-historial-tarea">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="historial-tarea-titulo">Historial</div>
+        <div id="historial-tarea-contenido">
+          <div class="empty">
+            <div class="empty-icon">⏳</div>
+          </div>
+        </div>
+        <button class="btn btn-secundario w-full mt-16" onclick="cerrarSheet('overlay-historial-tarea')">Cerrar</button>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Nota del día ===== -->
+    <div class="overlay" id="overlay-nota">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">📝 Nota del día</div>
+        <div style="font-size:.85rem;color:var(--texto-2);margin-bottom:12px" id="nota-fecha-label"></div>
+        <div class="field">
+          <label>¿Qué pasó hoy?</label>
+          <textarea id="nota-texto" rows="5"
+            placeholder="Ej: Llegaron 3 obreros, se colocaron vigas del segundo piso. Faltó el proveedor de varilla. Clima soleado…"></textarea>
+        </div>
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-nota')">Cancelar</button>
+          <button class="btn btn-primary w-full" id="btn-guardar-nota" onclick="guardarNota()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: FAB Progreso ===== -->
+    <div class="overlay" id="overlay-fab-progreso">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" style="margin-bottom:16px">¿Qué quieres agregar?</div>
+        <div class="row" style="gap:10px">
+          <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
+            onclick="cerrarSheet('overlay-fab-progreso');setTimeout(()=>{document.getElementById('p-fecha').value=todayISO();document.getElementById('p-etapa').value='';document.getElementById('p-foto').value='';document.getElementById('p-foto-preview').style.display='none';abrirSheet('overlay-progreso');},200)"
+            📷<span>Foto</span>
+          </button>
+          <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
+            onclick="cerrarSheet('overlay-fab-progreso');abrirNotaDia(todayISO(), null, '')">
+            📝<span>Nota del día</span>
+          </button>
+        </div>
+        <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-fab-progreso')">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Suma selección ===== -->
+    <div class="overlay" id="overlay-suma">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Σ Suma de seleccionados</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+          <div class="stat-card" style="text-align:center">
+            <div class="stat-label">Gastos</div>
+            <div class="stat-valor" id="confirmar-suma-n">0</div>
+          </div>
+          <div class="stat-card" style="text-align:center;grid-column:span 2">
+            <div class="stat-label">Total</div>
+            <div class="stat-valor" id="confirmar-suma-total" style="color:var(--amarillo)">—</div>
+          </div>
+          <div class="stat-card" style="text-align:center;grid-column:span 3">
+            <div class="stat-label">Promedio por gasto</div>
+            <div class="stat-valor grande" id="confirmar-suma-prom">—</div>
+          </div>
+        </div>
+        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-suma')">Cerrar</button>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Edición masiva ===== -->
+    <div class="overlay" id="overlay-edicion-masiva">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">✏️ Editar <span id="bulk-count">0</span> gastos</div>
+        <p class="text-2 mb-8">Elige qué campo editar. Se aplicará a todos los gastos seleccionados.</p>
+
+        <div class="field">
+          <label>Campo a editar</label>
+          <select id="bulk-campo" onchange="mostrarCampoBulk()">
+            <option value="">Selecciona un campo…</option>
+            <option value="proveedor">Proveedor</option>
+            <option value="categoria_id">Categoría</option>
+            <option value="fecha">Fecha</option>
+            <option value="notas">Notas</option>
           </select>
         </div>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-editar-foto')">Cancelar</button>
-        <button class="btn btn-primary w-full" id="btn-guardar-editar-foto" onclick="guardarEdicionFoto()">Guardar</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- ===== SHEET: Confirmar eliminar foto ===== -->
-  <div class="overlay" id="overlay-confirmar-foto">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div style="text-align:center;padding:8px 0 16px">
-        <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
-        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar foto?</div>
-        <div class="text-2">Esta acción no se puede deshacer.</div>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-foto')">Cancelar</button>
-        <button class="btn btn-danger w-full" onclick="confirmarEliminarFoto()">Sí, eliminar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Nueva/Editar tarea ===== -->
-  <div class="overlay" id="overlay-tarea">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title" id="tarea-sheet-title">Nueva tarea</div>
-      <input type="hidden" id="tarea-edit-id">
-      <div class="field">
-        <label>Título *</label>
-        <input type="text" id="t-titulo" placeholder="Ej: Comprar cemento, Llamar al electricista…">
-      </div>
-      <div class="field">
-        <label>Descripción</label>
-        <textarea id="t-desc" rows="2" placeholder="Detalles opcionales…"></textarea>
-      </div>
-      <div class="field">
-        <label>Fecha límite (opcional)</label>
-        <input type="date" id="t-fecha">
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-tarea')">Cancelar</button>
-        <button class="btn btn-primary w-full" id="btn-guardar-tarea" onclick="guardarTarea()">Guardar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Confirmar eliminar tarea ===== -->
-  <div class="overlay" id="overlay-confirmar-tarea">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div style="text-align:center;padding:8px 0 16px">
-        <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
-        <div class="sheet-title" style="margin-bottom:8px">¿Eliminar tarea?</div>
-        <div class="fw-700" id="confirmar-tarea-titulo" style="font-size:1rem;margin-bottom:4px"></div>
-        <div class="text-2 mt-8">Esta acción no se puede deshacer.</div>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-tarea')">Cancelar</button>
-        <button class="btn btn-danger w-full" onclick="confirmarEliminarTarea()">Sí, eliminar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Historial de tarea ===== -->
-  <div class="overlay" id="overlay-historial-tarea">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title" id="historial-tarea-titulo">Historial</div>
-      <div id="historial-tarea-contenido">
-        <div class="empty"><div class="empty-icon">⏳</div></div>
-      </div>
-      <button class="btn btn-secundario w-full mt-16" onclick="cerrarSheet('overlay-historial-tarea')">Cerrar</button>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Nota del día ===== -->
-  <div class="overlay" id="overlay-nota">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">📝 Nota del día</div>
-      <div style="font-size:.85rem;color:var(--texto-2);margin-bottom:12px" id="nota-fecha-label"></div>
-      <div class="field">
-        <label>¿Qué pasó hoy?</label>
-        <textarea id="nota-texto" rows="5" placeholder="Ej: Llegaron 3 obreros, se colocaron vigas del segundo piso. Faltó el proveedor de varilla. Clima soleado…"></textarea>
-      </div>
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-nota')">Cancelar</button>
-        <button class="btn btn-primary w-full" id="btn-guardar-nota" onclick="guardarNota()">Guardar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: FAB Progreso ===== -->
-  <div class="overlay" id="overlay-fab-progreso">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title" style="margin-bottom:16px">¿Qué quieres agregar?</div>
-      <div class="row" style="gap:10px">
-        <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
-          onclick="cerrarSheet('overlay-fab-progreso');setTimeout(()=>{document.getElementById('p-fecha').value=todayISO();document.getElementById('p-etapa').value='';document.getElementById('p-foto').value='';document.getElementById('p-foto-preview').style.display='none';abrirSheet('overlay-progreso');},200)"
-          📷<span>Foto</span>
-        </button>
-        <button class="btn btn-secundario w-full" style="flex-direction:column;gap:6px;height:80px;font-size:.9rem"
-          onclick="cerrarSheet('overlay-fab-progreso');abrirNotaDia(todayISO(), null, '')">
-          📝<span>Nota del día</span>
-        </button>
-      </div>
-      <button class="btn btn-secundario w-full mt-8" onclick="cerrarSheet('overlay-fab-progreso')">Cancelar</button>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Suma selección ===== -->
-  <div class="overlay" id="overlay-suma">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">Σ Suma de seleccionados</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
-        <div class="stat-card" style="text-align:center">
-          <div class="stat-label">Gastos</div>
-          <div class="stat-valor" id="confirmar-suma-n">0</div>
+        <div id="bulk-valor-wrap" style="display:none">
+          <!-- Se llena dinámicamente -->
         </div>
-        <div class="stat-card" style="text-align:center;grid-column:span 2">
-          <div class="stat-label">Total</div>
-          <div class="stat-valor" id="confirmar-suma-total" style="color:var(--amarillo)">—</div>
+
+        <div class="row mt-16" style="gap:10px">
+          <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-edicion-masiva')">Cancelar</button>
+          <button class="btn btn-primary w-full" id="btn-bulk-guardar" onclick="guardarEdicionMasiva()">Aplicar</button>
         </div>
-        <div class="stat-card" style="text-align:center;grid-column:span 3">
-          <div class="stat-label">Promedio por gasto</div>
-          <div class="stat-valor grande" id="confirmar-suma-prom">—</div>
-        </div>
-      </div>
-      <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-suma')">Cerrar</button>
-    </div>
-  </div>
-
-  <!-- ===== SHEET: Edición masiva ===== -->
-  <div class="overlay" id="overlay-edicion-masiva">
-    <div class="sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">✏️ Editar <span id="bulk-count">0</span> gastos</div>
-      <p class="text-2 mb-8">Elige qué campo editar. Se aplicará a todos los gastos seleccionados.</p>
-
-      <div class="field">
-        <label>Campo a editar</label>
-        <select id="bulk-campo" onchange="mostrarCampoBulk()">
-          <option value="">Selecciona un campo…</option>
-          <option value="proveedor">Proveedor</option>
-          <option value="categoria_id">Categoría</option>
-          <option value="fecha">Fecha</option>
-          <option value="notas">Notas</option>
-        </select>
-      </div>
-
-      <div id="bulk-valor-wrap" style="display:none">
-        <!-- Se llena dinámicamente -->
-      </div>
-
-      <div class="row mt-16" style="gap:10px">
-        <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-edicion-masiva')">Cancelar</button>
-        <button class="btn btn-primary w-full" id="btn-bulk-guardar" onclick="guardarEdicionMasiva()">Aplicar</button>
       </div>
     </div>
   </div>
@@ -714,4 +788,5 @@
   <script src="js/offline.js"></script>
   <script src="js/obra.js"></script>
 </body>
+
 </html>
