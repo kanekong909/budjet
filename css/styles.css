@@ -49,6 +49,7 @@ body {
   background: var(--gris-bg);
   color: var(--texto);
   min-height: 100dvh;
+  width: 480px;
   margin: 0;
   position: relative;
 }
