@@ -2,7 +2,6 @@ if (!requireAuth()) void 0;
 
 let obra = obraActual();
 if (!obra) window.location.href = 'dashboard.html';
-const esDesktop = () => window.innerWidth >= 768;
 
 let gastos = [], categorias = [], paginaActual = 1, totalPaginas = 1, sumaVisible = 0;
 let gastoDetalleActual = null;
