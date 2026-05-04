@@ -255,6 +255,8 @@ textarea {
   background: var(--gris-bg);
   border-radius: 10px;
   font-size: 1.1rem;
+}
+.btn-icon .setting {
   animation: rotate-slow 5s linear infinite;
 }
 @keyframes rotate-slow {
@@ -1192,6 +1194,13 @@ input[type="date"] {
     .header-title {
         font-size: 1.15rem;
     }
+
+    .total-bar {
+        bottom: 24px;          
+        width: 100%;          
+        max-width: 600px;      
+        padding: 14px 24px;    
+    }
 }
 
 /* ===================== DESKTOP ===================== */
@@ -1235,6 +1244,13 @@ input[type="date"] {
     .btn {
         padding: 16px 24px;
         font-size: 1.05rem;
+    }
+
+    .total-bar {
+        max-width: 680px;       
+        bottom: 32px;          
+        border-radius: 16px;   
+        box-shadow: 0 8px 30px rgba(0, 0, 0, .3); 
     }
 }
 
