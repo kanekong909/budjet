@@ -854,8 +854,9 @@ textarea {
 .obra-icon {
   width: 44px;
   height: 44px;
-  background: var(--gris-obra);
+  background: white;
   border-radius: 10px;
+  border: 2px solid black;
   display: flex;
   align-items: center;
   justify-content: center;
