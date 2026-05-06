@@ -865,6 +865,10 @@ textarea {
   flex-shrink: 0;
 }
 
+.obra-icon:hover {
+  background: rgb(35, 34, 34);
+}
+
 .obra-info {
   flex: 1;
   min-width: 0;
