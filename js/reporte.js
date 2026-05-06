@@ -41,7 +41,9 @@ async function generarReporte() {
         const barColor = porc > 100 ? '#ff3b30' : porc > 80 ? '#f5a623' : '#34c759';
 
         // Logo
-        const logoHtml = `<div class="logo-placeholder">🏗️</div>`;
+        const logoHtml = `<div class="logo-placeholder">
+            <img src="./assets/icons/obra-icon.svg" alt="Obra" style="width:24px;height:24px">
+          </div>`;
 
         // Gráfica
         const maxVal = Math.max(...cats.map(c => c.total), 1);
