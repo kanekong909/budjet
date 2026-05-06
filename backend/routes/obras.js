@@ -101,10 +101,16 @@ router.get('/:id/resumen', async (req, res) => {
     `, [req.params.id, req.params.id]);
 
     const [colaboradores] = await pool.query(`
-      SELECT u.id, u.nombre, u.email, ou.rol
+      SELECT 
+        u.id, 
+        u.nombre, 
+        u.email, 
+        ou.rol,
+        u.ultimo_acceso   -- ← Agregar esta línea
       FROM usuarios u
       JOIN obra_usuarios ou ON ou.usuario_id = u.id
       WHERE ou.obra_id = ?
+      ORDER BY u.nombre ASC
     `, [req.params.id]);
 
     const [totales] = await pool.query(`
@@ -137,9 +143,16 @@ router.get('/:id/resumen', async (req, res) => {
 router.get('/:id/colaboradores', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT u.id, u.nombre, u.email, ou.rol
-      FROM usuarios u JOIN obra_usuarios ou ON ou.usuario_id = u.id
+      SELECT 
+        u.id, 
+        u.nombre, 
+        u.email, 
+        ou.rol,
+        u.ultimo_acceso     -- ← Agregar esta línea
+      FROM usuarios u 
+      JOIN obra_usuarios ou ON ou.usuario_id = u.id
       WHERE ou.obra_id = ?
+      ORDER BY u.nombre ASC
     `, [req.params.id]);
     res.json(rows);
   } catch (err) {

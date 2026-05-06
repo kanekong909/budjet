@@ -531,31 +531,57 @@ function renderSemanal(s) {
       `;
 }
 
+function formatearUltimoAcceso(fecha) {
+  if (!fecha) return 'Nunca';
+
+  const ahora = new Date();
+  const ultimo = new Date(fecha);
+  const diffMs = ahora - ultimo;
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 5) return 'Ahora mismo';
+  if (diffMin < 60) return `hace ${diffMin} min`;
+
+  const diffHoras = Math.floor(diffMin / 60);
+  if (diffHoras < 24) return `hace ${diffHoras} h`;
+
+  const diffDias = Math.floor(diffHoras / 24);
+  if (diffDias === 1) return 'ayer';
+  if (diffDias < 7) return `hace ${diffDias} días`;
+
+  return ultimo.toLocaleDateString('es-CO', { 
+    day: 'numeric', 
+    month: 'short' 
+  });
+}
+
 // ── Equipo ──
 async function cargarColaboradores() {
     const colabs = await api.get(`/api/obras/${obra.id}/colaboradores`);
     document.getElementById('colaboradores-lista').innerHTML = colabs.map(c => `
         <div class="colab-item" data-id="${c.id}">
             <div class="colab-header">
-                <div class="colab-avatar">
+            <div class="colab-avatar">
                 ${c.nombre.charAt(0).toUpperCase()}
-                </div>
-                <div class="colab-info">
+            </div>
+            <div class="colab-info">
                 <div class="colab-nombre">${c.nombre}</div>
                 <div class="colab-email">${c.email}</div>
-                </div>
-                <div class="colab-rol">
+            </div>
+            <div class="colab-rol">
                 <span class="badge-rol badge-${c.rol}">
-                    ${c.rol === 'admin' ? 'ADMIN' : 'COLABORADOR'}
+                ${c.rol === 'admin' ? 'ADMIN' : 'COLABORADOR'}
                 </span>
-                </div>
+            </div>
             </div>
             
-            <!-- Opcional: información adicional -->
-            <!-- <div class="colab-meta">
-                <span class="colab-status">● Activo</span>
-            </div> -->
-            </div>
+            ${c.ultimo_acceso ? `
+            <div class="colab-meta">
+            <span class="colab-ultimo">
+                Activo ${formatearUltimoAcceso(c.ultimo_acceso)}
+            </span>
+            </div>` : ''}
+        </div>
       `).join('');
 }
 

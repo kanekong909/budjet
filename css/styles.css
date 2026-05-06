@@ -1065,6 +1065,20 @@ textarea {
   transform: translateX(4px);
 }
 
+.colab-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--texto-3);
+  padding-left: 60px;
+  margin-top: 6px;
+}
+
+.colab-ultimo {
+  font-style: italic;
+}
+
 /* ---- Utilidades ---- */
 .row {
   display: flex;
