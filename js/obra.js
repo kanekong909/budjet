@@ -578,10 +578,10 @@ function renderCategorias() {
           ${c.tipo === 'ingreso' ? '<span style="font-size:.68rem;font-weight:700;color:var(--verde);background:#f0fdf4;padding:2px 6px;border-radius:10px">Ingreso</span>' : ''}
           ${c.es_global ? '<span class="text-2" style="font-size:.72rem">Global</span>' : ''}
           <button onclick="abrirEditarCategoria(${c.id})" style="width:28px;height:28px;background:var(--gris-bg);border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem">
-            <img src="/assets/icons/ed.svg" alt="Editar">
+            <img src="./assets/icons/ed.svg" alt="Editar">
           </button>
           ${!c.es_global ? `<button onclick="pedirEliminarCategoria(${c.id},'${c.nombre.replace(/'/g,"\\'")}' )" style="width:28px;height:28px;background:#fff0ef;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem">
-            <img src="/assets/icons/trash.svg" alt="Eliminar">
+            <img src="./assets/icons/trash.svg" alt="Eliminar">
           </button>` : ''}
         </div>
     `).join('');
