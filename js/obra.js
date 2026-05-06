@@ -535,14 +535,27 @@ function renderSemanal(s) {
 async function cargarColaboradores() {
     const colabs = await api.get(`/api/obras/${obra.id}/colaboradores`);
     document.getElementById('colaboradores-lista').innerHTML = colabs.map(c => `
-        <div class="colab-item">
-          <div class="colab-avatar">${c.nombre.charAt(0).toUpperCase()}</div>
-          <div style="flex:1">
-            <div class="fw-700" style="font-size:.9rem">${c.nombre}</div>
-            <div class="text-2">${c.email}</div>
-          </div>
-          <span class="badge-rol badge-${c.rol}">${c.rol}</span>
-        </div>
+        <div class="colab-item" data-id="${c.id}">
+            <div class="colab-header">
+                <div class="colab-avatar">
+                ${c.nombre.charAt(0).toUpperCase()}
+                </div>
+                <div class="colab-info">
+                <div class="colab-nombre">${c.nombre}</div>
+                <div class="colab-email">${c.email}</div>
+                </div>
+                <div class="colab-rol">
+                <span class="badge-rol badge-${c.rol}">
+                    ${c.rol === 'admin' ? 'ADMIN' : 'COLABORADOR'}
+                </span>
+                </div>
+            </div>
+            
+            <!-- Opcional: información adicional -->
+            <!-- <div class="colab-meta">
+                <span class="colab-status">● Activo</span>
+            </div> -->
+            </div>
       `).join('');
 }
 

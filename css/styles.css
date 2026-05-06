@@ -968,19 +968,35 @@ textarea {
 }
 
 /* ---- Colaboradores ---- */
+/* ====================== COLABORADORES MEJORADO ====================== */
 .colab-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--gris-linea);
+  transition: all 0.25s ease;
+}
+
+.colab-item:last-child {
+  border-bottom: none;
+}
+
+.colab-item:active {
+  background: var(--gris-bg);
+  border-radius: 12px;
+  margin: 0 -16px;
+  padding: 16px;
+}
+
+/* Header del colaborador */
+.colab-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .colab-avatar {
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
   border-radius: 50%;
   background: var(--gris-obra);
   color: var(--amarillo);
@@ -988,26 +1004,65 @@ textarea {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: .85rem;
+  font-size: 1.25rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  border: 3px solid #fff;
+}
+
+/* Información */
+.colab-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.colab-nombre {
+  font-weight: 600;
+  font-size: 1.02rem;
+  line-height: 1.3;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.colab-email {
+  font-size: 0.84rem;
+  color: var(--texto-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rol */
+.colab-rol {
   flex-shrink: 0;
+  align-self: center;
 }
 
 .badge-rol {
-  font-size: .7rem;
+  font-size: 0.73rem;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 5px 11px;
   border-radius: 20px;
   text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
 }
 
 .badge-admin {
-  background: rgba(245, 166, 35, .15);
+  background: rgba(245, 166, 35, 0.20);
   color: var(--amarillo-dark);
 }
 
 .badge-colaborador {
   background: var(--gris-bg);
   color: var(--texto-2);
+}
+
+/* Efecto hover/tap más suave */
+.colab-item:hover,
+.colab-item:active {
+  transform: translateX(4px);
 }
 
 /* ---- Utilidades ---- */
