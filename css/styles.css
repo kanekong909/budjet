@@ -841,6 +841,7 @@ textarea {
   padding: 16px;
   box-shadow: var(--sombra);
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 14px;
   cursor: pointer;
