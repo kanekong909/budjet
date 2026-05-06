@@ -29,7 +29,9 @@ function renderObras() {
     }
     container.innerHTML = obras.map(o => `
     <div class="obra-list-item" onclick="abrirObra(${o.id})">
-        <div class="obra-icon">🏗️</div>
+        <div class="obra-icon">
+            <img src="./assets/icons/obra-icon.svg" alt="Obra" style="width:24px;height:24px">
+        </div>
         <div class="obra-info">
         <div class="obra-info-nombre">${o.nombre}</div>
         <div class="obra-info-meta">${o.ubicacion || 'Sin ubicación'} · ${o.total_gastos_count} gastos${o.tareas_pendientes > 0 ? ` · <span style="color:var(--rojo);font-weight:700">⚠️ ${o.tareas_pendientes} tarea${o.tareas_pendientes > 1 ? 's' : ''} pendiente${o.tareas_pendientes > 1 ? 's' : ''}</span>` : ''}</div>
