@@ -225,6 +225,7 @@ textarea {
 .btn-secundario {
   background: var(--gris-bg);
   color: var(--texto);
+  border: 1.5px solid gray;
 }
 
 .btn-secundario:hover {
@@ -261,6 +262,17 @@ textarea {
   background: var(--gris-bg);
   border-radius: 10px;
   font-size: 1.1rem;
+}
+.back-btn-delete {
+  /* background: var(--rojo); */
+  border-radius: 20px;
+}
+.back-btn-delete:hover {
+  background: rgba(165, 163, 163, 0.164);
+}
+.btn-eliminar-obra {
+  width: 20px;
+  color: white;
 }
 .btn-icon .setting {
   animation: rotate-slow 5s linear infinite;
@@ -418,6 +430,7 @@ textarea {
   font-size: .8rem;
   color: var(--gris-4);
 }
+
 
 .obra-badge {
   display: inline-flex;

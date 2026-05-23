@@ -37,10 +37,20 @@ function renderObras() {
         <div class="obra-info-meta">${o.ubicacion || 'Sin ubicación'} · ${o.total_gastos_count} gastos${o.tareas_pendientes > 0 ? ` · <span style="color:var(--rojo);font-weight:700">⚠️ ${o.tareas_pendientes} tarea${o.tareas_pendientes > 1 ? 's' : ''} pendiente${o.tareas_pendientes > 1 ? 's' : ''}</span>` : ''}</div>
         <div class="obra-info-total">${formatMoney(o.total_gastado)}</div>
         </div>
-        <button onclick="event.stopPropagation();pedirEliminarObra(${o.id},'${o.nombre.replace(/'/g, "\\\'")}')" 
-        style="background:none;border:none;padding:8px;color:var(--texto-3);font-size:1.1rem;cursor:pointer">
-            <img src="./assets/icons/trash.svg" alt="Eliminar" style="width:16px;height:16px">
-        </button>
+        <div class="back-btn-delete">
+            <button 
+                onclick="event.stopPropagation();
+                pedirEliminarObra(${o.id},'${o.nombre.replace(/'/g, "\\\'")}')" 
+                style="background:none;border:none;padding:8px;color:var(--texto-3);font-size:1.1rem;cursor:pointer"
+                >
+                    <img 
+                        src="./assets/icons/trash.svg" 
+                        alt="Eliminar" 
+                        class="btn-eliminar-obra"
+                    >
+            </button>
+        </div>
+        
     </div>
     `).join('');
 }
