@@ -244,8 +244,14 @@ textarea {
 }
 
 .btn-sm {
-  padding: 8px 14px;
-  font-size: .85rem;
+  padding: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  border: 1px solid rgba(193, 183, 183, 0.58);
+}
+.btn-sm:hover {
+  background: black;
+  color: white
 }
 
 .btn-icon {
@@ -315,7 +321,7 @@ textarea {
   font-size: 1rem;
   font-weight: 600;
   flex: 1;
-  text-align: center;
+  text-align: start;
   padding: 0 12px;
   white-space: nowrap;
   overflow: hidden;
