@@ -37,28 +37,119 @@ function mostrarTab(tab) {
     });
 });
 
-// ── Categorías ──
+// ==============================
+// ── Categorías Mejoradas ──
+// ==============================
 async function cargarCategorias() {
-    categorias = await api.get(`/api/gastos/categorias?obra_id=${obra.id}`);
-    renderSelectorCategorias([]);
+    try {
+        categorias = await api.get(`/api/gastos/categorias?obra_id=${obra.id}`);
+        renderSelectorCategorias([]);
 
-    const filtros = document.getElementById('filtros-cat');
-    filtros.innerHTML = `<div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this,'')">Todos</div>` +
-        categorias.map(c => `<div class="filtro-chip" data-cat="${c.id}" onclick="filtrarCategoria(this,'${c.id}')" style="border-left:3px solid ${c.color}">${c.nombre}</div>`).join('');
+        // Renderizamos los chips SIN conteos (temporalmente en 0)
+        const filtros = document.getElementById('filtros-cat');
+        filtros.innerHTML = `
+            <div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this, '')">
+                <span class="chip-icon">📋</span>
+                <span>Todos</span>
+                <span class="chip-count">0</span>
+            </div>
+            ${categorias.map(c => `
+                <div class="filtro-chip" data-cat="${c.id}" data-color="${c.color}" onclick="filtrarCategoria(this, '${c.id}')">
+                    <span class="chip-color-dot" style="background: ${c.color}"></span>
+                    <span class="chip-name">${escapeHtml(c.nombre)}</span>
+                    <span class="chip-count">0</span>
+                </div>
+            `).join('')}
+        `;
+        
+    } catch (error) {
+        console.error('Error cargando categorías:', error);
+        // Fallback al método original si hay error
+        const filtros = document.getElementById('filtros-cat');
+        filtros.innerHTML = `<div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this,'')">Todos</div>` +
+            categorias.map(c => `<div class="filtro-chip" data-cat="${c.id}" onclick="filtrarCategoria(this,'${c.id}')" style="border-left:3px solid ${c.color}">${c.nombre}</div>`).join('');
+    }
 }
-
+// NUEVA FUNCIÓN: Actualizar conteos después de cargar gastos
+function actualizarConteosCategorias() {
+    // Usar la variable global gastos_sin_filtro si existe, o recargar desde API
+    if (!window.todosLosGastos && gastos) {
+        window.todosLosGastos = [...gastos];
+    }
+    
+    const gastosParaConteo = window.todosLosGastos || gastos;
+    
+    if (!gastosParaConteo || !gastosParaConteo.length) {
+        document.querySelectorAll('#filtros-cat .filtro-chip .chip-count').forEach(count => {
+            count.textContent = '0';
+        });
+        return;
+    }
+    
+    const conteos = { total: gastosParaConteo.length };
+    
+    gastosParaConteo.forEach(gasto => {
+        if (gasto.categorias && gasto.categorias.length > 0) {
+            gasto.categorias.forEach(cat => {
+                if (cat.id) {
+                    conteos[cat.id] = (conteos[cat.id] || 0) + 1;
+                }
+            });
+        }
+    });
+    
+    document.querySelectorAll('#filtros-cat .filtro-chip').forEach(chip => {
+        const catId = chip.dataset.cat;
+        const countSpan = chip.querySelector('.chip-count');
+        if (countSpan) {
+            const count = catId === '' ? conteos.total : (conteos[catId] || 0);
+            countSpan.textContent = count;
+        }
+    });
+}
 function filtrarCategoria(el, catId) {
+    // Actualizar estado visual
     document.querySelectorAll('#filtros-cat .filtro-chip').forEach(e => e.classList.remove('active'));
     el.classList.add('active');
+    
+    // Actualizar filtro
     catFiltro = catId;
     paginaActual = 1;
+    
+    // Animar el cambio
+    animateFilterChange();
+    
+    // Recargar gastos
     cargarGastos();
 }
-
 function filtrarBusqueda() {
     busqFiltro = document.getElementById('busqueda').value.toLowerCase();
-    document.getElementById('btn-limpiar-busqueda').style.display = busqFiltro ? 'block' : 'none';
+    const btnLimpiar = document.getElementById('btn-limpiar-busqueda');
+    
+    if (btnLimpiar) {
+        btnLimpiar.style.display = busqFiltro ? 'flex' : 'none';
+    }
+    
+    paginaActual = 1;
     renderGastos();
+}
+// Animación al cambiar filtro
+function animateFilterChange() {
+    const container = document.querySelector('.gastos-container');
+    if (container) {
+        container.style.opacity = '0.5';
+        container.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => {
+            container.style.opacity = '1';
+        }, 200);
+    }
+}
+// Escape HTML para seguridad
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ── Gastos ──
@@ -81,11 +172,18 @@ async function cargarGastos() {
             totalPaginas = 1;
             document.getElementById('total-visible').textContent = formatMoney(sumaVisible);
             renderGastos();
+            actualizarConteosCategorias();
             showToast('📵 Mostrando datos guardados', 'ok');
             return;
         }
         const data = await api.get(url);
         gastos = data.gastos;
+
+        // GUARDAR TODOS LOS GASTOS SIN FILTRO (solo la primera vez o cuando no hay filtro)
+        if (!catFiltro && !busqFiltro) {
+            window.todosLosGastos = [...data.gastos];
+        }
+
         totalPaginas = data.paginas;
         sumaVisible = data.suma;
         // Cachear para uso offline
@@ -102,6 +200,7 @@ async function cargarGastos() {
         }
         renderGastos();
         renderPaginacion(data.total, data.paginas);
+        actualizarConteosCategorias();
     } catch (err) {
         showToast('Error cargando gastos', 'error');
     }
@@ -121,6 +220,7 @@ function renderGastos() {
     }
     if (!filtrados.length) {
         lista.innerHTML = `<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><div class="empty-msg">Sin gastos${busqFiltro ? ' para "' + busqFiltro + '"' : ''}</div></div>`;
+        actualizarConteosCategorias();
         return;
     }
 
@@ -151,6 +251,8 @@ function renderGastos() {
         const suma = filtrados.reduce((s, g) => s + parseFloat(g.monto), 0);
         document.getElementById('total-visible').textContent = formatMoney(suma);
     }
+
+    actualizarConteosCategorias();
 }
 
 function renderPaginacion(total, paginas) {

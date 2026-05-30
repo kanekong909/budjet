@@ -250,6 +250,7 @@ textarea {
   font-size: 13px;
   border: 1px solid rgba(193, 183, 183, 0.58);
 }
+
 .btn-sm:hover {
   background: black;
   color: white
@@ -263,24 +264,30 @@ textarea {
   border-radius: 10px;
   font-size: 1.1rem;
 }
+
 .back-btn-delete {
   /* background: var(--rojo); */
   border-radius: 20px;
 }
+
 .back-btn-delete:hover {
   background: rgba(165, 163, 163, 0.164);
 }
+
 .btn-eliminar-obra {
   width: 20px;
   color: white;
 }
+
 .btn-icon .setting {
   animation: rotate-slow 5s linear infinite;
 }
+
 @keyframes rotate-slow {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -596,6 +603,401 @@ textarea {
     transform: scale(1.03);
   }
 }
+
+/* ============================ */
+/* CHIPS NAVS */
+/* Contenedor principal */
+.nav-tabs-container {
+  background: var(--gris-obra, #f8f9fa);
+  border-bottom: 1px solid #e9ecef;
+  position: relative;
+}
+/* Scroll container */
+.nav-tabs-scroll {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 12px 20px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+/* Ocultar scrollbar pero mantener funcionalidad en Chrome/Safari */
+.nav-tabs-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+.nav-tabs-scroll::-webkit-scrollbar-track {
+  background: #e9ecef;
+  border-radius: 10px;
+}
+.nav-tabs-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+/* Estilos base de los tabs */
+.filtro-chip-navs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+}
+/* Iconos dentro de los tabs */
+.tab-icon {
+  width: 20px;
+  height: 20px;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+/* Hover effect */
+.filtro-chip-navs:hover {
+  background: #f1f3f5;
+  color: #2d3748;
+}
+.filtro-chip-navs:hover .tab-icon {
+  opacity: 0.8;
+}
+/* Active tab state - Versión neutra y elegante */
+.filtro-chip-navs.active {
+  background: #ffffff;
+  color: #1a202c;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+}
+.filtro-chip-navs.active .tab-icon {
+  opacity: 0.9;
+}
+/* Badge de tareas */
+.badge-tareas {
+  background: #ef4444;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  margin-left: 6px;
+  min-width: 20px;
+  text-align: center;
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-tabs-scroll {
+    padding: 0 16px 10px 16px;
+    gap: 6px;
+  }
+
+  .filtro-chip-navs {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    gap: 8px;
+  }
+
+  /* Iconos más grandes que el texto en mobile */
+  .tab-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .badge-tareas {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    min-width: 18px;
+  }
+}
+@media (max-width: 480px) {
+  .filtro-chip-navs {
+    padding: 7px 14px;
+    font-size: 0.85rem;
+  }
+
+  /* Iconos aún más grandes en mobile pequeño */
+  .tab-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+/* Pantallas grandes: iconos normales */
+@media (min-width: 1280px) {
+  .filtro-chip-navs {
+    padding: 10px 24px;
+    font-size: 1rem;
+  }
+
+  .tab-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+/* Efecto sutil al hacer clic */
+.filtro-chip-navs:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
+/* Focus styles for accessibility */
+.filtro-chip-navs:focus-visible {
+  outline: 2px solid #94a3b8;
+  outline-offset: 2px;
+}
+/* ============================ */
+/* CHIPS NAVS */
+/* ============================ */
+
+/* ============================ */
+/* FILTROS RAPIDOS */
+/* ============================ */
+/* Filtros wrapper y contenedor */
+.filtros-wrapper {
+  margin-bottom: 24px;
+  background: white;
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+}
+
+/* Header de filtros */
+.filtros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.filtros-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.filtros-clear {
+  background: transparent;
+  border: none;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.filtros-clear:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Contenedor scrollable de filtros */
+.filtros-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Estilo base de cada chip */
+.filtro-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto hover */
+.filtro-chip:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Punto de color para cada categoría */
+.chip-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Icono del chip */
+.chip-icon {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+/* Nombre de la categoría */
+.chip-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badge de conteo */
+.chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+/* Estado activo */
+.filtro-chip.active {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filtro-chip.active .chip-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.filtro-chip.active .chip-icon {
+  opacity: 1;
+}
+
+.filtro-chip.active .chip-color-dot {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Efecto ripple al hacer clic */
+.filtro-chip:active {
+  transform: scale(0.96);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filtros-wrapper {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+  
+  .filtros-header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+  
+  .filtros-label {
+    font-size: 0.75rem;
+  }
+  
+  .filtro-chip {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+  
+  .chip-name {
+    max-width: 100px;
+  }
+  
+  .chip-count {
+    min-width: 20px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
+  
+  .chip-color-dot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filtros-wrapper {
+    padding: 10px 12px;
+  }
+  
+  .filtro-chip {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .chip-name {
+    max-width: 80px;
+  }
+  
+  .chip-icon {
+    font-size: 0.85rem;
+  }
+}
+
+/* Scroll horizontal en móviles si hay muchas categorías */
+@media (max-width: 640px) {
+  .filtros-container {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .filtros-container::-webkit-scrollbar {
+    height: 3px;
+  }
+  
+  .filtros-container::-webkit-scrollbar-track {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  
+  .filtros-container::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 10px;
+  }
+}
+
+/* Animación de entrada */
+@keyframes chipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.filtro-chip {
+  animation: chipFadeIn 0.2s ease-out;
+}
+/* ============================ */
+/* FILTROS RAPIDOS */
+/* ============================ */
 
 /* Animación suave para el badge de Tareas */
 #badge-tareas {
@@ -928,34 +1330,217 @@ textarea {
   font-size: .9rem;
 }
 
-/* ---- Barra de búsqueda ---- */
+
+/* ==============================
+   BÚSQUEDA Y FILTROS DE FECHA
+   ============================== */
+
+/* Contenedor principal de búsqueda */
 .search-wrap {
   position: relative;
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-.search-wrap input {
-  width: 100%;
-  padding: 11px 14px 11px 38px;
-  border: 1.5px solid var(--gris-linea);
-  border-radius: var(--radio-sm);
-  font-size: .9rem;
-  background: var(--blanco);
+.search-wrap:focus-within {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
 }
-
-.search-wrap input:focus {
-  outline: none;
-  border-color: var(--amarillo);
-}
-
+/* Icono de búsqueda */
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--texto-3);
-  font-size: .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
+.search-wrap:focus-within .search-icon {
+  opacity: 0.8;
+}
+/* Input de búsqueda */
+.search-wrap input {
+  width: 100%;
+  padding: 12px 36px 12px 42px;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #1e293b;
+  border-radius: 14px;
+  outline: none;
+}
+.search-wrap input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+/* Botón limpiar búsqueda */
+.search-wrap button {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f1f5f9;
+  border: none;
+  border-radius: 20px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+.search-wrap button:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+  transform: translateY(-50%) scale(1.05);
+}
+/* Contenedor de filtros de fecha */
+.filtros-fecha {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+/* Cada grupo de fecha (desde/hasta) */
+.fecha-group {
+  flex: 1;
+  min-width: 140px;
+  position: relative;
+}
+.fecha-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+/* Wrapper para input + botón limpiar */
+.fecha-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.fecha-input-wrap input {
+  width: 100%;
+  padding: 10px 32px 10px 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: #1e293b;
+  transition: all 0.2s ease;
+}
+.fecha-input-wrap input:focus {
+  outline: none;
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+}
+/* Botón limpiar fecha */
+.btn-limpiar-fecha {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f1f5f9;
+  border: none;
+  border-radius: 16px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+.btn-limpiar-fecha:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+/* Fila de filtros (búsqueda + fechas juntos) */
+.filtros-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.filtros-row .search-wrap {
+  flex: 2;
+  min-width: 200px;
+}
+.filtros-row .filtros-fecha {
+  flex: 3;
+  margin-bottom: 0;
+}
+/* Responsive */
+@media (max-width: 768px) {
+  .filtros-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .filtros-row .search-wrap {
+    width: 100%;
+  }
+  
+  .filtros-row .filtros-fecha {
+    width: 100%;
+  }
+  
+  .fecha-group {
+    min-width: calc(50% - 6px);
+  }
+  
+  .search-wrap input {
+    padding: 10px 36px 10px 40px;
+    font-size: 0.85rem;
+  }
+  
+  .search-icon {
+    left: 12px;
+  }
+  
+  .search-icon img {
+    width: 14px;
+    height: 14px;
+  }
+}
+@media (max-width: 480px) {
+  .filtros-fecha {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .fecha-group {
+    width: 100%;
+  }
+  
+  .search-wrap input {
+    padding: 9px 34px 9px 38px;
+  }
+}
+/* ==============================
+   BÚSQUEDA Y FILTROS DE FECHA
+   ============================== */
 
 /* ---- Foto preview ---- */
 .foto-preview {
@@ -1244,159 +1829,162 @@ input[type="date"] {
 
 /* ===================== TABLET ===================== */
 @media (min-width: 768px) {
-    
-    body {
-        max-width: 720px;           /* Ancho para tablets */
-    }
 
-    .main {
-        padding: 24px 24px 100px;
-    }
+  body {
+    max-width: 720px;
+    /* Ancho para tablets */
+  }
 
-    .obras-grid {
-        gap: 16px;
-    }
+  .main {
+    padding: 24px 24px 100px;
+  }
 
-    .obra-list-item {
-        padding: 20px;
-        gap: 18px;
-    }
+  .obras-grid {
+    gap: 16px;
+  }
 
-    .obra-icon {
-        width: 56px;
-        height: 56px;
-        font-size: 1.5rem;
-    }
+  .obra-list-item {
+    padding: 20px;
+    gap: 18px;
+  }
 
-    .sheet {
-        max-width: 600px;
-        border-radius: 24px;
-        margin: 20px auto;
-        max-height: 90dvh;
-    }
+  .obra-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
 
-    .nav-bottom {
-        display: none; /* Ocultamos nav inferior en tablet+ */
-    }
+  .sheet {
+    max-width: 600px;
+    border-radius: 24px;
+    margin: 20px auto;
+    max-height: 90dvh;
+  }
 
-    /* Header más amplio */
-    .header {
-        padding: 18px 28px 16px;
-    }
+  .nav-bottom {
+    display: none;
+    /* Ocultamos nav inferior en tablet+ */
+  }
 
-    .header-title {
-        font-size: 1.15rem;
-    }
+  /* Header más amplio */
+  .header {
+    padding: 18px 28px 16px;
+  }
 
-    .total-bar {
-        bottom: 24px;          
-        width: 100%;          
-        max-width: 600px;      
-        padding: 14px 24px;    
-    }
+  .header-title {
+    font-size: 1.15rem;
+  }
 
-    .btn-fab {
-        bottom: 32px; 
-        right: calc(50% - 340px); 
-    }
+  .total-bar {
+    bottom: 24px;
+    width: 100%;
+    max-width: 600px;
+    padding: 14px 24px;
+  }
+
+  .btn-fab {
+    bottom: 32px;
+    right: calc(50% - 340px);
+  }
 }
 
 /* ===================== DESKTOP ===================== */
 @media (min-width: 1024px) {
-    
-    body {
-        max-width: 960px;
-    }
 
-    .main {
-        padding: 32px 40px 80px;
-    }
+  body {
+    max-width: 960px;
+  }
 
-    .obras-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-        gap: 20px;
-    }
+  .main {
+    padding: 32px 40px 80px;
+  }
 
-    .obra-list-item {
-        transition: all .2s;
-    }
+  .obras-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+  }
 
-    .obra-list-item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-    }
+  .obra-list-item {
+    transition: all .2s;
+  }
 
-    .sheet {
-        max-width: 680px;
-    }
+  .obra-list-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  }
 
-    /* Mejorar inputs y botones en desktop */
-    .field input,
-    .field textarea,
-    .field select {
-        font-size: 1.05rem;
-        padding: 14px 16px;
-    }
+  .sheet {
+    max-width: 680px;
+  }
 
-    .btn {
-        padding: 16px 24px;
-        font-size: 1.05rem;
-    }
+  /* Mejorar inputs y botones en desktop */
+  .field input,
+  .field textarea,
+  .field select {
+    font-size: 1.05rem;
+    padding: 14px 16px;
+  }
 
-    .total-bar {
-        max-width: 680px;       
-        bottom: 32px;          
-        border-radius: 16px;   
-        box-shadow: 0 8px 30px rgba(0, 0, 0, .3); 
-    }
+  .btn {
+    padding: 16px 24px;
+    font-size: 1.05rem;
+  }
 
-    .btn-fab {
-        bottom: 40px;
-        right: calc(50% - 460px); 
-        width: 64px;  
-        height: 64px;
-        cursor: pointer;
-    }
+  .total-bar {
+    max-width: 680px;
+    bottom: 32px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .3);
+  }
 
-    .btn-fab:hover {
-        transform: scale(1.1); /* Efecto feedback al pasar el mouse */
-    }
+  .btn-fab {
+    bottom: 40px;
+    right: calc(50% - 460px);
+    width: 64px;
+    height: 64px;
+    cursor: pointer;
+  }
+
+  .btn-fab:hover {
+    transform: scale(1.1);
+    /* Efecto feedback al pasar el mouse */
+  }
 }
 
 /* ===================== ULTRA WIDE (Opcional) ===================== */
 @media (min-width: 1400px) {
-    body {
-        max-width: 1200px;
-    }
-    
-    .obras-grid {
-        grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-    }
+  body {
+    max-width: 1200px;
+  }
+
+  .obras-grid {
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  }
 }
 
 .app-shell {
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    min-height: 100dvh;
-    background: var(--gris-bg);
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--gris-bg);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
-    .app-shell {
-        max-width: 720px;
-        border-radius: 20px;
-        margin: 20px auto;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    }
+  .app-shell {
+    max-width: 720px;
+    border-radius: 20px;
+    margin: 20px auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  }
 }
 
 @media (min-width: 1024px) {
-    .app-shell {
-        max-width: 960px;
-    }
+  .app-shell {
+    max-width: 960px;
+  }
 }

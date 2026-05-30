@@ -43,30 +43,30 @@
     </div>
 
     <!-- Nav tabs -->
-    <div
-      style="background:var(--gris-obra);padding:0 12px 12px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
-      <button class="filtro-chip active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">
-        <img src="./assets/icons/money.svg" alt="Gastos">
-        Gastos
-      </button>
-      <button class="filtro-chip" id="tab-btn-resumen" onclick="mostrarTab('resumen')">
-        <img src="./assets/icons/chart.svg" alt="Resumen">
-        Resumen
-      </button>
-      <button class="filtro-chip" id="tab-btn-equipo" onclick="mostrarTab('equipo')">
-        <img src="./assets/icons/team.svg" alt="Equipo">
-        Equipo
-      </button>
-      <button class="filtro-chip" id="tab-btn-progreso" onclick="mostrarTab('progreso')">
-        <img src="./assets/icons/cam.svg" alt="Progreso">
-        Progreso
-      </button>
-      <button class="filtro-chip" id="tab-btn-tareas" onclick="mostrarTab('tareas')">
-        <img src="./assets/icons/task.svg" alt="Tareas">
-        Tareas
-        <span id="badge-tareas"
-          style="display:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.7rem;font-weight:700;padding:1px 6px;margin-left:2px"></span>
-      </button>
+    <div class="nav-tabs-container">
+      <div class="nav-tabs-scroll">
+        <button class="filtro-chip-navs active" id="tab-btn-gastos" onclick="mostrarTab('gastos')">
+          <img src="./assets/icons/money.svg" alt="Gastos" class="tab-icon">
+          <span>Gastos</span>
+        </button>
+        <button class="filtro-chip-navs" id="tab-btn-resumen" onclick="mostrarTab('resumen')">
+          <img src="./assets/icons/chart.svg" alt="Resumen" class="tab-icon">
+          <span>Resumen</span>
+        </button>
+        <button class="filtro-chip-navs" id="tab-btn-equipo" onclick="mostrarTab('equipo')">
+          <img src="./assets/icons/team.svg" alt="Equipo" class="tab-icon">
+          <span>Equipo</span>
+        </button>
+        <button class="filtro-chip-navs" id="tab-btn-progreso" onclick="mostrarTab('progreso')">
+          <img src="./assets/icons/cam.svg" alt="Progreso" class="tab-icon">
+          <span>Progreso</span>
+        </button>
+        <button class="filtro-chip-navs" id="tab-btn-tareas" onclick="mostrarTab('tareas')">
+          <img src="./assets/icons/task.svg" alt="Tareas" class="tab-icon">
+          <span>Tareas</span>
+          <span id="badge-tareas" class="badge-tareas" style="display:none"></span>
+        </button>
+      </div>
     </div>
 
     <main class="main" style="padding-top:12px">
@@ -75,33 +75,47 @@
       <div id="tab-gastos" class="seccion activa">
 
         <!-- Filtros rápidos -->
-        <div class="filtros" id="filtros-cat">
-          <div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this, '')">Todos</div>
+        <div class="filtros-wrapper">
+          <div class="filtros-header">
+            <span class="filtros-label">📂 Filtrar por categoría</span>
+            <button class="filtros-clear" onclick="limpiarFiltros()" style="display: none;">Limpiar filtros</button>
+          </div>
+          <div class="filtros-container" id="filtros-cat">
+            <div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this, '')">
+              <span class="chip-icon">📋</span>
+              <span>Todos</span>
+              <span class="chip-count" id="total-count">0</span>
+            </div>
+          </div>
         </div>
 
         <!-- Búsqueda + fechas -->
-        <div class="search-wrap">
-          <span class="search-icon">
-            <img src="./assets/icons/search.svg" alt="Buscar" style="width:16px;height:16px">
-          </span>
-          <input type="text" id="busqueda" placeholder="Buscar gasto, proveedor…" oninput="filtrarBusqueda()">
-          <button id="btn-limpiar-busqueda" onclick="limpiarBusqueda()"
-            style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:1rem;cursor:pointer;padding:4px">✕</button>
-        </div>
-        <div class="row mb-8" style="gap:8px">
-          <div style="flex:1;position:relative">
-            <input type="date" id="fecha-desde"
-              style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px;color:var(--texto)"
-              oninput="cargarGastos();actualizarBtnFechas()">
-            <button id="btn-limpiar-desde" onclick="limpiarFecha('desde')"
-              style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
+        <div class="filtros-row">
+          <!-- Búsqueda -->
+          <div class="search-wrap">
+            <span class="search-icon">
+              <img src="./assets/icons/search.svg" alt="Buscar" style="width:16px;height:16px">
+            </span>
+            <input type="text" id="busqueda" placeholder="Buscar gasto, proveedor…" oninput="filtrarBusqueda()">
+            <button id="btn-limpiar-busqueda" onclick="limpiarBusqueda()" style="display:none">✕</button>
           </div>
-          <div style="flex:1;position:relative">
-            <input type="date" id="fecha-hasta"
-              style="width:100%;padding:9px;border:1.5px solid var(--gris-linea);border-radius:8px;font-size:.85rem;padding-right:28px;color:var(--texto)"
-              oninput="cargarGastos();actualizarBtnFechas()">
-            <button id="btn-limpiar-hasta" onclick="limpiarFecha('hasta')"
-              style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--texto-3);font-size:.85rem;cursor:pointer">✕</button>
+
+          <!-- Filtros de fecha -->
+          <div class="filtros-fecha">
+            <div class="fecha-group">
+              <label>DESDE</label>
+              <div class="fecha-input-wrap">
+                <input type="date" id="fecha-desde" onchange="cargarGastos()" oninput="actualizarBtnFechas()">
+                <button class="btn-limpiar-fecha" id="btn-limpiar-desde" onclick="limpiarFecha('desde')" style="display:none">✕</button>
+              </div>
+            </div>
+            <div class="fecha-group">
+              <label>HASTA</label>
+              <div class="fecha-input-wrap">
+                <input type="date" id="fecha-hasta" onchange="cargarGastos()" oninput="actualizarBtnFechas()">
+                <button class="btn-limpiar-fecha" id="btn-limpiar-hasta" onclick="limpiarFecha('hasta')" style="display:none">✕</button>
+              </div>
+            </div>
           </div>
         </div>
 
