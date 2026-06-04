@@ -243,7 +243,9 @@ function renderGastos() {
           <div class="gasto-cat-dot" style="background:${g.categorias?.[0]?.color || g.categoria_color || '#aeaeb2'}"></div>
           <div class="gasto-info">
             <div class="gasto-desc">${g._pendiente ? '💾 ' : ''}${g.descripcion}</div>
-            <div class="gasto-meta">${formatDate(g.fecha)} · ${g.categorias?.map(c => `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:2px"></span>${c.nombre}`).join(', ') || 'Sin cat.'} ${g.proveedor ? '· ' + g.proveedor : ''}</div>
+            <div class="gasto-meta">
+                ${formatDate(g.fecha)} · <br>${g.categorias?.map(c => `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.color};margin-right:2px"></span>${c.nombre}`).join(', ') || 'Sin cat.'} ${g.proveedor ? '· ' + g.proveedor : ''}
+            </div>
           </div>
           ${g.foto_url ? '<span class="gasto-foto">📷</span>' : ''}
           <div class="gasto-monto">${formatMoney(g.monto)}</div>
