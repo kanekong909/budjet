@@ -7,6 +7,17 @@ let gastos = [], categorias = [], paginaActual = 1, totalPaginas = 1, sumaVisibl
 let gastoDetalleActual = null;
 let catFiltro = '', busqFiltro = '';
 
+// Optimizar URL de Cloudinary para thumbnails y vista completa
+function cloudinaryOpt(url, tipo = 'thumb') {
+    if (!url || !url.includes('cloudinary.com')) return url;
+    const transforms = {
+        thumb: 'w_200,h_200,c_fill,f_auto,q_auto:low',
+        medium: 'w_800,h_800,c_limit,f_auto,q_auto:good',
+        full: 'w_1200,c_limit,f_auto,q_auto:good'
+    };
+    return url.replace('/upload/', `/upload/${transforms[tipo]}/`);
+}
+
 // ── Inicializar ──
 document.getElementById('header-obra-nombre').textContent = obra.nombre;
 document.getElementById('g-fecha').value = todayISO();
@@ -71,41 +82,39 @@ async function cargarCategorias() {
     }
 }
 // NUEVA FUNCIÓN: Actualizar conteos después de cargar gastos
-function actualizarConteosCategorias() {
-    // Usar la variable global gastos_sin_filtro si existe, o recargar desde API
-    if (!window.todosLosGastos && gastos) {
-        window.todosLosGastos = [...gastos];
-    }
-    
-    const gastosParaConteo = window.todosLosGastos || gastos;
-    
-    if (!gastosParaConteo || !gastosParaConteo.length) {
-        document.querySelectorAll('#filtros-cat .filtro-chip .chip-count').forEach(count => {
-            count.textContent = '0';
+async function actualizarConteosCategorias() {
+    try {
+        // Pedir todos los gastos sin límite solo para contar
+        const data = await api.get(`/api/gastos?obra_id=${obra.id}&limit=500`);
+        const todos = data.gastos || [];
+
+        const conteos = {};
+        let totalEgresos = 0;
+
+        todos.forEach(g => {
+            const esIngreso = g.categorias?.some(c => c.tipo === 'ingreso');
+            if (!esIngreso) totalEgresos++;
+
+            if (g.categorias?.length) {
+                g.categorias.forEach(c => {
+                    conteos[c.id] = (conteos[c.id] || 0) + 1;
+                });
+            }
         });
-        return;
+
+        document.querySelectorAll('#filtros-cat .filtro-chip').forEach(chip => {
+            const catId = chip.dataset.cat;
+            const countSpan = chip.querySelector('.chip-count');
+            if (!countSpan) return;
+            if (catId === '') {
+                countSpan.textContent = totalEgresos;
+            } else {
+                countSpan.textContent = conteos[parseInt(catId)] || 0;
+            }
+        });
+    } catch (err) {
+        // Silencioso — los conteos son opcionales
     }
-    
-    const conteos = { total: gastosParaConteo.length };
-    
-    gastosParaConteo.forEach(gasto => {
-        if (gasto.categorias && gasto.categorias.length > 0) {
-            gasto.categorias.forEach(cat => {
-                if (cat.id) {
-                    conteos[cat.id] = (conteos[cat.id] || 0) + 1;
-                }
-            });
-        }
-    });
-    
-    document.querySelectorAll('#filtros-cat .filtro-chip').forEach(chip => {
-        const catId = chip.dataset.cat;
-        const countSpan = chip.querySelector('.chip-count');
-        if (countSpan) {
-            const count = catId === '' ? conteos.total : (conteos[catId] || 0);
-            countSpan.textContent = count;
-        }
-    });
 }
 function filtrarCategoria(el, catId) {
     // Actualizar estado visual
@@ -178,11 +187,6 @@ async function cargarGastos() {
         }
         const data = await api.get(url);
         gastos = data.gastos;
-
-        // GUARDAR TODOS LOS GASTOS SIN FILTRO (solo la primera vez o cuando no hay filtro)
-        if (!catFiltro && !busqFiltro) {
-            window.todosLosGastos = [...data.gastos];
-        }
 
         totalPaginas = data.paginas;
         sumaVisible = data.suma;
@@ -990,7 +994,10 @@ function renderProgreso() {
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
                 ${fotosDia.map(f => `
                   <div onclick="verFotoProgreso(${f.id})" style="position:relative;cursor:pointer">
-                    <img src="${f.foto_url}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">
+                    <img src="${cloudinaryOpt(f.foto_url, 'thumb')}" 
+                        data-full="${cloudinaryOpt(f.foto_url, 'medium')}"
+                        style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px"
+                        loading="lazy">
                     ${f.etapa ? `<div style="position:absolute;bottom:4px;left:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;font-size:.6rem;font-weight:600;padding:2px 5px;border-radius:6px;text-align:center">${f.etapa}</div>` : ''}
                   </div>
                 `).join('')}
@@ -1024,7 +1031,11 @@ function renderCarrusel() {
     if (!f) return;
     fotoActual = f;
 
-    document.getElementById('carrusel-img').src = f.foto_url;
+    const img = document.getElementById('carrusel-img');
+    // Mostrar versión media primero (carga rápido), luego la full
+    img.src = cloudinaryOpt(f.foto_url, 'medium');
+    img.style.filter = 'blur(2px)';
+    img.onload = () => { img.style.filter = ''; img.style.transition = 'filter .3s'; };
     document.getElementById('carrusel-contador').textContent = `${carruselIndex + 1} / ${carruselFotos.length}`;
     document.getElementById('carrusel-fecha').textContent = formatDate(f.fecha);
     document.getElementById('carrusel-etapa').textContent = f.etapa || 'Sin etapa';
@@ -1038,7 +1049,7 @@ function renderCarrusel() {
 
     // Thumbnails
     document.getElementById('carrusel-thumbs').innerHTML = carruselFotos.map((f2, i) => `
-        <img onclick="carruselIrA(${i})" src="${f2.foto_url}"
+        <img onclick="carruselIrA(${i})" src="${cloudinaryOpt(f2.foto_url, 'thumb')}"
           style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer;
                  border:2px solid ${i === carruselIndex ? 'var(--amarillo)' : 'transparent'};
                  opacity:${i === carruselIndex ? '1' : '0.5'};transition:all .2s">
@@ -1050,6 +1061,13 @@ function renderCarrusel() {
         const active = thumbs.children[carruselIndex];
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }, 50);
+
+    [carruselIndex - 1, carruselIndex + 1].forEach(i => {
+        if (i >= 0 && i < carruselFotos.length) {
+            const pre = new Image();
+            pre.src = cloudinaryOpt(carruselFotos[i].foto_url, 'medium');
+        }
+    });
 }
 
 function carruselNavegar(dir) {

@@ -560,15 +560,20 @@
           <div style="color:white;font-size:.85rem;font-weight:600" id="carrusel-contador">1 / 1</div>
           <div style="display:flex;gap:8px">
             <button onclick="editarFotoProgreso()"
+              onmouseover="this.style.background='rgba(255,255,255,.3)'"
+              onmouseout="this.style.background='rgba(255,255,255,.15)'"
               style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
               <img src="./assets/icons/editar.svg" alt="Editar"
                 style="width:14px;vertical-align:middle;margin-right:4px">
               Editar
             </button>
+
             <button onclick="eliminarFotoProgreso()"
-              style="background:rgba(255,59,48,.7);border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
-              <img src="./assets/icons/delete.svg" alt="Eliminar"
-                style="width:14px;vertical-align:middle;margin-right:4px">
+              onmouseover="this.style.background='rgba(255,0,0,.2)'"
+              onmouseout="this.style.background='transparent'"
+              style="background:transparent;border:none;border-radius:20px;padding:6px 12px;color:white;font-size:.8rem;font-weight:600;cursor:pointer">
+              <img src="./assets/icons/trash.svg" alt="Eliminar"
+                style="width:14px;">
             </button>
           </div>
         </div>
