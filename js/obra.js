@@ -102,6 +102,7 @@ async function actualizarConteosCategorias() {
             }
         });
 
+        // Actualizar conteos
         document.querySelectorAll('#filtros-cat .filtro-chip').forEach(chip => {
             const catId = chip.dataset.cat;
             const countSpan = chip.querySelector('.chip-count');
@@ -112,6 +113,23 @@ async function actualizarConteosCategorias() {
                 countSpan.textContent = conteos[parseInt(catId)] || 0;
             }
         });
+
+        // Reordenar chips: primero "Todos", luego por cantidad descendente
+        const contenedor = document.getElementById('filtros-cat');
+        const chips = [...contenedor.querySelectorAll('.filtro-chip')];
+        const chipTodos = chips.find(c => c.dataset.cat === '');
+        const chipsCategoria = chips
+            .filter(c => c.dataset.cat !== '')
+            .sort((a, b) => {
+                const cA = parseInt(a.querySelector('.chip-count')?.textContent || '0');
+                const cB = parseInt(b.querySelector('.chip-count')?.textContent || '0');
+                return cB - cA; // descendente
+            });
+
+        // Limpiar y reinsertar en nuevo orden
+        contenedor.innerHTML = '';
+        if (chipTodos) contenedor.appendChild(chipTodos);
+        chipsCategoria.forEach(c => contenedor.appendChild(c));
     } catch (err) {
         // Silencioso — los conteos son opcionales
     }
