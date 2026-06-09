@@ -94,7 +94,7 @@ router.post('/invitar', require('../middleware/auth').authMiddleware, async (req
 });
 
 // PUT /api/auth/fondo — guardar URL de fondo
-router.put('/fondo', authMiddleware, async (req, res) => {
+router.put('/fondo', require('../middleware/auth').authMiddleware, async (req, res) => {
   try {
     const { fondo_url } = req.body;
     await pool.query('UPDATE usuarios SET fondo_url = ? WHERE id = ?', [fondo_url || null, req.usuario.id]);
@@ -105,7 +105,7 @@ router.put('/fondo', authMiddleware, async (req, res) => {
 });
 
 // GET /api/auth/perfil — obtener datos del usuario incluyendo fondo
-router.get('/perfil', authMiddleware, async (req, res) => {
+router.get('/perfil', require('../middleware/auth').authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT id, nombre, email, rol, fondo_url FROM usuarios WHERE id = ?', [req.usuario.id]);
     if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -118,7 +118,7 @@ router.get('/perfil', authMiddleware, async (req, res) => {
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
-router.post('/fondo-upload', authMiddleware, upload.single('foto'), async (req, res) => {
+router.post('/fondo-upload', require('../middleware/auth').authMiddleware, upload.single('foto'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No se recibió imagen' });
     if (!process.env.CLOUDINARY_API_KEY) return res.status(500).json({ error: 'Cloudinary no configurado' });
