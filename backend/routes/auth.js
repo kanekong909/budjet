@@ -93,4 +93,59 @@ router.post('/invitar', require('../middleware/auth').authMiddleware, async (req
   }
 });
 
+// PUT /api/auth/fondo — guardar URL de fondo
+router.put('/fondo', authMiddleware, async (req, res) => {
+  try {
+    const { fondo_url } = req.body;
+    await pool.query('UPDATE usuarios SET fondo_url = ? WHERE id = ?', [fondo_url || null, req.usuario.id]);
+    res.json({ mensaje: 'Fondo actualizado', fondo_url });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// GET /api/auth/perfil — obtener datos del usuario incluyendo fondo
+router.get('/perfil', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, nombre, email, rol, fondo_url FROM usuarios WHERE id = ?', [req.usuario.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
+
+router.post('/fondo-upload', authMiddleware, upload.single('foto'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No se recibió imagen' });
+    if (!process.env.CLOUDINARY_API_KEY) return res.status(500).json({ error: 'Cloudinary no configurado' });
+
+    const cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+
+    const url = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'trackob-fondos', resource_type: 'image', transformation: [{ width: 1920, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }] },
+        (error, result) => error ? reject(error) : resolve(result.secure_url)
+      );
+      stream.end(req.file.buffer);
+    });
+
+    // Guardar en BD también
+    await pool.query('UPDATE usuarios SET fondo_url = ? WHERE id = ?', [url, req.usuario.id]);
+
+    res.json({ url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error subiendo imagen' });
+  }
+});
+
 module.exports = router;

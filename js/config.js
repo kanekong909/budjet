@@ -120,11 +120,32 @@ function abrirSheet(id) {
 }
 
 // ── Fondo personalizable ──
-function aplicarFondoGuardado() {
-  const fondo = localStorage.getItem('og_fondo');
-  if (fondo) {
-    document.body.style.backgroundImage = `url(${fondo})`;
-    document.body.classList.add('con-fondo');
+function aplicarFondo(url) {
+  if (!url) return;
+  document.body.style.backgroundImage = `url(${url})`;
+  document.body.classList.add('con-fondo');
+  localStorage.setItem('og_fondo', url); // cache local para carga rápida
+}
+
+async function aplicarFondoGuardado() {
+  // 1. Aplicar cache local inmediatamente (sin esperar al servidor)
+  const fondoLocal = localStorage.getItem('og_fondo');
+  if (fondoLocal) aplicarFondo(fondoLocal);
+
+  // 2. Verificar con el servidor si hay uno más reciente
+  if (api.token()) {
+    try {
+      const perfil = await api.get('/api/auth/perfil');
+      if (perfil.fondo_url && perfil.fondo_url !== fondoLocal) {
+        aplicarFondo(perfil.fondo_url);
+      } else if (!perfil.fondo_url && fondoLocal) {
+        // El servidor no tiene fondo, usar el local
+        aplicarFondo(fondoLocal);
+      }
+    } catch (e) {
+      // Sin conexión — usar el local
+    }
   }
 }
+
 aplicarFondoGuardado();

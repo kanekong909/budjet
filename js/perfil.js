@@ -118,36 +118,89 @@ function renderGaleria() {
     }
 }
 
-function elegirWallpaper(url, idx) {
-    localStorage.setItem('og_fondo', url);
-    document.body.style.backgroundImage = `url(${url})`;
-    document.body.classList.add('con-fondo');
-    showToast('✓ Fondo aplicado');
-    renderGaleria();
+async function elegirWallpaper(url, idx) {
+    await guardarFondoUrl(url);
+}
+
+async function subirFondoCloudinary(blob, nombreArchivo) {
+    // Subir como FormData al backend que lo sube a Cloudinary
+    const fd = new FormData();
+    fd.append('foto', blob, nombreArchivo);
+    fd.append('carpeta', 'fondos');
+    const res = await fetch(`${API_URL}/api/auth/fondo-upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${api.token()}` },
+        body: fd
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error subiendo');
+    return data.url;
 }
 
 function subirFondoPropio(input) {
     const file = input.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-        return showToast('La imagen no puede superar 5MB', 'error');
-    }
+    if (file.size > 15 * 1024 * 1024) return showToast('Máximo 15MB', 'error');
+
+    showToast('⏳ Subiendo fondo…');
+
+    // Comprimir primero
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
     const reader = new FileReader();
+
     reader.onload = e => {
-        const url = e.target.result;
-        localStorage.setItem('og_fondo', url);
-        document.body.style.backgroundImage = `url(${url})`;
-        document.body.classList.add('con-fondo');
-        document.getElementById('fondo-preview-wrap').style.display = 'block';
-        document.getElementById('fondo-preview-img').src = url;
-        document.getElementById('btn-quitar-fondo').style.display = 'block';
-        showToast('✓ Fondo aplicado');
-        renderGaleria();
+        img.onload = async () => {
+            const maxW = 1920;
+            const ratio = Math.min(1, maxW / img.width);
+            canvas.width = img.width * ratio;
+            canvas.height = img.height * ratio;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(async (blob) => {
+                try {
+                    // Subir a Cloudinary via backend
+                    const url = await subirFondoCloudinary(blob, file.name);
+                    await guardarFondoUrl(url);
+                } catch (err) {
+                    // Fallback: guardar en localStorage si falla Cloudinary
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    guardarFondoLocal(dataUrl);
+                    showToast('Guardado localmente (sin Cloudinary)', 'ok');
+                }
+            }, 'image/jpeg', 0.85);
+        };
+        img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
 
-function quitarFondo() {
+async function guardarFondoUrl(url) {
+    // Guardar en servidor
+    try {
+        await api.put('/api/auth/fondo', { fondo_url: url });
+    } catch (e) {
+        showToast('Sin conexión, guardado solo localmente', 'ok');
+    }
+    // Aplicar localmente
+    guardarFondoLocal(url);
+    showToast('✓ Fondo aplicado');
+    renderGaleria();
+}
+
+function guardarFondoLocal(url) {
+    localStorage.setItem('og_fondo', url);
+    document.body.style.backgroundImage = `url(${url})`;
+    document.body.classList.add('con-fondo');
+    document.getElementById('btn-quitar-fondo').style.display = 'block';
+    const esBase64 = url.startsWith('data:');
+    document.getElementById('fondo-preview-wrap').style.display = esBase64 ? 'block' : 'none';
+    if (esBase64) document.getElementById('fondo-preview-img').src = url;
+}
+
+async function quitarFondo() {
+    try { await api.put('/api/auth/fondo', { fondo_url: null }); } catch (e) { }
     localStorage.removeItem('og_fondo');
     document.body.style.backgroundImage = '';
     document.body.classList.remove('con-fondo');
