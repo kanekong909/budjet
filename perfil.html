@@ -61,6 +61,33 @@
       <button class="btn btn-primary w-full" onclick="window.location.href='admin.html'">⚙️ Panel de administración</button>
     </div>
 
+    <!-- Fondo personalizable -->
+    <div class="card mt-8" id="card-fondo">
+      <div class="section-title mb-8">🖼️ Fondo de pantalla</div>
+      <p class="text-2 mb-8">Elige un wallpaper o sube tu propia imagen. Recomendado: fotos HD horizontales.</p>
+
+      <!-- Galería predefinida -->
+      <div class="section-title" style="font-size:.8rem;margin-bottom:8px">Galería</div>
+      <div id="galeria-fondos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px"></div>
+
+      <!-- Subir imagen propia -->
+      <div class="section-title" style="font-size:.8rem;margin-bottom:8px">Tu imagen</div>
+      <div class="row" style="gap:10px">
+        <button class="btn btn-secundario w-full" onclick="document.getElementById('input-fondo').click()">
+          📁 Subir imagen
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="quitarFondo()" id="btn-quitar-fondo" style="display:none">
+          ✕ Quitar
+        </button>
+      </div>
+      <input type="file" id="input-fondo" accept="image/*" style="display:none" onchange="subirFondoPropio(this)">
+      
+      <!-- Preview -->
+      <div id="fondo-preview-wrap" style="margin-top:12px;display:none">
+        <img id="fondo-preview-img" style="width:100%;height:120px;object-fit:cover;border-radius:10px">
+      </div>
+    </div>
+
     <div class="card">
       <button class="btn btn-danger w-full" onclick="confirmarLogout()">🚪 Cerrar sesión</button>
     </div>
@@ -70,10 +97,16 @@
 
   <nav class="nav-bottom">
     <button class="nav-btn" onclick="window.location.href='dashboard.html'">
-      <span class="icon">🏠</span><span>Obras</span>
+      <span class="icon">
+        <img src="./assets/icons/obras.svg" style="width:24px;height:24px;" alt="Obras">
+      </span>
+      <span>Obras</span>
     </button>
     <button class="nav-btn active">
-      <span class="icon">👤</span><span>Perfil</span>
+      <span class="icon">
+        <img src="./assets/icons/user.svg" style="width:24px;height:24px;" alt="Perfil">
+      </span>
+      <span>Perfil</span>
     </button>
   </nav>
 

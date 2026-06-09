@@ -30,7 +30,10 @@
     <main class="main">
       <div class="row-between mb-8">
         <div class="section-title">Mis obras</div>
-        <button class="btn btn-sm btn-secundario" onclick="abrirNuevaObra()">+ Nueva</button>
+        <button class="btn btn-sm btn-secundario btn-tooltip" onclick="abrirNuevaObra()">
+            + Nueva
+            <span class="tooltip-text">✨ Crea tu primera obra aquí</span>
+        </button>
       </div>
 
       <div id="obras-lista" class="obras-grid">
@@ -44,11 +47,15 @@
     <!-- Nav inferior -->
     <nav class="nav-bottom">
       <button class="nav-btn active">
-        <span class="icon">🏠</span>
+        <span class="icon">
+          <img src="./assets/icons/obras.svg" style="width:24px;height:24px;" alt="Obras">
+        </span>
         <span>Obras</span>
       </button>
       <button class="nav-btn" onclick="window.location.href='perfil.html'">
-        <span class="icon">👤</span>
+        <span class="icon">
+          <img src="./assets/icons/user.svg" style="width:24px;height:24px;" alt="Perfil">
+        </span>
         <span>Perfil</span>
       </button>
     </nav>

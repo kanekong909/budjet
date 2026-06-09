@@ -595,3 +595,89 @@ body::before {
         padding: 64px 80px 64px 96px;
     }
 }
+
+/* ==============================================
+   MOSTRAR/OCULTAR CONTRASEÑA
+   ============================================== */
+
+.password-field {
+    position: relative;
+}
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: var(--texto-3, #888);
+}
+
+.toggle-password:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--amarillo, #f5a623);
+}
+
+.toggle-password:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* Modo oscuro / tema oscuro */
+@media (prefers-color-scheme: dark) {
+    .toggle-password {
+        color: #aaa;
+    }
+    .toggle-password:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--amarillo, #f5a623);
+    }
+}
+
+/* Animación para el botón */
+.toggle-password {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-password svg {
+    transition: transform 0.2s ease;
+}
+
+.toggle-password:hover svg {
+    transform: scale(1.1);
+}
+
+/* Efecto ripple al hacer click */
+.toggle-password::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(245, 166, 35, 0.2);
+    transform: scale(0);
+    transition: transform 0.2s;
+    pointer-events: none;
+}
+
+.toggle-password:active::after {
+    transform: scale(1);
+}

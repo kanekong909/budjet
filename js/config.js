@@ -118,3 +118,13 @@ function abrirSheet(id) {
   const el = document.getElementById(id);
   if (el) el.classList.add('open');
 }
+
+// ── Fondo personalizable ──
+function aplicarFondoGuardado() {
+  const fondo = localStorage.getItem('og_fondo');
+  if (fondo) {
+    document.body.style.backgroundImage = `url(${fondo})`;
+    document.body.classList.add('con-fondo');
+  }
+}
+aplicarFondoGuardado();

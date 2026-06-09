@@ -45,7 +45,8 @@ html {
 }
 
 body {
-     background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-attachment: fixed;
   font-family: var(--font);
   /* background: var(--gris-bg); */
   color: var(--texto);
@@ -1989,4 +1990,140 @@ input[type="date"] {
   .app-shell {
     max-width: 960px;
   }
+}
+
+/* ==============================================
+   TOOLTIP PARA BOTÓN NUEVA OBRA
+   ============================================== */
+
+/* ==============================================
+   TOOLTIP CORREGIDO - SIN MOVIMIENTO AL HOVER
+   ============================================== */
+
+.btn-tooltip {
+    position: relative;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-tooltip .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    width: max-content;
+    max-width: 200px;
+    background-color: var(--gris-obra);
+    color: var(--amarillo);
+    text-align: center;
+    border-radius: 8px;
+    padding: 8px 12px;
+    position: absolute;
+    z-index: 1000;
+    bottom: calc(100% + 8px); /* Encima del botón con 8px de espacio */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    line-height: 1.4;
+}
+
+/* Flecha del tooltip */
+.btn-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--gris-obra) transparent transparent transparent;
+}
+
+/* Hover - solo cambia visibilidad, no posición */
+.btn-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Versión para móviles */
+@media (max-width: 768px) {
+    .btn-tooltip .tooltip-text {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+        max-width: 180px;
+        white-space: normal;
+        word-wrap: break-word;
+        bottom: calc(100% + 5px);
+    }
+}
+
+/* Si el tooltip se corta en la parte superior, mostrarlo abajo */
+@media (max-height: 400px) {
+    .btn-tooltip .tooltip-text {
+        bottom: auto;
+        top: calc(100% + 8px);
+    }
+    
+    .btn-tooltip .tooltip-text::after {
+        top: auto;
+        bottom: 100%;
+        border-color: transparent transparent var(--gris-obra) transparent;
+    }
+}
+
+/* Animación suave al aparecer */
+@keyframes tooltipAppear {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.btn-tooltip:hover .tooltip-text {
+    animation: tooltipAppear 0.15s ease-out forwards;
+}
+
+/* FONDO PERSONALIZADO */
+/* ── Fondo personalizable ── */
+body.con-fondo {
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+}
+body.con-fondo::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 0;
+  pointer-events: none;
+}
+body.con-fondo .header,
+body.con-fondo .nav-bottom {
+  background: rgba(28,28,30,.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+body.con-fondo .card,
+body.con-fondo .stat-card,
+body.con-fondo .obra-list-item {
+  background: rgba(255,255,255,.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+body.con-fondo .sheet {
+  background: rgba(255,255,255,.96);
+}
+body.con-fondo .total-bar {
+  background: rgba(28,28,30,.9);
+  backdrop-filter: blur(8px);
 }

@@ -153,3 +153,4 @@ async function confirmarEliminarObra() {
     }
     setLoading(btn, false);
 }
+
