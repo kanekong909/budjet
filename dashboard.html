@@ -17,13 +17,18 @@
     <header class="header">
       <div class="header-logo">
         <div class="obra-icon">
-            <img src="./assets/icons/obra-icon.svg" alt="Obra" style="width:24px;height:24px">
+          <img src="./assets/icons/obra-icon.svg" alt="Obra" style="width:24px;height:24px">
         </div>
       </div>
       <div class="header-title" id="header-nombre">Cargando…</div>
-      <button class="btn-icon" onclick="logout()" title="Cerrar sesión">
-        <img src="./assets/icons/logout.svg" style="width:24px;height:24px;" alt="Cerrar sesión">
-      </button>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn-icon" onclick="window.location.href='perfil.html'" title="Mi Perfil">
+          <img src="./assets/icons/user.svg" style="width:20px;height:20px;" alt="Perfil">
+        </button>
+        <button class="btn-icon" onclick="logout()" title="Cerrar sesión">
+          <img src="./assets/icons/logout.svg" style="width:20px;height:20px;" alt="Cerrar sesión">
+        </button>
+      </div>
     </header>
 
     <!-- Contenido principal -->
@@ -45,7 +50,7 @@
     </main>
 
     <!-- Nav inferior -->
-    <nav class="nav-bottom">
+    <!-- <nav class="nav-bottom">
       <button class="nav-btn active">
         <span class="icon">
           <img src="./assets/icons/obras.svg" style="width:24px;height:24px;" alt="Obras">
@@ -58,7 +63,7 @@
         </span>
         <span>Perfil</span>
       </button>
-    </nav>
+    </nav> -->
 
     <!-- Sheet: Nueva obra -->
     <div class="overlay" id="overlay-obra">
