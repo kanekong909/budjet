@@ -52,12 +52,13 @@ function mostrarTab(tab) {
 // ==============================
 // ── Categorías Mejoradas ──
 // ==============================
+let chipsOrdenados = false;
+
 async function cargarCategorias() {
     try {
         categorias = await api.get(`/api/gastos/categorias?obra_id=${obra.id}`);
         renderSelectorCategorias([]);
 
-        // Renderizamos los chips SIN conteos (temporalmente en 0)
         const filtros = document.getElementById('filtros-cat');
         filtros.innerHTML = `
             <div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this, '')">
@@ -74,9 +75,11 @@ async function cargarCategorias() {
             `).join('')}
         `;
         
+        // Resetear flag cuando se recargan categorías
+        chipsOrdenados = false;
+        
     } catch (error) {
         console.error('Error cargando categorías:', error);
-        // Fallback al método original si hay error
         const filtros = document.getElementById('filtros-cat');
         filtros.innerHTML = `<div class="filtro-chip active" data-cat="" onclick="filtrarCategoria(this,'')">Todos</div>` +
             categorias.map(c => `<div class="filtro-chip" data-cat="${c.id}" onclick="filtrarCategoria(this,'${c.id}')" style="border-left:3px solid ${c.color}">${c.nombre}</div>`).join('');
@@ -85,7 +88,6 @@ async function cargarCategorias() {
 // NUEVA FUNCIÓN: Actualizar conteos después de cargar gastos
 async function actualizarConteosCategorias() {
     try {
-        // Pedir todos los gastos sin límite solo para contar
         const data = await api.get(`/api/gastos?obra_id=${obra.id}&limit=500`);
         const todos = data.gastos || [];
 
@@ -103,37 +105,47 @@ async function actualizarConteosCategorias() {
             }
         });
 
-        // Actualizar conteos
+        // Solo actualizar números - nada de reordenar
         document.querySelectorAll('#filtros-cat .filtro-chip').forEach(chip => {
             const catId = chip.dataset.cat;
             const countSpan = chip.querySelector('.chip-count');
             if (!countSpan) return;
+            
             if (catId === '') {
                 countSpan.textContent = totalEgresos;
             } else {
                 countSpan.textContent = conteos[parseInt(catId)] || 0;
             }
         });
-
-        // Reordenar chips: primero "Todos", luego por cantidad descendente
-        const contenedor = document.getElementById('filtros-cat');
-        const chips = [...contenedor.querySelectorAll('.filtro-chip')];
-        const chipTodos = chips.find(c => c.dataset.cat === '');
-        const chipsCategoria = chips
-            .filter(c => c.dataset.cat !== '')
-            .sort((a, b) => {
-                const cA = parseInt(a.querySelector('.chip-count')?.textContent || '0');
-                const cB = parseInt(b.querySelector('.chip-count')?.textContent || '0');
-                return cB - cA; // descendente
-            });
-
-        // Limpiar y reinsertar en nuevo orden
-        contenedor.innerHTML = '';
-        if (chipTodos) contenedor.appendChild(chipTodos);
-        chipsCategoria.forEach(c => contenedor.appendChild(c));
+        
+        // Ordenar chips SOLO la primera vez que se cargan
+        if (!chipsOrdenados) {
+            ordenarChipsPorConteo();
+            chipsOrdenados = true;
+        }
     } catch (err) {
-        // Silencioso — los conteos son opcionales
+        console.warn('Error actualizando conteos:', err);
     }
+}
+
+// Función separada para ordenar chips
+function ordenarChipsPorConteo() {
+    const contenedor = document.getElementById('filtros-cat');
+    if (!contenedor) return;
+    
+    const chips = [...contenedor.querySelectorAll('.filtro-chip')];
+    const chipTodos = chips.find(c => c.dataset.cat === '');
+    const chipsCategoria = chips
+        .filter(c => c.dataset.cat !== '')
+        .sort((a, b) => {
+            const cA = parseInt(a.querySelector('.chip-count')?.textContent || '0');
+            const cB = parseInt(b.querySelector('.chip-count')?.textContent || '0');
+            return cB - cA; // los que tienen más gastos primero
+        });
+
+    contenedor.innerHTML = '';
+    if (chipTodos) contenedor.appendChild(chipTodos);
+    chipsCategoria.forEach(c => contenedor.appendChild(c));
 }
 function filtrarCategoria(el, catId) {
     // Actualizar estado visual

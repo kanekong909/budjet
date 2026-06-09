@@ -4,9 +4,13 @@
   ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Shrikhand&family=Story+Script&display=swap');
 
 /* ---- Variables ---- */
 :root {
+  --kaushan: 'Kaushan Script', cursive;
+  --shrikhand: 'Shrikhand', cursive;
+  --story: 'Story Script', cursive;
   --amarillo: #f5a623;
   --amarillo-dark: #e09515;
   --gris-obra: #1c1c1e;
@@ -339,14 +343,15 @@ textarea {
 }
 
 .header-title {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.30rem;
+  /* font-weight: 600; */
   flex: 1;
   text-align: start;
   padding: 0 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--story);
 }
 
 /* ---- Navegación inferior ---- */
@@ -618,7 +623,7 @@ textarea {
 .nav-tabs-scroll {
   display: flex;
   gap: 6px;
-  padding: 0 20px 12px 20px;
+  padding: 10px 20px;
   overflow-x: auto;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
