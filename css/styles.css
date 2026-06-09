@@ -301,7 +301,7 @@ textarea {
 
 .btn-fab {
   position: fixed;
-  bottom: 140px;
+  bottom: 90px;
   right: 20px;
   width: 56px;
   height: 56px;
@@ -1122,7 +1122,7 @@ textarea {
   inset: 0;
   background: rgba(0, 0, 0, .5);
   z-index: 300;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
 }
 
@@ -1947,8 +1947,8 @@ input[type="date"] {
   }
 
   .btn-fab {
-    bottom: 40px;
-    right: calc(50% - 460px);
+    bottom: 35px;
+    right: calc(50% - 450px);
     width: 64px;
     height: 64px;
     cursor: pointer;
