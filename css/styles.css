@@ -45,8 +45,9 @@ html {
 }
 
 body {
+     background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
   font-family: var(--font);
-  background: var(--gris-bg);
+  /* background: var(--gris-bg); */
   color: var(--texto);
   min-height: 100dvh;
   max-width: 480px;
@@ -1081,7 +1082,7 @@ textarea {
 /* Total flotante */
 .total-bar {
   position: fixed;
-  bottom: 66px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px);

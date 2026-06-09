@@ -26,6 +26,8 @@ cargarCategorias();
 cargarGastos();
 // Cargar tareas en segundo plano para mostrar badge desde el inicio
 cargarTareas();
+cargarPreferenciaFondo(); // Cargar fondo personalizado si existe
+
 
 // ── Tabs ──
 function mostrarTab(tab) {
@@ -1771,3 +1773,153 @@ document.querySelectorAll('.overlay').forEach(ov => {
         if (e.target === this) this.classList.remove('open');
     });
 });
+
+// ==============================================
+//  GESTIÓN DE FONDO DE PANTALLA (PEXELS + LOCAL)
+// ==============================================
+
+// Tu API Key de Pexels (debes obtenerla gratis en pexels.com/api)
+// REEMPLAZA ESTA CLAVE CON LA TUYA
+const PEXELS_API_KEY = 'JOYZh1aEPkdQHap98Yx3qLGuk43tnWoEYcR83rVDmvSpvZkw7v0rjKGZ'; 
+
+// Función principal para abrir el selector
+function abrirSelectorFondo() {
+    document.getElementById('resultados-pexels').innerHTML = ''; // Limpiar búsquedas anteriores
+    abrirSheet('overlay-fondo');
+}
+
+// Aplicar color sólido
+function aplicarColorFondo() {
+    const color = document.getElementById('color-fondo').value;
+    document.body.style.background = color;
+    document.body.style.backgroundSize = 'auto';
+    guardarPreferenciaFondo({ tipo: 'color', valor: color });
+    showToast(`Fondo cambiado a color sólido.`, 'ok');
+}
+
+// Buscar imágenes en Pexels
+async function buscarFondoPexels() {
+    const query = document.getElementById('buscar-pexels').value.trim();
+    if (!query) {
+        showToast('Escribe algo para buscar', 'error');
+        return;
+    }
+
+    const resultadosDiv = document.getElementById('resultados-pexels');
+    resultadosDiv.innerHTML = '<div class="empty" style="grid-column: span 2;"><div class="empty-icon">⏳</div><div>Cargando...</div></div>';
+
+    if (!PEXELS_API_KEY || PEXELS_API_KEY === 'TU_API_KEY_DE_PEXELS_AQUI') {
+        resultadosDiv.innerHTML = '<div class="empty" style="grid-column: span 2;"><div class="empty-icon">🔑</div><div>Configura tu API Key de Pexels en obra.js</div></div>';
+        return;
+    }
+
+    try {
+        const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=12&orientation=portrait`;
+        const response = await fetch(url, {
+            headers: { 'Authorization': PEXELS_API_KEY }
+        });
+        const data = await response.json();
+
+        if (data.photos && data.photos.length) {
+            resultadosDiv.innerHTML = data.photos.map(foto => `
+                <div onclick="aplicarFondoPexels('${foto.src.original}')" style="cursor: pointer; border-radius: 12px; overflow: hidden; border: 2px solid transparent; transition: all 0.2s; aspect-ratio: 3/4;">
+                    <img src="${foto.src.medium}" style="width:100%; height:100%; object-fit: cover;" loading="lazy">
+                </div>
+            `).join('');
+        } else {
+            resultadosDiv.innerHTML = '<div class="empty" style="grid-column: span 2;"><div class="empty-icon">🔍</div><div>No se encontraron imágenes</div></div>';
+        }
+    } catch (error) {
+        console.error(error);
+        resultadosDiv.innerHTML = '<div class="empty" style="grid-column: span 2;"><div class="empty-icon">⚠️</div><div>Error al buscar en Pexels</div></div>';
+    }
+}
+
+// Aplicar fondo desde URL de Pexels
+function aplicarFondoPexels(url) {
+    // Aplicar la imagen de alta calidad al body
+    document.body.style.background = `url(${url}) center center / cover no-repeat fixed`;
+    // Guardar la preferencia
+    guardarPreferenciaFondo({ tipo: 'pexels', valor: url });
+    showToast(`Fondo cambiado con imagen de Pexels`, 'ok');
+    cerrarSheet('overlay-fondo');
+}
+
+// Manejar la subida de imagen local
+document.addEventListener('DOMContentLoaded', () => {
+    const inputSubir = document.getElementById('fondo-subir');
+    if (inputSubir) {
+        inputSubir.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imgUrl = event.target.result;
+                    document.body.style.background = `url(${imgUrl}) center center / cover no-repeat fixed`;
+                    guardarPreferenciaFondo({ tipo: 'local', valor: imgUrl });
+                    showToast(`Fondo cambiado con imagen local`, 'ok');
+                    cerrarSheet('overlay-fondo');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showToast('Por favor selecciona una imagen válida', 'error');
+            }
+        });
+    }
+});
+
+// Guardar la preferencia de fondo en localStorage (y opcionalmente en el backend)
+async function guardarPreferenciaFondo(preferencia) {
+    try {
+        // Guardar localmente
+        localStorage.setItem(`fondo_obra_${obra.id}`, JSON.stringify(preferencia));
+        
+        // Opcional: Guardar en el backend para que persista en la nube
+        // Descomenta las siguientes líneas si tienes un endpoint para guardar preferencias de obra
+        /*
+        await api.post(`/api/obras/${obra.id}/preferencias`, {
+            clave: 'fondo_pantalla',
+            valor: preferencia
+        });
+        */
+    } catch (error) {
+        console.error("Error guardando preferencia de fondo:", error);
+    }
+}
+
+// Cargar la preferencia de fondo al iniciar
+async function cargarPreferenciaFondo() {
+    try {
+        // 1. Intentar cargar desde localStorage
+        const localPref = localStorage.getItem(`fondo_obra_${obra.id}`);
+        if (localPref) {
+            const pref = JSON.parse(localPref);
+            aplicarPreferenciaFondo(pref);
+            return;
+        }
+        
+        // 2. Opcional: Intentar cargar desde el backend
+        /*
+        const data = await api.get(`/api/obras/${obra.id}/preferencias`);
+        const prefBackend = data.find(p => p.clave === 'fondo_pantalla');
+        if (prefBackend && prefBackend.valor) {
+            aplicarPreferenciaFondo(prefBackend.valor);
+            localStorage.setItem(`fondo_obra_${obra.id}`, JSON.stringify(prefBackend.valor));
+        }
+        */
+    } catch (error) {
+        console.log("No se encontró preferencia de fondo previa");
+    }
+}
+
+// Aplicar la preferencia guardada al body
+function aplicarPreferenciaFondo(pref) {
+    if (!pref) return;
+    
+    if (pref.tipo === 'color') {
+        document.body.style.background = pref.valor;
+        document.body.style.backgroundSize = 'auto';
+    } else if (pref.tipo === 'pexels' || pref.tipo === 'local') {
+        document.body.style.background = `url(${pref.valor}) center center / cover no-repeat fixed`;
+    }
+}

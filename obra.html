@@ -205,6 +205,11 @@
           </div>
           <div id="colaboradores-lista"></div>
         </div>
+        
+        <!-- Botón para personalizar fondo -->
+        <button class="btn btn-secundario w-full mt-8" onclick="abrirSelectorFondo()">
+          🖼️ Cambiar fondo de pantalla
+        </button>
 
         <div class="card mt-8">
           <div class="section-title">Categorías</div>
@@ -269,7 +274,7 @@
     </div>
 
     <!-- Nav inferior -->
-    <nav class="nav-bottom">
+    <!-- <nav class="nav-bottom">
       <button class="nav-btn" onclick="window.location.href='dashboard.html'">
         <span class="icon">🏠</span>
         <span>Obras</span>
@@ -282,7 +287,7 @@
         <span class="icon">📊</span>
         <span>Resumen</span>
       </button>
-    </nav>
+    </nav> -->
 
     <!-- ===== SHEET: Agregar/Editar gasto ===== -->
     <div class="overlay" id="overlay-gasto">
@@ -841,6 +846,45 @@
           <button class="btn btn-secundario w-full" onclick="cerrarSheet('overlay-confirmar-cat')">Cancelar</button>
           <button class="btn btn-danger w-full" onclick="confirmarEliminarCategoria()">Sí, eliminar</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ===== SHEET: Fondo de pantalla (Pexels / Subir imagen) ===== -->
+    <div class="overlay" id="overlay-fondo">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">🎨 Personalizar fondo</div>
+        
+        <!-- Opción 1: Subir imagen local -->
+        <div class="field">
+          <label>📁 Subir imagen desde el dispositivo</label>
+          <input type="file" id="fondo-subir" accept="image/*" capture="environment">
+          <div class="text-2" style="font-size:.7rem; margin-top:4px">La imagen se guardará en el dispositivo y se aplicará al fondo.</div>
+        </div>
+
+        <div style="height: 1px; background: var(--gris-linea); margin: 16px 0;"></div>
+
+        <!-- Opción 2: Buscar en Pexels -->
+        <div class="field">
+          <label>🔍 Buscar fondo en Pexels</label>
+          <div class="row" style="gap:8px">
+            <input type="text" id="buscar-pexels" placeholder="Ej: construcción, cemento, abstracto..." style="flex:1">
+            <button class="btn btn-sm btn-primary" onclick="buscarFondoPexels()" style="width: auto; padding: 0 16px;">Buscar</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>🎨 O usa un color sólido:</label>
+          <div class="row" style="gap:8px">
+            <input type="color" id="color-fondo" value="#1e293b" style="height:44px; flex:1;">
+            <button class="btn btn-sm btn-secundario" onclick="aplicarColorFondo()" style="width: auto;">Aplicar</button>
+          </div>
+        </div>
+
+        <!-- Grid de resultados de Pexels -->
+        <div id="resultados-pexels" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; max-height: 300px; overflow-y: auto; padding: 2px;"></div>
+
+        <button class="btn btn-secundario w-full mt-16" onclick="cerrarSheet('overlay-fondo')">Cerrar</button>
       </div>
     </div>
 
