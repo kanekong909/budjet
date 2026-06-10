@@ -1,7 +1,5 @@
 if (!requireAuth()) void 0;
 
-
-
 const u = usuario();
 if (u) {
     document.getElementById('avatar-letra').textContent = u.nombre.charAt(0).toUpperCase();
@@ -206,6 +204,8 @@ async function quitarFondo() {
     document.body.classList.remove('con-fondo');
     document.getElementById('fondo-preview-wrap').style.display = 'none';
     document.getElementById('btn-quitar-fondo').style.display = 'none';
+    document.documentElement.style.removeProperty('--fondo-url');
+    document.documentElement.classList.remove('con-fondo-html');
     showToast('Fondo quitado');
     renderGaleria();
 }

@@ -663,7 +663,7 @@ textarea {
 /* Responsive Design */
 @media (max-width: 768px) {
   .nav-tabs-scroll {
-    padding: 0 16px 10px 16px;
+    padding: 10px;
     gap: 6px;
   }
 
@@ -2055,9 +2055,13 @@ input[type="date"] {
 /* FONDO PERSONALIZADO */
 /* ── Fondo personalizable ── */
 body.con-fondo {
+  background-image: var(--fondo-url);
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
+}
+body.con-fondo {
+  background: transparent;
 }
 body.con-fondo::before {
   content: '';
