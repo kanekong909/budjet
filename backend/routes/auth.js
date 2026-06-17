@@ -115,6 +115,18 @@ router.get('/perfil', require('../middleware/auth').authMiddleware, async (req, 
   }
 });
 
+// PUT /api/auth/perfil — actualizar nombre
+router.put('/perfil', require('../middleware/auth').authMiddleware, async (req, res) => {
+  try {
+    const { nombre } = req.body;
+    if (!nombre?.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+    await pool.query('UPDATE usuarios SET nombre = ? WHERE id = ?', [nombre.trim(), req.usuario.id]);
+    res.json({ mensaje: 'Perfil actualizado' });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
@@ -147,5 +159,6 @@ router.post('/fondo-upload', require('../middleware/auth').authMiddleware, uploa
     res.status(500).json({ error: 'Error subiendo imagen' });
   }
 });
+
 
 module.exports = router;
