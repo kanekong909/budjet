@@ -21,9 +21,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // ESTA LÍNEA TE DIRÁ EN CONSOLA QUÉ URL EXACTA ESTÁ LLEGANDO:
-    console.log("CORS Origin recibido:", origin); 
-
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
