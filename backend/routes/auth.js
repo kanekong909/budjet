@@ -160,5 +160,4 @@ router.post('/fondo-upload', require('../middleware/auth').authMiddleware, uploa
   }
 });
 
-
 module.exports = router;
