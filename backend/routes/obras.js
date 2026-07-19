@@ -33,12 +33,12 @@ router.get('/', async (req, res) => {
 // POST /api/obras - Crear obra
 router.post('/', async (req, res) => {
   try {
-    const { nombre, descripcion, ubicacion, presupuesto } = req.body;
+    const { nombre, descripcion, ubicacion, presupuesto, moneda } = req.body;
     if (!nombre) return res.status(400).json({ error: 'El nombre es requerido' });
 
     const [result] = await pool.query(
-      'INSERT INTO obras (nombre, descripcion, ubicacion, presupuesto, creador_id) VALUES (?, ?, ?, ?, ?)',
-      [nombre, descripcion || null, ubicacion || null, presupuesto || 0, req.usuario.id]
+      'INSERT INTO obras (nombre, descripcion, ubicacion, presupuesto, moneda, creador_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [nombre, descripcion || null, ubicacion || null, presupuesto || 0, moneda || 'COP', req.usuario.id]
     );
 
     // Agregar creador como admin de la obra
@@ -58,7 +58,7 @@ router.post('/', async (req, res) => {
 // PUT /api/obras/:id - Editar obra
 router.put('/:id', async (req, res) => {
   try {
-    const { nombre, descripcion, ubicacion, presupuesto, activa } = req.body;
+    const { nombre, descripcion, ubicacion, presupuesto, activa, moneda } = req.body;
     const [acceso] = await pool.query(
       'SELECT rol FROM obra_usuarios WHERE obra_id = ? AND usuario_id = ?',
       [req.params.id, req.usuario.id]
@@ -67,8 +67,8 @@ router.put('/:id', async (req, res) => {
     if (acceso[0].rol !== 'admin') return res.status(403).json({ error: 'Solo el admin puede editar la obra' });
 
     await pool.query(
-      'UPDATE obras SET nombre=?, descripcion=?, ubicacion=?, presupuesto=?, activa=? WHERE id=?',
-      [nombre, descripcion, ubicacion, presupuesto, activa ?? 1, req.params.id]
+      'UPDATE obras SET nombre=?, descripcion=?, ubicacion=?, presupuesto=?, activa=?, moneda=? WHERE id=?',
+      [nombre, descripcion, ubicacion, presupuesto, activa ?? 1, moneda || 'COP', req.params.id]
     );
     res.json({ mensaje: 'Obra actualizada' });
   } catch (err) {
