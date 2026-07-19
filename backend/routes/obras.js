@@ -4,17 +4,6 @@ const { authMiddleware } = require('../middleware/auth');
 
 router.use(authMiddleware);
 
-async function obtenerTasaCambio(desde, hacia) {
-  if (desde === hacia) return 1;
-  try {
-    const resp = await fetch(`https://open.er-api.com/v6/latest/${desde}`);
-    const data = await resp.json();
-    return data?.rates?.[hacia] || null;
-  } catch {
-    return null;
-  }
-}
-
 // GET /api/obras - Listar obras del usuario
 router.get('/', async (req, res) => {
   try {
@@ -68,66 +57,23 @@ router.post('/', async (req, res) => {
 
 // PUT /api/obras/:id - Editar obra
 router.put('/:id', async (req, res) => {
-  const connection = await pool.getConnection();
   try {
     const { nombre, descripcion, ubicacion, presupuesto, activa, moneda } = req.body;
-
-    const [acceso] = await connection.query(
+    const [acceso] = await pool.query(
       'SELECT rol FROM obra_usuarios WHERE obra_id = ? AND usuario_id = ?',
       [req.params.id, req.usuario.id]
     );
-    if (acceso.length === 0) { connection.release(); return res.status(403).json({ error: 'Sin acceso' }); }
-    if (acceso[0].rol !== 'admin') { connection.release(); return res.status(403).json({ error: 'Solo el admin puede editar la obra' }); }
+    if (acceso.length === 0) return res.status(403).json({ error: 'Sin acceso' });
+    if (acceso[0].rol !== 'admin') return res.status(403).json({ error: 'Solo el admin puede editar la obra' });
 
-    const [obraActual] = await connection.query('SELECT moneda, presupuesto FROM obras WHERE id = ?', [req.params.id]);
-    if (!obraActual.length) { connection.release(); return res.status(404).json({ error: 'Obra no encontrada' }); }
-
-    const monedaActual = obraActual[0].moneda || 'COP';
-    const monedaNueva = moneda || monedaActual;
-    let presupuestoFinal = presupuesto;
-    let tasaUsada = null;
-
-    await connection.beginTransaction();
-
-    if (monedaNueva !== monedaActual) {
-      tasaUsada = await obtenerTasaCambio(monedaActual, monedaNueva);
-      if (!tasaUsada) {
-        await connection.rollback();
-        connection.release();
-        return res.status(502).json({ error: 'No se pudo obtener la tasa de cambio. Intenta de nuevo en unos minutos.' });
-      }
-
-      await connection.query(
-        'UPDATE gastos SET monto = ROUND(monto * ?, 2), valor_unitario = ROUND(valor_unitario * ?, 2) WHERE obra_id = ?',
-        [tasaUsada, tasaUsada, req.params.id]
-      );
-
-      // Si el admin no tocó el presupuesto en el mismo formulario, lo
-      // convertimos también para que quede coherente con los gastos.
-      if (presupuesto === undefined || Number(presupuesto) === Number(obraActual[0].presupuesto)) {
-        presupuestoFinal = Math.round(obraActual[0].presupuesto * tasaUsada);
-      }
-    }
-
-    await connection.query(
+    await pool.query(
       'UPDATE obras SET nombre=?, descripcion=?, ubicacion=?, presupuesto=?, activa=?, moneda=? WHERE id=?',
-      [nombre, descripcion, ubicacion, presupuestoFinal, activa ?? 1, monedaNueva, req.params.id]
+      [nombre, descripcion, ubicacion, presupuesto, activa ?? 1, moneda || 'COP', req.params.id]
     );
-
-    await connection.commit();
-    res.json({
-      mensaje: monedaNueva !== monedaActual
-        ? `Obra actualizada. Gastos convertidos de ${monedaActual} a ${monedaNueva} (tasa: ${tasaUsada}).`
-        : 'Obra actualizada',
-      moneda: monedaNueva,
-      tasa: tasaUsada
-    });
+    res.json({ mensaje: 'Obra actualizada' });
   } catch (err) {
-    await connection.rollback();
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
-  } finally {
-    connection.release();
   }
 });
 
