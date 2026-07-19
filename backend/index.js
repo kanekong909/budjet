@@ -17,7 +17,8 @@ const allowedOrigins = [
   'http://localhost:4200',
   'http://127.0.0.1:4200',
   'http://127.0.0.1:5500',
-  'https://kanekong909.github.io'
+  'https://kanekong909.github.io',
+  'https://trackob-production.up.railway.app'
 ].filter(Boolean);
 
 app.use(cors({
