@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
-
 router.use(authMiddleware);
 
 async function verificarAcceso(obraId, usuarioId) {
@@ -12,26 +11,30 @@ async function verificarAcceso(obraId, usuarioId) {
   return rows.length > 0 ? rows[0].rol : null;
 }
 
-// GET /api/tareas?obra_id=
+// GET /api/tareas?obra_id=&asignado_a=mio
 router.get('/', async (req, res) => {
   try {
-    const { obra_id } = req.query;
+    const { obra_id, asignado_a } = req.query;
     if (!obra_id) return res.status(400).json({ error: 'obra_id requerido' });
-
     const rol = await verificarAcceso(obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
+
+    const filtroAsignado = asignado_a === 'mio' ? 'AND t.asignado_a = ?' : '';
+    const params = [obra_id];
+    if (asignado_a === 'mio') params.push(req.usuario.id);
 
     const [tareas] = await pool.query(`
       SELECT t.*,
         u.nombre AS creador_nombre,
+        ua.nombre AS asignado_nombre,
         uc.nombre AS completado_por_nombre
       FROM tareas t
-      LEFT JOIN usuarios u ON u.id = t.creador_id
+      LEFT JOIN usuarios u  ON u.id  = t.creador_id
+      LEFT JOIN usuarios ua ON ua.id = t.asignado_a
       LEFT JOIN usuarios uc ON uc.id = t.completado_por
-      WHERE t.obra_id = ?
+      WHERE t.obra_id = ? ${filtroAsignado}
       ORDER BY FIELD(t.estado,'pendiente','en_progreso','hecho'), t.creado_en DESC
-    `, [obra_id]);
-
+    `, params);
     res.json(tareas);
   } catch (err) {
     console.error(err);
@@ -39,26 +42,31 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/tareas
+// POST /api/tareas — solo admin
 router.post('/', async (req, res) => {
   try {
-    const { obra_id, titulo, descripcion, fecha_limite } = req.body;
+    const { obra_id, titulo, descripcion, fecha_limite, asignado_a } = req.body;
     if (!obra_id || !titulo) return res.status(400).json({ error: 'obra_id y titulo requeridos' });
-
     const rol = await verificarAcceso(obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
+    if (rol !== 'admin') return res.status(403).json({ error: 'Solo el administrador puede crear tareas' });
+
+    if (asignado_a) {
+      const rolAsignado = await verificarAcceso(obra_id, asignado_a);
+      if (!rolAsignado) return res.status(400).json({ error: 'El colaborador asignado no pertenece a esta obra' });
+    }
 
     const [result] = await pool.query(
-      'INSERT INTO tareas (obra_id, creador_id, titulo, descripcion, fecha_limite) VALUES (?, ?, ?, ?, ?)',
-      [obra_id, req.usuario.id, titulo, descripcion || null, fecha_limite || null]
+      'INSERT INTO tareas (obra_id, creador_id, asignado_a, titulo, descripcion, fecha_limite) VALUES (?, ?, ?, ?, ?, ?)',
+      [obra_id, req.usuario.id, asignado_a || null, titulo, descripcion || null, fecha_limite || null]
     );
-
     const [tarea] = await pool.query(`
-      SELECT t.*, u.nombre AS creador_nombre
-      FROM tareas t LEFT JOIN usuarios u ON u.id = t.creador_id
+      SELECT t.*, u.nombre AS creador_nombre, ua.nombre AS asignado_nombre
+      FROM tareas t
+      LEFT JOIN usuarios u  ON u.id  = t.creador_id
+      LEFT JOIN usuarios ua ON ua.id = t.asignado_a
       WHERE t.id = ?
     `, [result.insertId]);
-
     res.status(201).json(tarea[0]);
   } catch (err) {
     console.error(err);
@@ -66,35 +74,32 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/tareas/:id/estado — cambiar estado
+// PUT /api/tareas/:id/estado — solo el asignado o un admin
 router.put('/:id/estado', async (req, res) => {
   try {
     const { estado } = req.body;
     if (!['pendiente','en_progreso','hecho'].includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
-
     const [tarea] = await pool.query('SELECT * FROM tareas WHERE id = ?', [req.params.id]);
     if (!tarea.length) return res.status(404).json({ error: 'Tarea no encontrada' });
-
     const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
-
+    const esAsignado = tarea[0].asignado_a === req.usuario.id;
+    if (rol !== 'admin' && !esAsignado) {
+      return res.status(403).json({ error: 'Solo el colaborador asignado o un admin puede cambiar el estado' });
+    }
     const estadoAnterior = tarea[0].estado;
     const completado_por = estado === 'hecho' ? req.usuario.id : null;
     const completado_en  = estado === 'hecho' ? new Date() : null;
-
     await pool.query(
       'UPDATE tareas SET estado=?, completado_por=?, completado_en=? WHERE id=?',
       [estado, completado_por, completado_en, req.params.id]
     );
-
-    // Guardar en historial
     await pool.query(
       'INSERT INTO tarea_historial (tarea_id, usuario_id, estado_anterior, estado_nuevo) VALUES (?, ?, ?, ?)',
       [req.params.id, req.usuario.id, estadoAnterior, estado]
     );
-
     res.json({ mensaje: 'Estado actualizado', estado });
   } catch (err) {
     console.error(err);
@@ -102,22 +107,24 @@ router.put('/:id/estado', async (req, res) => {
   }
 });
 
-// PUT /api/tareas/:id — editar tarea
+// PUT /api/tareas/:id — editar (creador o admin)
 router.put('/:id', async (req, res) => {
   try {
-    const { titulo, descripcion, fecha_limite } = req.body;
+    const { titulo, descripcion, fecha_limite, asignado_a } = req.body;
     const [tarea] = await pool.query('SELECT * FROM tareas WHERE id = ?', [req.params.id]);
     if (!tarea.length) return res.status(404).json({ error: 'Tarea no encontrada' });
-
     const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
     if (tarea[0].creador_id !== req.usuario.id && rol !== 'admin') {
       return res.status(403).json({ error: 'Solo el creador puede editar' });
     }
-
+    if (asignado_a) {
+      const rolAsignado = await verificarAcceso(tarea[0].obra_id, asignado_a);
+      if (!rolAsignado) return res.status(400).json({ error: 'El colaborador asignado no pertenece a esta obra' });
+    }
     await pool.query(
-      'UPDATE tareas SET titulo=?, descripcion=?, fecha_limite=? WHERE id=?',
-      [titulo, descripcion || null, fecha_limite || null, req.params.id]
+      'UPDATE tareas SET titulo=?, descripcion=?, fecha_limite=?, asignado_a=? WHERE id=?',
+      [titulo, descripcion || null, fecha_limite || null, asignado_a || null, req.params.id]
     );
     res.json({ mensaje: 'Tarea actualizada' });
   } catch (err) {
@@ -131,13 +138,11 @@ router.delete('/:id', async (req, res) => {
   try {
     const [tarea] = await pool.query('SELECT * FROM tareas WHERE id = ?', [req.params.id]);
     if (!tarea.length) return res.status(404).json({ error: 'Tarea no encontrada' });
-
     const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
     if (tarea[0].creador_id !== req.usuario.id && rol !== 'admin') {
       return res.status(403).json({ error: 'Solo el creador puede eliminar' });
     }
-
     await pool.query('DELETE FROM tareas WHERE id = ?', [req.params.id]);
     res.json({ mensaje: 'Tarea eliminada' });
   } catch (err) {
@@ -151,10 +156,8 @@ router.get('/:id/historial', async (req, res) => {
   try {
     const [tarea] = await pool.query('SELECT * FROM tareas WHERE id = ?', [req.params.id]);
     if (!tarea.length) return res.status(404).json({ error: 'Tarea no encontrada' });
-
     const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
     if (!rol) return res.status(403).json({ error: 'Sin acceso' });
-
     const [historial] = await pool.query(`
       SELECT h.*, u.nombre AS usuario_nombre
       FROM tarea_historial h
@@ -162,7 +165,6 @@ router.get('/:id/historial', async (req, res) => {
       WHERE h.tarea_id = ?
       ORDER BY h.cambiado_en DESC
     `, [req.params.id]);
-
     res.json(historial);
   } catch (err) {
     console.error(err);
