@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
 const multer = require('multer');
+const { registrarAuditoria } = require('../middleware/auditoria');
 
 router.use(authMiddleware);
 
@@ -69,6 +70,11 @@ router.post('/', upload.single('foto'), async (req, res) => {
       [obra_id, req.usuario.id, foto_url, fecha || new Date().toISOString().split('T')[0], etapa || null]
     );
 
+     await registrarAuditoria({
+      req, accion: 'CREAR', entidad: 'progreso', entidad_id: result.insertId,
+      obra_id, datos_despues: { etapa: etapa || null, fecha }
+    });
+
     res.status(201).json({ id: result.insertId, foto_url, fecha, etapa });
   } catch (err) {
     console.error(err);
@@ -84,6 +90,12 @@ router.delete('/:id', async (req, res) => {
     if (foto[0].usuario_id !== req.usuario.id) return res.status(403).json({ error: 'Sin permiso' });
 
     await pool.query('DELETE FROM progreso_fotos WHERE id = ?', [req.params.id]);
+
+    await registrarAuditoria({
+      req, accion: 'ELIMINAR', entidad: 'progreso', entidad_id: req.params.id,
+      obra_id: foto[0].obra_id
+    });
+
     res.json({ mensaje: 'Foto eliminada' });
   } catch (err) {
     res.status(500).json({ error: 'Error del servidor' });
@@ -107,6 +119,10 @@ router.put('/:id', async (req, res) => {
       'UPDATE progreso_fotos SET fecha=?, etapa=? WHERE id=?',
       [fecha || foto[0].fecha, etapa || null, req.params.id]
     );
+    await registrarAuditoria({
+      req, accion: 'EDITAR', entidad: 'progreso', entidad_id: req.params.id,
+      obra_id: foto[0].obra_id, datos_despues: { fecha, etapa }
+    });
     res.json({ mensaje: 'Foto actualizada' });
   } catch (err) {
     console.error(err);

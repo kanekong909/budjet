@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
+const { registrarAuditoria } = require('../middleware/auditoria');
 
 router.use(authMiddleware);
 
@@ -61,6 +62,11 @@ router.post('/', async (req, res) => {
       WHERE b.obra_id = ? AND b.fecha = ?
     `, [obra_id, fecha]);
 
+    await registrarAuditoria({
+      req, accion: 'EDITAR', entidad: 'bitacora', entidad_id: result[0].id,
+      obra_id, datos_despues: { fecha, nota: nota.trim().slice(0, 200) }
+    });
+
     res.status(201).json(result[0]);
   } catch (err) {
     console.error(err);
@@ -81,6 +87,12 @@ router.delete('/:id', async (req, res) => {
     }
 
     await pool.query('DELETE FROM bitacora WHERE id = ?', [req.params.id]);
+
+    await registrarAuditoria({
+      req, accion: 'ELIMINAR', entidad: 'bitacora', entidad_id: req.params.id,
+      obra_id: nota[0].obra_id
+    });
+
     res.json({ mensaje: 'Nota eliminada' });
   } catch (err) {
     console.error(err);

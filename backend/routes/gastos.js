@@ -170,7 +170,8 @@ router.post('/', upload.single('foto'), async (req, res) => {
 
     await registrarAuditoria({ req, accion: 'CREAR', entidad: 'gasto',
       entidad_id: result.insertId, obra_id: parseInt(obra_id),
-      datos_despues: gasto[0] });
+      datos_despues: gasto[0] 
+    });
 
     res.status(201).json(gasto[0]);
   } catch (err) {

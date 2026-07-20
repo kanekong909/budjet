@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
+const {} = require('../middleware/re')
 
 router.use(authMiddleware);
 
@@ -48,6 +49,12 @@ router.post('/', async (req, res) => {
     );
 
     const [obra] = await pool.query('SELECT * FROM obras WHERE id = ?', [result.insertId]);
+
+    await registrarAuditoria({
+      req, accion: 'CREAR', entidad: 'obra', entidad_id: result.insertId,
+      obra_id: result.insertId, obra_nombre: nombre
+    });
+
     res.status(201).json(obra[0]);
   } catch (err) {
     console.error(err);
@@ -70,6 +77,12 @@ router.put('/:id', async (req, res) => {
       'UPDATE obras SET nombre=?, descripcion=?, ubicacion=?, presupuesto=?, activa=?, moneda=? WHERE id=?',
       [nombre, descripcion, ubicacion, presupuesto, activa ?? 1, moneda || 'COP', req.params.id]
     );
+
+    await registrarAuditoria({
+      req, accion: 'EDITAR', entidad: 'obra', entidad_id: req.params.id,
+      obra_id: req.params.id, obra_nombre: nombre, datos_despues: { nombre, presupuesto }
+    });
+
     res.json({ mensaje: 'Obra actualizada' });
   } catch (err) {
     console.error(err);
@@ -173,6 +186,12 @@ router.delete('/:id', async (req, res) => {
     if (acceso[0].rol !== 'admin') return res.status(403).json({ error: 'Solo el admin puede eliminar la obra' });
 
     await pool.query('DELETE FROM obras WHERE id = ?', [req.params.id]);
+
+    await registrarAuditoria({
+      req, accion: 'ELIMINAR', entidad: 'obra', entidad_id: req.params.id,
+      obra_id: req.params.id
+    });
+
     res.json({ mensaje: 'Obra eliminada' });
   } catch (err) {
     console.error(err);
@@ -264,6 +283,40 @@ router.get('/:id/semanal', async (req, res) => {
       mes_anterior:    rows[0].mes_anterior,
       dias_semana:     diasSemana
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// GET /api/obras/:id/auditoria?usuario_id=&accion=&fecha_desde=&fecha_hasta=
+router.get('/:id/auditoria', async (req, res) => {
+  try {
+    const [acceso] = await pool.query(
+      'SELECT rol FROM obra_usuarios WHERE obra_id = ? AND usuario_id = ?',
+      [req.params.id, req.usuario.id]
+    );
+    if (!acceso.length) return res.status(403).json({ error: 'Sin acceso' });
+    if (acceso[0].rol !== 'admin') return res.status(403).json({ error: 'Solo el administrador puede ver la auditoría' });
+
+    const { usuario_id, accion, entidad, fecha_desde, fecha_hasta } = req.query;
+    const condiciones = ['obra_id = ?'];
+    const params = [req.params.id];
+
+    if (usuario_id) { condiciones.push('usuario_id = ?'); params.push(usuario_id); }
+    if (accion) { condiciones.push('accion = ?'); params.push(accion); }
+    if (entidad) { condiciones.push('entidad = ?'); params.push(entidad); }
+    if (fecha_desde) { condiciones.push('creado_en >= ?'); params.push(fecha_desde); }
+    if (fecha_hasta) { condiciones.push('creado_en <= ?'); params.push(`${fecha_hasta} 23:59:59`); }
+
+    const [eventos] = await pool.query(`
+      SELECT * FROM auditoria
+      WHERE ${condiciones.join(' AND ')}
+      ORDER BY creado_en DESC
+      LIMIT 500
+    `, params);
+
+    res.json(eventos);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });

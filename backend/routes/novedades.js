@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
 const multer = require('multer');
+const { registrarAuditoria } = require('../middleware/auditoria');
 router.use(authMiddleware);
 
 const upload = multer({
@@ -95,6 +96,12 @@ router.post('/', upload.single('foto'), async (req, res) => {
       FROM novedades n LEFT JOIN usuarios u ON u.id = n.usuario_id
       WHERE n.id = ?
     `, [result.insertId]);
+
+    await registrarAuditoria({
+      req, accion: 'CREAR', entidad: 'novedad', entidad_id: result.insertId,
+      obra_id, datos_despues: { descripcion: descripcion.trim().slice(0, 200) }
+    });
+
     res.status(201).json(novedad[0]);
   } catch (err) {
     console.error(err);
@@ -121,6 +128,12 @@ router.put('/:id/estado', async (req, res) => {
       'UPDATE novedades SET estado=?, resuelta_por=?, resuelta_en=? WHERE id=?',
       [estado, resuelta_por, resuelta_en, req.params.id]
     );
+
+    await registrarAuditoria({
+      req, accion: 'EDITAR', entidad: 'novedad', entidad_id: req.params.id,
+      obra_id: novedad[0].obra_id, datos_despues: { estado }
+    });
+
     res.json({ mensaje: 'Estado actualizado', estado });
   } catch (err) {
     console.error(err);
@@ -139,6 +152,12 @@ router.delete('/:id', async (req, res) => {
       return res.status(403).json({ error: 'Solo quien la reportó o un admin puede eliminarla' });
     }
     await pool.query('DELETE FROM novedades WHERE id = ?', [req.params.id]);
+
+    await registrarAuditoria({
+      req, accion: 'ELIMINAR', entidad: 'novedad', entidad_id: req.params.id,
+      obra_id: novedad[0].obra_id
+    });
+
     res.json({ mensaje: 'Novedad eliminada' });
   } catch (err) {
     console.error(err);

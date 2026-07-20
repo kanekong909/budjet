@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
 router.use(authMiddleware);
+const { registrarAuditoria } = require('../middleware/auditoria');
 
 async function verificarAcceso(obraId, usuarioId) {
   const [rows] = await pool.query(
@@ -67,6 +68,12 @@ router.post('/', async (req, res) => {
       LEFT JOIN usuarios ua ON ua.id = t.asignado_a
       WHERE t.id = ?
     `, [result.insertId]);
+
+    await registrarAuditoria({
+      req, accion: 'CREAR', entidad: 'tarea', entidad_id: result.insertId,
+      obra_id, datos_despues: { titulo, asignado_a: asignado_a || null }
+    });
+
     res.status(201).json(tarea[0]);
   } catch (err) {
     console.error(err);
@@ -100,6 +107,12 @@ router.put('/:id/estado', async (req, res) => {
       'INSERT INTO tarea_historial (tarea_id, usuario_id, estado_anterior, estado_nuevo) VALUES (?, ?, ?, ?)',
       [req.params.id, req.usuario.id, estadoAnterior, estado]
     );
+    await registrarAuditoria({
+      req, accion: 'EDITAR', entidad: 'tarea', entidad_id: req.params.id,
+      obra_id: tarea[0].obra_id,
+      datos_antes: { estado: estadoAnterior }, datos_despues: { estado }
+    });
+
     res.json({ mensaje: 'Estado actualizado', estado });
   } catch (err) {
     console.error(err);
@@ -126,6 +139,10 @@ router.put('/:id', async (req, res) => {
       'UPDATE tareas SET titulo=?, descripcion=?, fecha_limite=?, asignado_a=? WHERE id=?',
       [titulo, descripcion || null, fecha_limite || null, asignado_a || null, req.params.id]
     );
+    await registrarAuditoria({
+      req, accion: 'EDITAR', entidad: 'tarea', entidad_id: req.params.id,
+      obra_id: tarea[0].obra_id, datos_despues: { titulo, descripcion, fecha_limite }
+    });
     res.json({ mensaje: 'Tarea actualizada' });
   } catch (err) {
     console.error(err);
@@ -144,6 +161,12 @@ router.delete('/:id', async (req, res) => {
       return res.status(403).json({ error: 'Solo el creador puede eliminar' });
     }
     await pool.query('DELETE FROM tareas WHERE id = ?', [req.params.id]);
+
+    await registrarAuditoria({
+      req, accion: 'ELIMINAR', entidad: 'tarea', entidad_id: req.params.id,
+      obra_id: tarea[0].obra_id, datos_antes: { titulo: tarea[0].titulo }
+    });
+    
     res.json({ mensaje: 'Tarea eliminada' });
   } catch (err) {
     console.error(err);
