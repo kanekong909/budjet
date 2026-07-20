@@ -115,6 +115,33 @@ router.get('/perfil', require('../middleware/auth').authMiddleware, async (req, 
   }
 });
 
+// PUT /api/auth/password — cambiar contraseña
+router.put('/password', require('../middleware/auth').authMiddleware, async (req, res) => {
+  try {
+    const { password_actual, password_nueva } = req.body;
+    if (!password_actual || !password_nueva) {
+      return res.status(400).json({ error: 'Contraseña actual y nueva son requeridas' });
+    }
+    if (password_nueva.length < 6) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+    }
+
+    const [rows] = await pool.query('SELECT password_hash FROM usuarios WHERE id = ?', [req.usuario.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const valida = await bcrypt.compare(password_actual, rows[0].password_hash);
+    if (!valida) return res.status(401).json({ error: 'La contraseña actual no es correcta' });
+
+    const nuevoHash = await bcrypt.hash(password_nueva, 10);
+    await pool.query('UPDATE usuarios SET password_hash = ? WHERE id = ?', [nuevoHash, req.usuario.id]);
+
+    res.json({ mensaje: 'Contraseña actualizada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 // PUT /api/auth/perfil — actualizar nombre
 router.put('/perfil', require('../middleware/auth').authMiddleware, async (req, res) => {
   try {
