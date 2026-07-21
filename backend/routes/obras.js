@@ -103,14 +103,16 @@ router.get('/:id/resumen', async (req, res) => {
     );
     if (acceso.length === 0) return res.status(403).json({ error: 'Sin acceso' });
 
-     const [obra] = await pool.query(`
-      --     SELECT o.*, creador.logo_empresa_url AS logo_empresa_url
-      --     FROM obras o
-      --     LEFT JOIN usuarios creador ON creador.id = o.creador_id
-      --     WHERE o.id = ?
-      --   `, [req.params.id]);
+    const [obra] = await pool.query(`
+      SELECT o.*, u.logo_empresa_url
+      FROM obras o
+      LEFT JOIN usuarios u ON u.id = o.creador_id
+      WHERE o.id = ?
+    `, [req.params.id]);
+    
     if (obra.length === 0) return res.status(404).json({ error: 'Obra no encontrada' });
 
+    // El resto del código queda igual...
     const [porCategoria] = await pool.query(`
       SELECT c.nombre, c.color, c.tipo, COALESCE(SUM(g.monto), 0) AS total
       FROM categorias c
@@ -154,6 +156,7 @@ router.get('/:id/resumen', async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
+
 
 // GET /api/obras/:id/colaboradores
 router.get('/:id/colaboradores', async (req, res) => {
