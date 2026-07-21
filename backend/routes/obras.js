@@ -103,7 +103,12 @@ router.get('/:id/resumen', async (req, res) => {
     );
     if (acceso.length === 0) return res.status(403).json({ error: 'Sin acceso' });
 
-    const [obra] = await pool.query('SELECT * FROM obras WHERE id = ?', [req.params.id]);
+     const [obra] = await pool.query(`
+      --     SELECT o.*, creador.logo_empresa_url AS logo_empresa_url
+      --     FROM obras o
+      --     LEFT JOIN usuarios creador ON creador.id = o.creador_id
+      --     WHERE o.id = ?
+      --   `, [req.params.id]);
     if (obra.length === 0) return res.status(404).json({ error: 'Obra no encontrada' });
 
     const [porCategoria] = await pool.query(`
