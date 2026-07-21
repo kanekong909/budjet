@@ -43,6 +43,7 @@ app.use('/api/progreso', require('./routes/progreso'));
 app.use('/api/tareas', require('./routes/tareas'));
 app.use('/api/bitacora', require('./routes/bitacora'));
 app.use('/api/novedades', require('./routes/novedades'));
+app.use('/api/chat', require('./routes/chat'));
 app.use('/api/notificaciones', notifRouter);
 app.use('/api/admin', require('./routes/admin'));
 
