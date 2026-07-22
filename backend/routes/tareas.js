@@ -28,7 +28,6 @@ router.get('/', async (req, res) => {
       SELECT t.*,
         u.nombre AS creador_nombre,
         ua.nombre AS asignado_nombre,
-        ua.avatar_url AS asignado_avatar_url,
         uc.nombre AS completado_por_nombre
       FROM tareas t
       LEFT JOIN usuarios u  ON u.id  = t.creador_id
