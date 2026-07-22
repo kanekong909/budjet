@@ -81,6 +81,45 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT /api/tareas/:id/estado — solo el asignado o un admin
+router.put('/:id/estado', async (req, res) => {
+  try {
+    const { estado } = req.body;
+    if (!['pendiente','en_progreso','hecho'].includes(estado)) {
+      return res.status(400).json({ error: 'Estado inválido' });
+    }
+    const [tarea] = await pool.query('SELECT * FROM tareas WHERE id = ?', [req.params.id]);
+    if (!tarea.length) return res.status(404).json({ error: 'Tarea no encontrada' });
+    const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
+    if (!rol) return res.status(403).json({ error: 'Sin acceso' });
+    const esAsignado = tarea[0].asignado_a === req.usuario.id;
+    if (rol !== 'admin' && !esAsignado) {
+      return res.status(403).json({ error: 'Solo el colaborador asignado o un admin puede cambiar el estado' });
+    }
+    const estadoAnterior = tarea[0].estado;
+    const completado_por = estado === 'hecho' ? req.usuario.id : null;
+    const completado_en  = estado === 'hecho' ? new Date() : null;
+    await pool.query(
+      'UPDATE tareas SET estado=?, completado_por=?, completado_en=? WHERE id=?',
+      [estado, completado_por, completado_en, req.params.id]
+    );
+    await pool.query(
+      'INSERT INTO tarea_historial (tarea_id, usuario_id, estado_anterior, estado_nuevo) VALUES (?, ?, ?, ?)',
+      [req.params.id, req.usuario.id, estadoAnterior, estado]
+    );
+    await registrarAuditoria({
+      req, accion: 'EDITAR', entidad: 'tarea', entidad_id: req.params.id,
+      obra_id: tarea[0].obra_id,
+      datos_antes: { estado: estadoAnterior }, datos_despues: { estado }
+    });
+
+    res.json({ mensaje: 'Estado actualizado', estado });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 // PUT /api/tareas/reordenar - Reordenar tareas en una columna
 router.put('/reordenar', async (req, res) => {
   try {
@@ -117,45 +156,6 @@ router.put('/reordenar', async (req, res) => {
     });
 
     res.json({ mensaje: 'Orden actualizado' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
-
-// PUT /api/tareas/:id/estado — solo el asignado o un admin
-router.put('/:id/estado', async (req, res) => {
-  try {
-    const { estado } = req.body;
-    if (!['pendiente','en_progreso','hecho'].includes(estado)) {
-      return res.status(400).json({ error: 'Estado inválido' });
-    }
-    const [tarea] = await pool.query('SELECT * FROM tareas WHERE id = ?', [req.params.id]);
-    if (!tarea.length) return res.status(404).json({ error: 'Tarea no encontrada' });
-    const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
-    if (!rol) return res.status(403).json({ error: 'Sin acceso' });
-    const esAsignado = tarea[0].asignado_a === req.usuario.id;
-    if (rol !== 'admin' && !esAsignado) {
-      return res.status(403).json({ error: 'Solo el colaborador asignado o un admin puede cambiar el estado' });
-    }
-    const estadoAnterior = tarea[0].estado;
-    const completado_por = estado === 'hecho' ? req.usuario.id : null;
-    const completado_en  = estado === 'hecho' ? new Date() : null;
-    await pool.query(
-      'UPDATE tareas SET estado=?, completado_por=?, completado_en=? WHERE id=?',
-      [estado, completado_por, completado_en, req.params.id]
-    );
-    await pool.query(
-      'INSERT INTO tarea_historial (tarea_id, usuario_id, estado_anterior, estado_nuevo) VALUES (?, ?, ?, ?)',
-      [req.params.id, req.usuario.id, estadoAnterior, estado]
-    );
-    await registrarAuditoria({
-      req, accion: 'EDITAR', entidad: 'tarea', entidad_id: req.params.id,
-      obra_id: tarea[0].obra_id,
-      datos_antes: { estado: estadoAnterior }, datos_despues: { estado }
-    });
-
-    res.json({ mensaje: 'Estado actualizado', estado });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
