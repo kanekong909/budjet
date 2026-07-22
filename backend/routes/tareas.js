@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
       LEFT JOIN usuarios ua ON ua.id = t.asignado_a
       LEFT JOIN usuarios uc ON uc.id = t.completado_por
       WHERE t.obra_id = ? ${filtroAsignado}
-      ORDER BY FIELD(t.estado,'pendiente','en_progreso','hecho'), t.creado_en DESC
+      ORDER BY FIELD(t.estado,'pendiente','en_progreso','hecho'), t.orden ASC, t.creado_en DESC
     `, params);
     res.json(tareas);
   } catch (err) {
@@ -144,6 +144,48 @@ router.put('/:id', async (req, res) => {
       obra_id: tarea[0].obra_id, datos_despues: { titulo, descripcion, fecha_limite }
     });
     res.json({ mensaje: 'Tarea actualizada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// PUT /api/tareas/reordenar - Reordenar tareas en una columna
+router.put('/reordenar', async (req, res) => {
+  try {
+    const { tareas } = req.body; // [{ id: 1, orden: 0 }, { id: 2, orden: 1 }, ...]
+    
+    if (!tareas || !Array.isArray(tareas)) {
+      return res.status(400).json({ error: 'Se requiere un array de tareas' });
+    }
+
+    // Verificar acceso a la obra (usar la primera tarea para verificar)
+    if (tareas.length > 0) {
+      const [tarea] = await pool.query('SELECT obra_id FROM tareas WHERE id = ?', [tareas[0].id]);
+      if (tarea.length) {
+        const rol = await verificarAcceso(tarea[0].obra_id, req.usuario.id);
+        if (!rol) return res.status(403).json({ error: 'Sin acceso' });
+      }
+    }
+
+    // Actualizar el orden de cada tarea
+    for (const item of tareas) {
+      await pool.query(
+        'UPDATE tareas SET orden = ? WHERE id = ?',
+        [item.orden, item.id]
+      );
+    }
+
+    await registrarAuditoria({
+      req, 
+      accion: 'REORDENAR', 
+      entidad: 'tarea', 
+      entidad_id: null,
+      obra_id: tareas.length > 0 ? (await pool.query('SELECT obra_id FROM tareas WHERE id = ?', [tareas[0].id]))[0][0]?.obra_id : null,
+      datos_despues: { tareas: tareas.map(t => ({ id: t.id, orden: t.orden })) }
+    });
+
+    res.json({ mensaje: 'Orden actualizado' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
