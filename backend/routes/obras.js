@@ -335,4 +335,45 @@ router.get('/:id/auditoria', async (req, res) => {
   }
 });
 
+// PUT /api/obras/:id/colaboradores/:uid — cambiar el rol de alguien
+// dentro de esta obra puntual (admin ↔ colaborador)
+router.put('/:id/colaboradores/:uid', async (req, res) => {
+  try {
+    const { rol } = req.body;
+    if (!['admin', 'colaborador'].includes(rol)) {
+      return res.status(400).json({ error: 'Rol inválido' });
+    }
+
+    const [acceso] = await pool.query(
+      'SELECT rol FROM obra_usuarios WHERE obra_id = ? AND usuario_id = ?',
+      [req.params.id, req.usuario.id]
+    );
+    if (!acceso.length) return res.status(403).json({ error: 'Sin acceso' });
+    if (acceso[0].rol !== 'admin') {
+      return res.status(403).json({ error: 'Solo el administrador puede cambiar roles' });
+    }
+
+    // Evita que el único admin se autodegrade y la obra quede sin nadie
+    // que pueda administrarla.
+    if (Number(req.params.uid) === req.usuario.id && rol !== 'admin') {
+      const [admins] = await pool.query(
+        "SELECT COUNT(*) as total FROM obra_usuarios WHERE obra_id = ? AND rol = 'admin'",
+        [req.params.id]
+      );
+      if (admins[0].total <= 1) {
+        return res.status(400).json({ error: 'No puedes quitarte el rol de admin si eres el único administrador de la obra' });
+      }
+    }
+
+    await pool.query(
+      'UPDATE obra_usuarios SET rol = ? WHERE obra_id = ? AND usuario_id = ?',
+      [rol, req.params.id, req.params.uid]
+    );
+    res.json({ mensaje: 'Rol actualizado', rol });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 module.exports = router;
