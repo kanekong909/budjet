@@ -3,6 +3,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/db');
 
+async function obtenerLimitesPlan(usuarioId) {
+  const [rows] = await pool.query(`
+    SELECT p.max_obras, p.max_colaboradores, p.permite_pdf, p.permite_auditoria, s.fecha_vencimiento
+    FROM suscripciones s
+    JOIN planes p ON p.id = s.plan_id
+    WHERE s.usuario_id = ? AND s.estado = 'activa'
+  `, [usuarioId]);
+
+  if (!rows.length || new Date(rows[0].fecha_vencimiento) < new Date()) {
+    // Sin suscripción activa (o vencida) = plan gratis. Ajusta estos
+    // números a lo que de verdad quieras regalar en el plan gratis.
+    return { max_obras: 1, max_colaboradores: 3, permite_pdf: false, permite_auditoria: false };
+  }
+  return rows[0];
+}
+
 // POST /api/auth/registro
 router.post('/registro', async (req, res) => {
   try {
@@ -78,6 +94,21 @@ router.post('/invitar', require('../middleware/auth').authMiddleware, async (req
 
     if (usuarios.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado. Primero debe registrarse.' });
+    }
+
+    const [obraInfo] = await pool.query('SELECT creador_id FROM obras WHERE id = ?', [obra_id]);
+    if (!obraInfo.length) return res.status(404).json({ error: 'Obra no encontrada' });
+
+    const limites = await obtenerLimitesPlan(obraInfo[0].creador_id);
+    const [totalColaboradores] = await pool.query(
+      'SELECT COUNT(*) as total FROM obra_usuarios WHERE obra_id = ?',
+      [obra_id]
+    );
+    if (totalColaboradores[0].total >= limites.max_colaboradores) {
+      return res.status(403).json({
+        error: `Esta obra ya tiene el máximo de ${limites.max_colaboradores} colaboradores para su plan.`,
+        codigo: 'LIMITE_PLAN'
+      });
     }
 
     const usuario = usuarios[0];

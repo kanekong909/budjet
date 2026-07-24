@@ -5,6 +5,22 @@ const { registrarAuditoria } = require('../middleware/auditoria');
 
 router.use(authMiddleware);
 
+async function obtenerLimitesPlan(usuarioId) {
+  const [rows] = await pool.query(`
+    SELECT p.max_obras, p.max_colaboradores, p.permite_pdf, p.permite_auditoria, s.fecha_vencimiento
+    FROM suscripciones s
+    JOIN planes p ON p.id = s.plan_id
+    WHERE s.usuario_id = ? AND s.estado = 'activa'
+  `, [usuarioId]);
+
+  if (!rows.length || new Date(rows[0].fecha_vencimiento) < new Date()) {
+    // Sin suscripción activa (o vencida) = plan gratis. Ajusta estos
+    // números a lo que de verdad quieras regalar en el plan gratis.
+    return { max_obras: 1, max_colaboradores: 3, permite_pdf: false, permite_auditoria: false };
+  }
+  return rows[0];
+}
+
 // GET /api/obras - Listar obras del usuario
 router.get('/', async (req, res) => {
   try {
@@ -41,6 +57,18 @@ router.post('/', async (req, res) => {
     const { nombre, descripcion, ubicacion, presupuesto, moneda } = req.body;
     if (!nombre) return res.status(400).json({ error: 'El nombre es requerido' });
 
+    const limites = await obtenerLimitesPlan(req.usuario.id);
+    const [misObras] = await pool.query(
+      "SELECT COUNT(*) as total FROM obra_usuarios WHERE usuario_id = ? AND rol = 'admin'",
+      [req.usuario.id]
+    );
+    if (misObras[0].total >= limites.max_obras) {
+      return res.status(403).json({
+        error: `Tu plan permite hasta ${limites.max_obras} obra(s). Actualiza tu plan para crear más.`,
+        codigo: 'LIMITE_PLAN'
+      });
+    }
+
     const [result] = await pool.query(
       'INSERT INTO obras (nombre, descripcion, ubicacion, presupuesto, moneda, creador_id) VALUES (?, ?, ?, ?, ?, ?)',
       [nombre, descripcion || null, ubicacion || null, presupuesto || 0, moneda || 'COP', req.usuario.id]
@@ -49,7 +77,7 @@ router.post('/', async (req, res) => {
     // Agregar creador como admin de la obra
     await pool.query(
       'INSERT INTO obra_usuarios (obra_id, usuario_id, rol) VALUES (?, ?, "admin")',
-      [result.insertId, req.usuario.id]
+      [result.insertId, req.usuario.id] const limites = await obtenerLimitesPlan(req.usuario.id);
     );
 
     const [obra] = await pool.query('SELECT * FROM obras WHERE id = ?', [result.insertId]);
@@ -156,7 +184,6 @@ router.get('/:id/resumen', async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
-
 
 // GET /api/obras/:id/colaboradores
 router.get('/:id/colaboradores', async (req, res) => {
@@ -310,6 +337,13 @@ router.get('/:id/auditoria', async (req, res) => {
     );
     if (!acceso.length) return res.status(403).json({ error: 'Sin acceso' });
     if (acceso[0].rol !== 'admin') return res.status(403).json({ error: 'Solo el administrador puede ver la auditoría' });
+    const limites = await obtenerLimitesPlan(req.usuario.id);
+    if (!limites.permite_auditoria) {
+      return res.status(403).json({
+        error: 'La auditoría no está disponible en tu plan actual.',
+        codigo: 'LIMITE_PLAN'
+      });
+    }
 
     const { usuario_id, accion, entidad, fecha_desde, fecha_hasta } = req.query;
     const condiciones = ['obra_id = ?'];

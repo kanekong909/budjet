@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
+const pagosRouter = require('./pagos');
 
 // Middleware: solo superadmin
 function soloSuperadmin(req, res, next) {
@@ -244,6 +245,62 @@ router.get('/exportar', async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="auditoria.csv"');
     res.send('\uFEFF' + csv);
   } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// GET /api/admin/pagos-pendientes — solicitudes de transferencia
+// esperando revisión (estado pendiente o en_revision)
+router.get('/pagos-pendientes', async (req, res) => {
+  try {
+    const [pagos] = await pool.query(`
+      SELECT p.*, u.nombre AS usuario_nombre, u.email AS usuario_email, pl.nombre AS plan_nombre
+      FROM pagos p
+      LEFT JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN planes pl ON pl.id = p.plan_id
+      WHERE p.metodo = 'transferencia' AND p.estado IN ('pendiente', 'en_revision')
+      ORDER BY p.creado_en ASC
+    `);
+    res.json(pagos);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// POST /api/admin/pagos/:id/aprobar
+router.post('/pagos/:id/aprobar', async (req, res) => {
+  try {
+    const [pagos] = await pool.query('SELECT * FROM pagos WHERE id = ?', [req.params.id]);
+    if (!pagos.length) return res.status(404).json({ error: 'Pago no encontrado' });
+    const pago = pagos[0];
+    if (pago.estado === 'aprobado') return res.status(400).json({ error: 'Ya estaba aprobado' });
+
+    await pagosRouter.activarSuscripcion(pago.usuario_id, pago.plan_id);
+    await pool.query(
+      "UPDATE pagos SET estado = 'aprobado', revisado_en = NOW(), revisado_por = ? WHERE id = ?",
+      [req.usuario.nombre, req.params.id]
+    );
+    res.json({ mensaje: 'Pago aprobado, suscripción activada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// POST /api/admin/pagos/:id/rechazar
+router.post('/pagos/:id/rechazar', async (req, res) => {
+  try {
+    const [pagos] = await pool.query('SELECT * FROM pagos WHERE id = ?', [req.params.id]);
+    if (!pagos.length) return res.status(404).json({ error: 'Pago no encontrado' });
+
+    await pool.query(
+      "UPDATE pagos SET estado = 'rechazado', revisado_en = NOW(), revisado_por = ? WHERE id = ?",
+      [req.usuario.nombre, req.params.id]
+    );
+    res.json({ mensaje: 'Pago rechazado' });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
