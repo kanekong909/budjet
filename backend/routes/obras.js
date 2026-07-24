@@ -52,6 +52,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/obras - Crear obra
+// POST /api/obras - Crear obra
 router.post('/', async (req, res) => {
   try {
     const { nombre, descripcion, ubicacion, presupuesto, moneda } = req.body;
@@ -77,7 +78,7 @@ router.post('/', async (req, res) => {
     // Agregar creador como admin de la obra
     await pool.query(
       'INSERT INTO obra_usuarios (obra_id, usuario_id, rol) VALUES (?, ?, "admin")',
-      [result.insertId, req.usuario.id] const limites = await obtenerLimitesPlan(req.usuario.id);
+      [result.insertId, req.usuario.id]
     );
 
     const [obra] = await pool.query('SELECT * FROM obras WHERE id = ?', [result.insertId]);
