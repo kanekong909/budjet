@@ -4,25 +4,44 @@ const { authMiddleware } = require('../middleware/auth');
 const crypto = require('crypto');
 const multer = require('multer');
 
-// ⚠️ QUITAR: router.use(authMiddleware); (Se aplica por ruta para dejar el webhook público)
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 }
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    // Permite imágenes (y si deseas permitir PDFs para comprobantes de transferencia, agregamos la condición)
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Formato no permitido. Sube una imagen o un archivo PDF.'));
+    }
+  }
 });
 
-async function subirComprobante(buffer, mimetype) {
-  if (!process.env.CLOUDINARY_API_KEY) return null;
+async function subirComprobante(buffer) {
+  if (!process.env.CLOUDINARY_API_KEY) {
+    console.error('❌ Falta CLOUDINARY_API_KEY en las variables de entorno.');
+    return null;
+  }
+
   const cloudinary = require('cloudinary').v2;
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
   });
+
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: 'trackob-comprobantes', resource_type: 'auto' },
-      (error, result) => error ? reject(error) : resolve(result.secure_url)
+      { folder: 'trackob-comprobantes', resource_type: 'auto' }, // auto permite PDF e imágenes
+      (error, result) => {
+        if (error) {
+          console.error('❌ Error de Cloudinary:', error);
+          reject(error);
+        } else {
+          resolve(result.secure_url);
+        }
+      }
     );
     stream.end(buffer);
   });
@@ -142,22 +161,27 @@ router.post('/:referencia/comprobante', authMiddleware, upload.single('comproban
   try {
     const [pagos] = await pool.query('SELECT * FROM pagos WHERE referencia = ?', [req.params.referencia]);
     if (!pagos.length) return res.status(404).json({ error: 'Solicitud de pago no encontrada' });
+    
     const pago = pagos[0];
     if (pago.usuario_id !== req.usuario.id) return res.status(403).json({ error: 'Sin acceso' });
     if (pago.estado !== 'pendiente') return res.status(400).json({ error: 'Esta solicitud ya no está pendiente' });
     if (!req.file) return res.status(400).json({ error: 'Adjunta el comprobante' });
 
-    const url = await subirComprobante(req.file.buffer, req.file.mimetype);
-    if (!url) return res.status(500).json({ error: 'No se pudo subir el comprobante' });
+    // Subir a Cloudinary usando el buffer
+    const url = await subirComprobante(req.file.buffer);
+    if (!url) {
+      return res.status(500).json({ error: 'Error subiendo comprobante. Verifica las credenciales de Cloudinary.' });
+    }
 
     await pool.query(
       "UPDATE pagos SET comprobante_url = ?, estado = 'en_revision' WHERE id = ?",
       [url, pago.id]
     );
-    res.json({ mensaje: 'Comprobante recibido, en revisión' });
+
+    res.json({ mensaje: 'Comprobante recibido, en revisión', comprobante_url: url });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error del servidor' });
+    console.error('❌ Error en el servidor al subir comprobante:', err);
+    res.status(500).json({ error: err.message || 'Error del servidor' });
   }
 });
 
