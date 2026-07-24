@@ -3,7 +3,8 @@ const { pool } = require('../config/db');
 const { authMiddleware } = require('../middleware/auth');
 const crypto = require('crypto');
 const multer = require('multer');
-router.use(authMiddleware);
+
+// ⚠️ QUITAR: router.use(authMiddleware); (Se aplica por ruta para dejar el webhook público)
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -27,8 +28,8 @@ async function subirComprobante(buffer, mimetype) {
   });
 }
 
-// GET /api/pagos/planes
-router.get('/planes', async (req, res) => {
+// GET /api/pagos/planes (con o sin auth)
+router.get('/planes', authMiddleware, async (req, res) => {
   try {
     const [planes] = await pool.query('SELECT * FROM planes WHERE activo = 1 ORDER BY precio_mensual ASC');
     res.json(planes);
@@ -39,7 +40,7 @@ router.get('/planes', async (req, res) => {
 });
 
 // GET /api/pagos/mi-plan
-router.get('/mi-plan', async (req, res) => {
+router.get('/mi-plan', authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT s.*, p.nombre AS plan_nombre, p.precio_mensual,
@@ -59,8 +60,8 @@ router.get('/mi-plan', async (req, res) => {
   }
 });
 
-// GET /api/pagos/mis-pagos — historial + solicitudes pendientes del usuario
-router.get('/mis-pagos', async (req, res) => {
+// GET /api/pagos/mis-pagos
+router.get('/mis-pagos', authMiddleware, async (req, res) => {
   try {
     const [pagos] = await pool.query(`
       SELECT p.*, pl.nombre AS plan_nombre
@@ -79,9 +80,8 @@ function generarReferencia(usuarioId, planId) {
   return `${usuarioId}_${planId}_${Date.now()}`;
 }
 
-// POST /api/pagos/iniciar-wompi — arma la firma de integridad para el
-// checkout de Wompi (listo para cuando te aprueben la cuenta)
-router.post('/iniciar-wompi', async (req, res) => {
+// POST /api/pagos/iniciar-wompi
+router.post('/iniciar-wompi', authMiddleware, async (req, res) => {
   try {
     const { plan_id } = req.body;
     if (!process.env.WOMPI_INTEGRITY_SECRET) {
@@ -109,8 +109,8 @@ router.post('/iniciar-wompi', async (req, res) => {
   }
 });
 
-// POST /api/pagos/transferencia — solicitar pago por transferencia manual
-router.post('/transferencia', async (req, res) => {
+// POST /api/pagos/transferencia
+router.post('/transferencia', authMiddleware, async (req, res) => {
   try {
     const { plan_id } = req.body;
     const [planes] = await pool.query('SELECT * FROM planes WHERE id = ? AND activo = 1', [plan_id]);
@@ -137,8 +137,8 @@ router.post('/transferencia', async (req, res) => {
   }
 });
 
-// POST /api/pagos/:referencia/comprobante — subir el soporte de pago
-router.post('/:referencia/comprobante', upload.single('comprobante'), async (req, res) => {
+// POST /api/pagos/:referencia/comprobante
+router.post('/:referencia/comprobante', authMiddleware, upload.single('comprobante'), async (req, res) => {
   try {
     const [pagos] = await pool.query('SELECT * FROM pagos WHERE referencia = ?', [req.params.referencia]);
     if (!pagos.length) return res.status(404).json({ error: 'Solicitud de pago no encontrada' });
@@ -161,8 +161,6 @@ router.post('/:referencia/comprobante', upload.single('comprobante'), async (req
   }
 });
 
-// Activa/renueva la suscripción de un usuario a un plan por 30 días.
-// La usan tanto el webhook de Wompi como la aprobación manual del superadmin.
 async function activarSuscripcion(usuarioId, planId) {
   const vencimiento = new Date();
   vencimiento.setDate(vencimiento.getDate() + 30);
@@ -177,9 +175,7 @@ async function activarSuscripcion(usuarioId, planId) {
   `, [usuarioId, planId, vencimiento.toISOString().split('T')[0]]);
 }
 
-// POST /api/pagos/webhook — Wompi notifica el pago
-// Verificación real de Wompi: SHA256(valores de signature.properties en
-// orden + timestamp + WOMPI_EVENTS_SECRET). Ver docs.wompi.co/events
+// POST /api/pagos/webhook — PÚBLICO (Sin authMiddleware)
 router.post('/webhook', async (req, res) => {
   try {
     const { event, data, signature, timestamp } = req.body;
@@ -202,7 +198,7 @@ router.post('/webhook', async (req, res) => {
     }
 
     if (event === 'transaction.updated' && data.transaction.status === 'APPROVED') {
-      const ref = data.transaction.reference; // formato: userId_planId_timestamp
+      const ref = data.transaction.reference;
       const [userId, planId] = ref.split('_');
 
       await activarSuscripcion(userId, planId);
@@ -221,10 +217,6 @@ router.post('/webhook', async (req, res) => {
   }
 });
 
-// activarSuscripcion queda accesible como propiedad del router, para que
-// routes/admin.js pueda reutilizarla al aprobar un pago manual:
-//   const pagosRouter = require('./pagos');
-//   await pagosRouter.activarSuscripcion(usuarioId, planId);
 router.activarSuscripcion = activarSuscripcion;
 
 module.exports = router;
